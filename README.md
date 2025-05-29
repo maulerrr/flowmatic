@@ -6,7 +6,7 @@
 
 Here’s a high-level diagram of the Flowmatic preprocessing workflow:
 
-![Flowmatic Pipeline](docs\images\flowmatic-pipeline.jpg)
+![Flowmatic Pipeline](docs/images/flowmatic-pipeline.jpg)
 
 ## Features
 
