@@ -7,3 +7,6 @@ datasets
 tqdm
 streamlit
 openai
+huggingface_hub
+sqlalchemy
+psycopg2-binary
