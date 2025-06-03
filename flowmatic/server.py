@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 import openai
+import uvicorn
 from flowmatic.ingestion import ingest
 from flowmatic.quality_check import quality_report, detect_outliers_zscore
 from flowmatic.cleaning import clean
@@ -232,3 +233,12 @@ async def post_upload_db(
         msg = urllib.parse.quote(str(e))
         params = urllib.parse.urlencode({"db_status": "error", "db_msg": msg})
         return RedirectResponse(url=f"/results/{data_id}?{params}", status_code=302)
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "flowmatic.server:app",  # module:app
+        host="0.0.0.0",
+        port=5124,
+        reload=True,            
+    )
