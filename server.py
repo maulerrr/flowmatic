@@ -235,7 +235,7 @@ async def post_upload_db(
 
 if __name__ == "__main__":
     uvicorn.run(
-        "flowmatic:app",  # module:app
+        "server:app",  # module:app
         host="0.0.0.0",
         port=5124,
         reload=True,            
