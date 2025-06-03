@@ -1,5 +1,3 @@
-# flowmatic/server.py
-
 import os
 import uuid
 import tempfile
@@ -237,7 +235,7 @@ async def post_upload_db(
 
 if __name__ == "__main__":
     uvicorn.run(
-        "flowmatic.server:app",  # module:app
+        "app",  # module:app
         host="0.0.0.0",
         port=5124,
         reload=True,            
