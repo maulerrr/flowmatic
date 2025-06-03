@@ -1,5 +1,3 @@
-# flowmatic/streamlit_app.py
-
 import os
 import pandas as pd
 import streamlit as st
