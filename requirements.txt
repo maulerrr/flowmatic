@@ -10,3 +10,8 @@ openai
 huggingface_hub
 sqlalchemy
 psycopg2-binary
+
+fastapi
+uvicorn
+jinja2
+python-multipart

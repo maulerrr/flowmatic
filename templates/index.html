@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Flowmatic</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- Toast container (fixed top-right) -->
+  <div id="toast-container" class="fixed top-5 right-5 space-y-2 z-50">
+    {% if request.query_params.get("hf_status") == "success" %}
+      <div id="toast-hf-success" class="flex items-center bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg" role="alert">
+        <div class="flex-grow">🎉 Successfully pushed to Hugging Face!</div>
+        <button onclick="hideToast('toast-hf-success')" class="text-green-700 hover:text-green-900">&times;</button>
+      </div>
+    {% endif %}
+    {% if request.query_params.get("hf_status") == "error" %}
+      <div id="toast-hf-error" class="flex items-center bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg" role="alert">
+        <div class="flex-grow">❌ Failed to push to HF: {{ request.query_params.get('hf_msg') }}</div>
+        <button onclick="hideToast('toast-hf-error')" class="text-red-700 hover:text-red-900">&times;</button>
+      </div>
+    {% endif %}
+    {% if request.query_params.get("db_status") == "success" %}
+      <div id="toast-db-success" class="flex items-center bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg" role="alert">
+        <div class="flex-grow">🎉 Data uploaded to PostgreSQL successfully!</div>
+        <button onclick="hideToast('toast-db-success')" class="text-green-700 hover:text-green-900">&times;</button>
+      </div>
+    {% endif %}
+    {% if request.query_params.get("db_status") == "error" %}
+      <div id="toast-db-error" class="flex items-center bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg" role="alert">
+        <div class="flex-grow">❌ Failed to upload to PostgreSQL: {{ request.query_params.get('db_msg') }}</div>
+        <button onclick="hideToast('toast-db-error')" class="text-red-700 hover:text-red-900">&times;</button>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="max-w-4xl mx-auto py-8 px-4">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-blue-600">Flowmatic</h1>
+      <p class="mt-2 text-gray-600">Time‐Series Data Preprocessing for Smart Cities</p>
+    </div>
+
+    {% if initial %}
+      <!-- Upload / HF selection form -->
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Upload Data</h2>
+        <form action="/process" enctype="multipart/form-data" method="post" class="space-y-6">
+
+          <!-- Choice: Upload or HF with logos -->
+          <div class="flex items-center space-x-6">
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="radio" name="source_type" value="upload" checked
+                     onclick="toggleSource('upload')" class="form-radio text-blue-600" />
+              <img src="/static/icons/upload.svg" alt="Upload" class="h-6 w-6 ml-2"/>
+              <span class="ml-2 text-gray-700">Upload File</span>
+            </label>
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="radio" name="source_type" value="hf"
+                     onclick="toggleSource('hf')" class="form-radio text-blue-600" />
+              <img src="/static/icons/huggingface.svg" alt="Hugging Face" class="h-6 w-6 ml-2"/>
+              <span class="ml-2 text-gray-700">Hugging Face</span>
+            </label>
+          </div>
+
+          <!-- Upload File section -->
+          <div id="div-upload" class="space-y-4 pt-4">
+            <label class="block text-sm font-medium mb-1">Upload CSV/JSON:</label>
+            <input type="file" name="upload_file" accept=".csv,.json"
+                   class="block w-full text-sm text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-md file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          hover:file:bg-blue-100"/>
+          </div>
+
+          <!-- Hugging Face section -->
+          <div id="div-hf" class="space-y-4 pt-4 hidden">
+            <div>
+              <label class="block text-sm font-medium mb-1">Hugging Face Dataset ID:</label>
+              <input type="text" name="hf_dataset" placeholder="e.g. user/smart-city-traffic"
+                     class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
+            </div>
+            <div class="flex items-center space-x-2">
+              <div class="flex-1">
+                <label class="block text-sm font-medium mb-1">Split:</label>
+                <select name="hf_split" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm">
+                  <option value="train">train</option>
+                  <option value="test">test</option>
+                  <option value="validation">validation</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <label class="block text-sm font-medium mb-1">HF Token (optional):</label>
+                <input type="password" name="hf_token"
+                       class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit"
+                  class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold
+                         py-2 px-4 rounded-md transition">
+            Load & Process Data
+          </button>
+        </form>
+      </div>
+
+    {% else %}
+      <!-- Results page: show quality insights, cleaned data, and export choices -->
+      <div class="space-y-6">
+
+        <!-- Data Quality Insights -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h2 class="text-xl font-semibold mb-4">Data Quality Insights</h2>
+
+          <!-- Duplicate row count -->
+          <p class="mb-2 text-sm text-gray-700">
+            <strong>Duplicate rows:</strong> {{ duplicates_cnt }}
+          </p>
+
+          <!-- Outlier row count -->
+          <p class="mb-2 text-sm text-gray-700">
+            <strong>Outlier rows (|Z| > 3):</strong> {{ outliers_cnt }}
+          </p>
+
+          <!-- Missing values table -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="px-4 py-2 text-left font-medium text-gray-700">Column</th>
+                  <th class="px-4 py-2 text-left font-medium text-gray-700">Missing Count</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                {% for col, count in missing_dict.items() %}
+                  <tr>
+                    <td class="px-4 py-2">{{ col }}</td>
+                    <td class="px-4 py-2">{{ count }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Cleaned Data Preview -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h2 class="text-xl font-semibold mb-4">Cleaned Data Preview</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  {% for col in columns %}
+                    <th class="px-4 py-2 text-left font-medium text-gray-700">{{ col }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                {% for row in cleaned_head %}
+                  <tr>
+                    {% for col in columns %}
+                      <td class="px-4 py-2">{{ row[col] }}</td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Download Buttons -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h2 class="text-xl font-semibold mb-4">Download Cleaned Data</h2>
+          <div class="flex space-x-4">
+            <a href="/download/{{ data_id }}?fmt=csv"
+               class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold
+                      py-2 px-4 rounded-md transition">
+              Download CSV
+            </a>
+            <a href="/download/{{ data_id }}?fmt=json"
+               class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold
+                      py-2 px-4 rounded-md transition">
+              Download JSON
+            </a>
+          </div>
+        </div>
+
+        <!-- Export Choice: HF or PostgreSQL (with logos) -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h2 class="text-xl font-semibold mb-4">Export Options</h2>
+
+          <!-- Radio Buttons to choose export, with logos -->
+          <div class="flex items-center space-x-6">
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="radio" name="export_type" value="hf" checked
+                     onclick="toggleExport('hf')" class="form-radio text-blue-600" />
+              <img src="/static/icons/huggingface.svg" alt="HF" class="h-6 w-6 ml-2"/>
+              <span class="ml-2 text-gray-700">Push to Hugging Face</span>
+            </label>
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="radio" name="export_type" value="db"
+                     onclick="toggleExport('db')" class="form-radio text-blue-600" />
+              <img src="/static/icons/postgresql.svg" alt="Postgres" class="h-6 w-6 ml-2"/>
+              <span class="ml-2 text-gray-700">Upload to PostgreSQL</span>
+            </label>
+          </div>
+
+          <!-- Push to HF form -->
+          <div id="div-hf-export" class="space-y-4 pt-4">
+            <form action="/push_hf" method="post" class="space-y-4">
+              <input type="hidden" name="data_id" value="{{ data_id }}"/>
+              <div>
+                <label class="block text-sm font-medium mb-1">HF Token:</label>
+                <input type="password" name="hf_token"
+                       class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
+                       required/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Repo Name:</label>
+                <input type="text" name="hf_repo_name" placeholder="username/flowmatic_dataset"
+                       class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
+                       required/>
+              </div>
+              <button type="submit"
+                      class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold
+                             py-2 px-4 rounded-md transition">
+                Push to HF
+              </button>
+            </form>
+          </div>
+
+          <!-- Upload to PostgreSQL form (initially hidden) -->
+          <div id="div-db-export" class="space-y-4 pt-4 hidden">
+            <form action="/upload_db" method="post" class="space-y-4">
+              <input type="hidden" name="data_id" value="{{ data_id }}"/>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1">Host:</label>
+                  <input type="text" name="pg_host" value="localhost"
+                         class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Port:</label>
+                  <input type="number" name="pg_port" value="5432"
+                         class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Database Name:</label>
+                  <input type="text" name="pg_db" value="flowmatic"
+                         class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Username:</label>
+                  <input type="text" name="pg_user" value="postgres"
+                         class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Password:</label>
+                  <input type="password" name="pg_pass"
+                         class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Table Name:</label>
+                  <input type="text" name="pg_table" value="test"
+                         class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
+                </div>
+              </div>
+
+              <button type="submit"
+                      class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold
+                             py-2 px-4 rounded-md transition">
+                Upload to PostgreSQL
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Back to upload more data -->
+        <div class="text-center pt-4">
+          <a href="/" class="text-blue-600 hover:underline">← Process another dataset</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Toast auto-hide script & source/export toggle script -->
+  <script>
+    function hideToast(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        ['toast-hf-success','toast-hf-error','toast-db-success','toast-db-error'].forEach(hideToast);
+      }, 5000);
+    });
+
+    function toggleSource(selected) {
+      const uploadDiv = document.getElementById("div-upload");
+      const hfDiv = document.getElementById("div-hf");
+      if (selected === "upload") {
+        uploadDiv.classList.remove("hidden");
+        hfDiv.classList.add("hidden");
+      } else {
+        uploadDiv.classList.add("hidden");
+        hfDiv.classList.remove("hidden");
+      }
+    }
+
+    function toggleExport(selected) {
+      const hfExportDiv = document.getElementById("div-hf-export");
+      const dbExportDiv = document.getElementById("div-db-export");
+      if (selected === "hf") {
+        hfExportDiv.classList.remove("hidden");
+        dbExportDiv.classList.add("hidden");
+      } else {
+        hfExportDiv.classList.add("hidden");
+        dbExportDiv.classList.remove("hidden");
+      }
+    }
+  </script>
+</body>
+</html>
