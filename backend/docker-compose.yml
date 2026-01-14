@@ -1,0 +1,36 @@
+services:
+  minio:
+    container_name: flowmatic-minio
+    image: minio/minio:RELEASE.2025-02-18T16-25-55Z
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web UI
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+    volumes:
+      - minio-data:/data
+    command: server --console-address ":9001" /data
+    restart: unless-stopped
+    env_file:
+      - ./.env
+
+  rabbitmq:
+    container_name: flowmatic-rabbitmq
+    image: rabbitmq:3.13-management
+    restart: unless-stopped
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"        # AMQP
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    env_file:
+      - ./.env
+
+volumes:
+  postgres-data:
+  minio-data:
+  rabbitmq-data:

@@ -1,0 +1,30 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install backend dependencies
+        run: bun install
+
+      - name: Run backend lint
+        run: bun lint
+
+      - name: Build backend
+        run: bun run build

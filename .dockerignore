@@ -1,0 +1,54 @@
+# ─── VCS & metadata ───────────────────────────────────────────────────────────
+.git
+.gitignore
+.DS_Store
+Thumbs.db
+
+# ─── Docker & Compose ──────────────────────────────────────────────────────────
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# ─── Environment files ─────────────────────────────────────────────────────────
+.env
+.env.*.local
+
+# ─── Dependencies (anywhere in the tree) ────────────────────────────────────────
+**/node_modules
+.pnpm-store
+.yarn
+.yarn-cache
+.npm
+
+# ─── Build outputs (both frontend & backend) ───────────────────────────────────
+**/dist
+**/build
+
+# If you’ve explicitly named your folders:
+# frontend/dist
+# backend/dist
+# frontend/build
+# backend/build
+
+# ─── Test & coverage reports ───────────────────────────────────────────────────
+**/coverage
+coverage
+nyc_output
+
+# ─── Caches & temp files ───────────────────────────────────────────────────────
+**/.cache
+.cache
+.vite
+*.tmp
+
+# ─── Logs ──────────────────────────────────────────────────────────────────────
+logs
+*.log
+
+# ─── IDEs & editors ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln

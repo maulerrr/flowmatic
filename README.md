@@ -1,6 +1,53 @@
-# Flowmatic
+# Flowmatic - Intelligent Data Preparation Platform
 
-**Flowmatic** is an end-to-end, modular pipeline for time-series data preprocessing in smart-city environments. It provides tools to ingest raw sensor streams (CSV/JSON or Hugging Face datasets), automatically detect data-quality issues (missing values, duplicates, outliers), clean or impute those anomalies, and serve the results via a minimal FastAPI web interface. Optional integration with the OpenAI API enables automated explanations of detected anomalies.
+An end-to-end data preparation platform with NestJS backend and Vue 3 frontend.
+
+## 🏗️ Architecture
+
+- **Backend**: NestJS (TypeScript)
+- **Frontend**: Vue 3 + TypeScript + Vite
+- **Database**: SQLite (development) / PostgreSQL (production)
+- **Data Processing**: Native TypeScript with statistical analysis
+- **Runtime**: Bun (fast JavaScript runtime)
+
+## 📋 Prerequisites
+
+- [Bun](https://bun.sh) 1.0+
+- Git
+
+## 🚀 Quick Start
+
+### Install Bun (if not already installed)
+
+```bash
+# Windows
+powershell -c "irm bun.sh/install.ps1|iex"
+
+# macOS/Linux
+curl -fsSL https://bun.sh/install | bash
+```
+
+### Backend Setup
+
+```bash
+cd backend
+bun install
+cp .env.example .env
+bun run start:dev
+```
+
+Backend runs on `http://localhost:3000`
+API docs available at `http://localhost:3000/api`
+
+### Frontend Setup
+
+```bash
+cd frontend
+bun install
+bun run dev
+```
+
+Frontend runs on `http://localhost:5173`
 
 ---
 
@@ -26,6 +73,27 @@ Here’s a high-level diagram of the Flowmatic preprocessing workflow:
   – Push cleaned data to a Hugging Face Hub dataset or upload to PostgreSQL
 * **OpenAI Anomaly Explanations (Optional)**
   – Ask the model to interpret potential real-world causes of outliers (if API key is configured)
+
+---
+
+## Platform Extensions (New)
+
+Flowmatic now includes a lightweight platform layer for managing multiple datasets, reproducible pipelines, and model artifacts:
+
+* **Dataset Registry (SQLite)** – Track datasets, their versions, and provenance (`flowmatic/store.py`).
+* **Pipeline Orchestration** – Define and run composable steps (ingest → quality → clean) with artifacts and metrics saved per run (`flowmatic/pipeline.py`).
+* **Artifacts & Runs** – Artifacts saved under `data/runs/<version>/` and status recorded as succeeded/failed with metrics.
+* **Model Artifacts** – Train baseline models on cleaned data and save under `models/` with metadata (`flowmatic/models/anomaly.py`).
+* **API Endpoints** – List datasets and trigger pipeline runs from the browser or programmatically.
+
+Quick endpoints:
+
+```
+GET  /datasets                 # List discovered cleaned dataset files
+POST /pipelines/run            # Start default pipeline on local path or HF dataset
+    Form fields: path | hf_dataset, hf_split, hf_token, dataset_name, version
+GET  /download_artifacts?dir=… # Browse run artifacts (served from /data)
+```
 
 ---
 
@@ -81,9 +149,145 @@ Here’s a high-level diagram of the Flowmatic preprocessing workflow:
    pip install -r requirements.txt
    ```
 
----
+## 📁 Project Structure
 
-## Configuration
+```
+flowmatic/
+├── backend/                    # NestJS backend
+│   ├── src/
+│   │   ├── entities/          # TypeORM entities
+│   │   ├── modules/
+│   │   │   ├── ingestion/     # Data loading (CSV, JSON, HF, URLs)
+│   │   │   ├── quality/       # Quality analysis
+│   │   │   ├── cleaning/      # Data cleaning
+│   │   │   ├── pipeline/      # Pipeline orchestration
+│   │   │   ├── export/        # Data export
+│   │   │   └── storage/       # Dataset registry
+│   │   ├── app.module.ts
+│   │   └── main.ts
+│   ├── package.json
+│   └── tsconfig.json
+├── frontend/                   # Vue 3 frontend
+│   ├── src/
+│   │   ├── assets/            # Styles
+│   │   ├── components/        # Vue components
+│   │   ├── views/             # Page views
+│   │   ├── router/            # Vue router
+│   │   ├── services/          # API client
+│   │   ├── App.vue
+│   │   └── main.ts
+│   ├── package.json
+│   └── vite.config.ts
+├── archive-python/             # Original Python implementation
+├── docs/                       # Documentation
+└── README.md
+```
+
+## 🔌 API Endpoints
+
+### Ingestion
+- `POST /ingestion/upload` - Upload file
+- `POST /ingestion/url` - Ingest from URL
+- `POST /ingestion/huggingface` - Ingest from HuggingFace
+
+### Pipelines
+- `POST /pipelines/run` - Run data preparation pipeline
+- `GET /pipelines/runs` - List all pipeline runs
+- `GET /pipelines/runs/:id` - Get pipeline run details
+
+### Export
+- `POST /export/csv` - Export as CSV
+- `POST /export/json` - Export as JSON
+- `POST /export/huggingface` - Push to HuggingFace
+- `POST /export/database` - Export to database
+
+## 🎯 Features
+
+### Data Ingestion
+- CSV/JSON file upload
+- URL-based ingestion
+- HuggingFace datasets
+- Automatic datetime detection
+- Schema inference
+
+### Quality Analysis
+- Missing value detection
+- Duplicate identification
+- Outlier detection (Z-score)
+- Column type classification
+- Statistical summaries
+
+### Data Cleaning
+- Duplicate removal
+- Missing value imputation
+- Outlier handling (winsorization)
+- Adaptive strategies
+
+### Pipeline Orchestration
+- Reproducible workflows
+- Artifact storage
+- Metrics tracking
+- Dataset versioning
+
+## 🛠️ Development
+
+### Backend Commands
+
+```bash
+bun run start:dev    # Development with hot reload
+bun run build        # Build for production
+bun run start:prod   # Run production build
+bun run lint         # Lint code
+bun run test         # Run tests
+```
+
+### Frontend Commands
+
+```bash
+bun run dev          # Development server
+bun run build        # Build for production
+bun run preview      # Preview production build
+bun run lint         # Lint code
+```
+
+## 🌐 Environment Variables
+
+### Backend (.env)
+
+```env
+PORT=3000
+DB_TYPE=sqlite
+DB_DATABASE=flowmatic.db
+UPLOAD_DIR=./uploads
+ARTIFACTS_DIR=./data/runs
+HF_TOKEN=your_huggingface_token
+CORS_ORIGIN=http://localhost:5173
+```
+
+## 📊 Usage Workflow
+
+1. **Upload Data**: Navigate to Upload page and select your data source
+2. **Process**: Pipeline automatically runs quality checks and cleaning
+3. **Review**: View quality metrics and cleaning statistics
+4. **Export**: Download cleaned data or export to external services
+
+## 🔄 Migration from Python
+
+The original Python implementation has been archived in `archive-python/`. All functionality has been migrated to TypeScript with:
+
+- Improved type safety
+- Better async handling
+- Cleaner architecture
+- Modern web stack
+- Bun runtime for blazing fast performance
+
+## 📝 License
+
+MIT
+
+## 🤝 Contributing
+
+Contributions welcome! Please open an issue or PR.
 
 ### Environment Variables
 
@@ -145,6 +349,20 @@ This is the primary interface for Flowmatic. It lets you upload or load data, vi
 
    * **Toast Notifications**
      Success or failure of an HF push or DB upload shows a small “toast” message in the top right, which automatically hides after 5 seconds.
+
+#### Pipelines & Models
+
+To run the default pipeline on a file without using the form:
+
+```
+curl -X POST -F path="data/raw/your_file.csv" http://127.0.0.1:8000/pipelines/run
+```
+
+To train a baseline anomaly detector on a cleaned dataset:
+
+```
+C:/Users/BG/Desktop/flowmatic/.venv/Scripts/python.exe data/model/train.py --path data/cleaned/cleaned.csv --outdir models
+```
 
 ---
 

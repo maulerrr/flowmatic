@@ -1,0 +1,48 @@
+# ─── Dependencies ────────────────────────────────────────────────────────────
+node_modules
+.pnpm-store       
+.yarn             
+
+# ─── Build output ───────────────────────────────────────────────────────────
+dist
+build
+
+# ─── Local env & config ──────────────────────────────────────────────────────
+.env
+.env.*.local
+.vite               
+.cache           
+
+# ─── Logs & reports ──────────────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+coverage
+nyc_output
+
+# ─── Test artifacts (if you have e2e tests) ───────────────────────────────────
+cypress/videos
+cypress/screenshots
+playwright-report
+
+# ─── Docker files & compose ──────────────────────────────────────────────────
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# ─── Git & VCS ──────────────────────────────────────────────────────────────
+.git
+.gitignore
+
+# ─── IDEs & Editors ─────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ─── OS metadata ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

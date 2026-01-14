@@ -1,0 +1,41 @@
+# dependencies
+node_modules
+# optional npm cache
+.npm
+# lockfiles (you'll typically COPY these explicitly if you want cache benefits)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# local env files
+.env
+.env.*.local
+
+# NestJS build output
+dist
+build
+
+# test coverage
+coverage
+
+# logs
+logs
+*.log
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS files
+.DS_Store
+Thumbs.db

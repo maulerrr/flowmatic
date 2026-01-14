@@ -10,6 +10,7 @@ openai
 huggingface_hub
 sqlalchemy
 psycopg2-binary
+joblib
 
 fastapi
 uvicorn

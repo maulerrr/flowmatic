@@ -1,0 +1,132 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ============================================================================
+// AUTH & ORGANIZATION
+// ============================================================================
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  pipelines   PipelineRun[]
+  storageFiles StorageFile[]
+
+  @@index([slug])
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  password       String?
+  displayName    String?
+  organizationId String
+  role           String   @default("member") // admin, member, viewer
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+// ============================================================================
+// PIPELINE & FILE STORAGE
+// ============================================================================
+
+model PipelineRun {
+  id               String   @id @default(cuid())
+  organizationId   String
+  status           String   @default("queued") // queued, processing, completed, failed
+  sourceFileName   String
+  sourceFileId     String?
+  
+  // Processing stats
+  rowsIngested     Int      @default(0)
+  rowsCleaned      Int      @default(0)
+  rowsErrors       Int      @default(0)
+  processingTimeMs Int      @default(0)
+  
+  // Job tracking
+  jobId            String?  @unique // RabbitMQ job ID
+  errorMessage     String?
+  
+  // Results
+  resultFileId     String?
+  resultFileSize   Int?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sourceFile       StorageFile? @relation("source", fields: [sourceFileId], references: [id])
+  resultFile       StorageFile? @relation("result", fields: [resultFileId], references: [id])
+  exports          PipelineExport[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([jobId])
+}
+
+model StorageFile {
+  id             String   @id @default(cuid())
+  organizationId String
+  fileName       String
+  fileSize       Int
+  mimeType       String
+  s3Key          String   @unique
+  
+  // Reference to runs
+  sourceRuns     PipelineRun[] @relation("source")
+  resultRuns     PipelineRun[] @relation("result")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([createdAt])
+}
+
+model PipelineExport {
+  id               String   @id @default(cuid())
+  pipelineRunId    String
+  adapterType      String   // postgres, mongodb, huggingface, csv, json, parquet
+  destination      String   // where the data was exported (DB name, repo URL, etc)
+  recordsExported  Int      @default(0)
+  metadata         Json     @default("{}")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pipelineRun      PipelineRun @relation(fields: [pipelineRunId], references: [id], onDelete: Cascade)
+
+  @@index([pipelineRunId])
+  @@index([adapterType])
+  @@index([createdAt])
+}

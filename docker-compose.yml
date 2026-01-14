@@ -1,0 +1,333 @@
+services:
+  ########################################################################
+  # 1) Traefik - Reverse Proxy for Automatic HTTPS via Let's Encrypt
+  ########################################################################
+  traefik:
+    image: traefik:latest
+    container_name: itutor-traefik
+    command:
+      - '--api.dashboard=true'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      # Let’s Encrypt ACME config
+      - '--certificatesresolvers.myresolver.acme.httpchallenge=true'
+      - '--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web'
+      - '--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}'
+      - '--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json'
+    ports:
+      - '80:80' # HTTP
+      - '443:443' # HTTPS
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/letsencrypt:/letsencrypt
+    restart: always
+    networks:
+      - app_network
+
+  ########################################################################
+  # 2) Databases and Storage
+  ########################################################################
+  postgres:
+    container_name: itutor-postgres
+    image: postgres:latest
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - itutor-web_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - app_network
+
+  mongodb:
+    container_name: itutor-mongodb
+    image: mongo:7.0
+    restart: unless-stopped
+    ports:
+      - '${MONGO_PORT:-27017}:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongodb-data:/data/db
+    env_file:
+      - ./.env
+    networks:
+      - app_network
+
+  minio:
+    container_name: itutor-minio
+    image: minio/minio:RELEASE.2025-02-18T16-25-55Z
+    ports:
+      - '9000:9000' # S3 API
+      - '9001:9001' # Web UI
+    env_file:
+      - ./.env
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+    volumes:
+      - minio-data:/data
+    command: server --console-address ":9001" /data
+    restart: always
+    networks:
+      - app_network
+
+  # 3) Database Management Tools (Optional for Development)
+  pgadmin:
+    container_name: itutor-pgadmin
+    image: dpage/pgadmin4
+    env_file:
+      - ./.env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PG_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PG_PASSWORD}
+    ports:
+      - '8081:80'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - app_network
+
+  ########################################################################
+  # 4) Backend (Golang Gin)
+  ########################################################################
+  backend:
+    container_name: itutor-backend
+    build:
+      context: ./backend
+      args:
+        # Database
+        DB_USER: ${DB_USER}
+        DB_PASSWORD: ${DB_PASSWORD}
+        DB_NAME: ${DB_NAME}
+        DB_PORT: ${DB_PORT}
+        DB_HOST: ${DB_HOST}
+
+        # PGAdmin
+        PGADMIN_DEFAULT_EMAIL: ${PG_EMAIL}
+        PGADMIN_DEFAULT_PASSWORD: ${PG_PASSWORD}
+
+        # Full connection URL
+        DATABASE_URL: ${DATABASE_URL}
+        # JWT Authentication
+        ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+        ADMIN_JWT_EXPIRATION: ${ADMIN_JWT_EXPIRATION}
+        LEARNER_JWT_SECRET: ${LEARNER_JWT_SECRET}
+        LEARNER_JWT_EXPIRATION: ${LEARNER_JWT_EXPIRATION}
+
+        # Server
+        CLIENT_URL: ${CLIENT_URL}
+        SERVER_PORT: ${SERVER_PORT}
+        USE_STUB_ADAPTER: ${USE_STUB_ADAPTER}
+
+        # WhatsApp
+        WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN}
+        WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID}
+        WHATSAPP_API_VERSION: ${WHATSAPP_API_VERSION}
+
+        # AI Modules
+        OPENAI_API_KEY: ${OPENAI_API_KEY}
+        OPENAI_MODEL: ${OPENAI_MODEL}
+        OPENAI_CHAT_MODEL: ${OPENAI_CHAT_MODEL}
+        OPENAI_CONTENT_MODEL: ${OPENAI_CONTENT_MODEL}
+        OPENAI_IMAGE_MODEL: ${OPENAI_IMAGE_MODEL}
+        OPENAI_TTS_MODEL: ${OPENAI_TTS_MODEL}
+        OPENAI_MAX_TOKENS: ${OPENAI_MAX_TOKENS}
+
+        TTS_ENDPOINT_URL: ${TTS_ENDPOINT_URL}
+        STT_ENDPOINT_URL: ${STT_ENDPOINT_URL}
+        ATLANTI_API_KEY: ${ATLANTI_API_KEY}
+        TTS_FALLBACK_ENDPOINT: ${TTS_FALLBACK_ENDPOINT}
+        ATLANTI_BASE_URL: ${ATLANTI_BASE_URL}
+        ATLANTI_VOICE_API_TOKEN: ${ATLANTI_VOICE_API_TOKEN}
+
+        S3_ACCESS_ENDPOINT: ${S3_ACCESS_ENDPOINT}
+        S3_RESPONSE_ENDPOINT: ${S3_RESPONSE_ENDPOINT}
+        S3_REGION: ${S3_REGION}
+        S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+        S3_SECRET_KEY: ${S3_SECRET_KEY}
+        S3_BUCKET: ${S3_BUCKET}
+        S3_IMAGE_PREFIX: ${S3_IMAGE_PREFIX}
+        S3_AUDIO_PREFIX: ${S3_AUDIO_PREFIX}
+        S3_PATH_STYLE: ${S3_PATH_STYLE}
+
+        MONGO_URI: ${MONGO_URI}
+        MONGO_HOST: ${MONGO_HOST}
+        MONGO_PORT: ${MONGO_PORT}
+        MONGO_USER: ${MONGO_USER}
+        MONGO_PASSWORD: ${MONGO_PASSWORD}
+        MONGO_DB_NAME: ${MONGO_DB_NAME}
+
+        SECURITY_BACKEND_CORS_ORIGINS: ${SECURITY_BACKEND_CORS_ORIGINS}
+        SECURITY_ALLOWED_HOSTS: ${SECURITY_ALLOWED_HOSTS}
+
+        QUEUE_DRIVER: ${QUEUE_DRIVER}
+        QUEUE_DEFAULT_TTL_MS: ${QUEUE_DEFAULT_TTL_MS}
+        RABBITMQ_USER: ${RABBITMQ_USER}
+        RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+        RABBITMQ_HOST: ${RABBITMQ_HOST}
+        RABBITMQ_PORT: ${RABBITMQ_PORT}
+        RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+        RABBITMQ_MANAGEMENT_PORT: ${RABBITMQ_MANAGEMENT_PORT}
+        RABBITMQ_URL: ${RABBITMQ_URL}
+
+        EMBEDDING_ENDPOINT_URL: ${EMBEDDING_ENDPOINT_URL}
+        QDRANT_URL: ${QDRANT_URL}
+    env_file:
+      - ./.env
+    ports:
+      - '8080:8080'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    volumes:
+      - ./backend/logs:/app/logs
+    restart: always
+    networks:
+      - app_network
+
+  ########################################################################
+  # 5) Frontend (Vite Vue 3) w/ Nginx
+  ########################################################################
+  frontend:
+    container_name: itutor-frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        NGINX_SERVER_NAME: ${NGINX_SERVER_NAME}
+    env_file:
+      - ./.env
+    restart: always
+    networks:
+      - app_network
+    depends_on:
+      backend:
+        condition: service_started
+    labels:
+      - "traefik.enable=true"
+
+      # HTTPS router
+      - "traefik.http.routers.frontend-https.rule=Host(`$NGINX_SERVER_NAME`)"
+      - "traefik.http.routers.frontend-https.entrypoints=websecure"
+      - "traefik.http.routers.frontend-https.tls=true"
+      - "traefik.http.routers.frontend-https.tls.certresolver=myresolver"
+
+      # HTTP → HTTPS redirect
+      - "traefik.http.routers.frontend-http.rule=Host(`$NGINX_SERVER_NAME`)"
+      - "traefik.http.routers.frontend-http.entrypoints=web"
+      - "traefik.http.middlewares.frontend-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.frontend-http.middlewares=frontend-redirect"
+
+      # Service definition
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
+  rabbitmq:
+    container_name: itutor-rabbitmq
+    image: rabbitmq:3.13-management
+    restart: always
+    networks:
+      - app_network
+    ports:
+      - '${RABBITMQ_PORT:-5672}:5672' # AMQP
+      - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672' # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    env_file:
+      - ./.env
+
+  qdrant:
+    container_name: itutor-qdrant
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333" # HTTP API
+      - "${QDRANT_GRPC_PORT:-6334}:6334" # gRPC API
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__SERVICE__HTTP_PORT: 6333
+      QDRANT__SERVICE__ENABLE_CORS: "true"
+      QDRANT__CLUSTER__ENABLED: "false"
+    networks:
+      - app_network
+    volumes:
+      - qdrant-data:/qdrant/storage
+    env_file:
+      - ./.env
+
+  mongo-express:
+    container_name: itutor-mongo-express
+    image: mongo-express:1.0.2
+    depends_on:
+      - mongodb
+    ports:
+      - "8083:8081"
+    networks:
+      - app_network
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/
+      ME_CONFIG_BASICAUTH: true
+    restart: unless-stopped
+    env_file:
+      - ./.env
+
+  pgbackup:
+    image: eduardolat/pgbackweb:latest
+    container_name: itutor-pgbackup
+    environment:
+      PBW_ENCRYPTION_KEY: ${PBW_ENCRYPTION_KEY}
+      PBW_POSTGRES_CONN_STRING: ${PBW_POSTGRES_CONN_STRING}
+    ports:
+      - '8085:8085'
+    volumes:
+      - pgbackup-data:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - app_network
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '5'
+
+######################################################################
+# Named Volumes
+######################################################################
+volumes:
+  itutor-web_db_data:
+    name: itutor-web_db_data
+  mongodb-data:
+  minio-data:
+  rabbitmq-data:
+  pgbackup-data:
+  qdrant-data:
+
+######################################################################
+# Docker Network
+######################################################################
+networks:
+  app_network:
+    driver: bridge
