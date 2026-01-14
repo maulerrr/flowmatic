@@ -46,7 +46,7 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 		// Test connection (optional - could be added)
 		try {
 			// Connection test would go here
-		} catch (error) {
+		} catch {
 			return { valid: false, errors: ['Failed to connect to PostgreSQL database'] }
 		}
 
@@ -56,7 +56,7 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 	/**
 	 * Infer PostgreSQL column types from data values
 	 */
-	private inferColumnTypes(data: any[]): Record<string, string> {
+	private inferColumnTypes(data: Record<string, unknown>[]): Record<string, string> {
 		const typeMap: Record<string, string> = {}
 
 		if (data.length === 0) {
@@ -113,7 +113,7 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 	 * Create table if it doesn't exist with proper schema
 	 */
 	private async createTableIfNotExists(
-		client: any,
+		client: { query(sql: string, params?: unknown[]): Promise<unknown> },
 		tableName: string,
 		columnTypes: Record<string, string>,
 		recreate: boolean = false,
@@ -136,12 +136,15 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 		await client.query(createTableQuery)
 	}
 
-	async export(data: any[], config: ExportConfig): Promise<ExportResult> {
+	async export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult> {
 		const pgConfig = config.settings as PostgresConfig
 
 		try {
 			// Dynamic import to avoid hard dependency
-			const pgModule = await import('pg')
+
+			const pgModule = (await import('pg')) as unknown as {
+				Pool: new (config: Record<string, unknown>) => PgPool
+			}
 			const { Pool } = pgModule
 
 			const pool = new Pool({
@@ -150,7 +153,13 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 				user: pgConfig.username,
 				password: pgConfig.password,
 				database: pgConfig.database,
-			})
+			}) as {
+				connect(): Promise<{
+					query(sql: string, params?: unknown[]): Promise<unknown>
+					release(): Promise<void>
+				}>
+				end(): Promise<void>
+			}
 
 			const client = await pool.connect()
 			try {

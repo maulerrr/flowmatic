@@ -2,11 +2,13 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
 import {
 	S3Client,
+	S3ClientConfig,
 	PutObjectCommand,
 	GetObjectCommand,
 	DeleteObjectCommand,
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { Readable } from 'stream'
 
 export interface S3UploadOptions {
 	bucket: string
@@ -28,7 +30,7 @@ export class StorageService {
 		const endpoint = process.env.S3_ACCESS_ENDPOINT
 
 		if (accessKey && secretKey) {
-			const clientConfig: any = {
+			const clientConfig: S3ClientConfig = {
 				region: process.env.S3_REGION || 'us-east-1',
 				credentials: {
 					accessKeyId: accessKey,
@@ -135,7 +137,7 @@ export class StorageService {
 
 			// Handle stream response
 			if (response.Body && 'on' in response.Body) {
-				const stream = response.Body as any
+				const stream = response.Body as Readable
 				return new Promise((resolve, reject) => {
 					stream.on('data', (chunk: Buffer) => chunks.push(chunk))
 					stream.on('end', () => resolve(Buffer.concat(chunks)))
@@ -159,12 +161,12 @@ export class StorageService {
 	}
 
 	// Legacy: dataset management
-	async createDataset(name: string, description?: string): Promise<any> {
+	createDataset(name: string, description?: string): Promise<any> {
 		this.logger.log(`Creating dataset: ${name}`)
-		return { id: '1', name, description }
+		return Promise.resolve({ id: '1', name, description })
 	}
 
-	async getDatasets(): Promise<any[]> {
-		return []
+	getDatasets(): Promise<any[]> {
+		return Promise.resolve([])
 	}
 }

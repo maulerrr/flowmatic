@@ -16,7 +16,7 @@ export abstract class BaseExportAdapter implements ExportAdapter {
 	/**
 	 * Validate adapter-specific configuration
 	 */
-	async validate(settings: Record<string, any>): Promise<{ valid: boolean; errors?: string[] }> {
+	validate(settings: Record<string, unknown>): Promise<{ valid: boolean; errors?: string[] }> {
 		const errors: string[] = []
 
 		for (const required of this.requiredSettings) {
@@ -26,18 +26,18 @@ export abstract class BaseExportAdapter implements ExportAdapter {
 		}
 
 		if (errors.length > 0) {
-			return { valid: false, errors }
+			return Promise.resolve({ valid: false, errors })
 		}
 
-		return { valid: true }
+		return Promise.resolve({ valid: true })
 	}
 
 	/**
 	 * Convert data rows to appropriate format for export
 	 */
-	protected convertData(data: any[]): any[] {
+	protected convertData(data: Record<string, unknown>[]): Record<string, unknown>[] {
 		return data.map(row => {
-			const converted: any = {}
+			const converted: Record<string, unknown> = {}
 			for (const [key, value] of Object.entries(row)) {
 				converted[key] = this.convertValue(value)
 			}
@@ -48,7 +48,7 @@ export abstract class BaseExportAdapter implements ExportAdapter {
 	/**
 	 * Convert individual values to appropriate types
 	 */
-	protected convertValue(value: any): any {
+	protected convertValue(value: unknown): unknown {
 		if (value === null || value === undefined) {
 			return null
 		}
@@ -64,7 +64,7 @@ export abstract class BaseExportAdapter implements ExportAdapter {
 	/**
 	 * Main export method - must be implemented by subclasses
 	 */
-	abstract export(data: any[], config: ExportConfig): Promise<ExportResult>
+	abstract export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult>
 
 	/**
 	 * Log export operation

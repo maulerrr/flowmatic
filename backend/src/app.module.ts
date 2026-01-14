@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
+import { ConfigModule } from '@nestjs/config'
 import { DevtoolsModule } from '@nestjs/devtools-integration'
 import { LoggerModule } from 'nestjs-pino'
 import { ScheduleModule } from '@nestjs/schedule'

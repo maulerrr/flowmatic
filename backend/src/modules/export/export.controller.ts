@@ -13,17 +13,8 @@ import { ApiTags } from '@nestjs/swagger'
 import { Request } from 'express'
 import { ExportService } from './export.service'
 import { AuthGuard } from '../auth/auth.guard'
-import { AuthContext } from '../auth/auth-context.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { ExportAdapterType } from './types/export.types'
-
-declare global {
-	namespace Express {
-		interface Request {
-			authContext?: AuthContext
-		}
-	}
-}
 
 @ApiTags('exports')
 @Controller('exports')
@@ -38,7 +29,7 @@ export class ExportController {
 	 * Get available export adapters and their configuration requirements
 	 */
 	@Get('adapters')
-	async getAvailableAdapters(@Req() req: Request) {
+	getAvailableAdapters() {
 		const adapters = this.exportService.getAvailableAdapters()
 		return {
 			success: true,
@@ -128,7 +119,7 @@ export class ExportController {
 				runId,
 				req.authContext!.organizationId,
 				body.adapterType,
-				body.settings,
+				body.settings as Record<string, unknown>,
 			)
 
 			return {
@@ -202,8 +193,8 @@ export class ExportController {
 	/**
 	 * Generate sample data for preview
 	 */
-	private generateSampleData(totalRows: number, sampleSize: number): any[] {
-		const data: any[] = []
+	private generateSampleData(totalRows: number, sampleSize: number): Record<string, unknown>[] {
+		const data: Record<string, unknown>[] = []
 		const step = Math.max(1, Math.floor(totalRows / sampleSize))
 
 		for (let i = 0; i < sampleSize && i * step < totalRows; i++) {

@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { PipelineRun, StorageFile } from '@prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { QualityService } from '../quality/quality.service'
 import { CleaningService } from '../cleaning/cleaning.service'
@@ -6,6 +7,7 @@ import { StorageService } from '../storage/storage.service'
 import { QUEUE_CLIENT, QueueClient, QueueMessage } from 'src/common/queue/queue.tokens'
 import { PipelineJobData, PipelineJobResult } from './pipeline.types'
 import { v4 as uuid } from 'uuid'
+import { DataRow } from '../ingestion/ingestion.service'
 
 @Injectable()
 export class PipelineService implements OnModuleInit {
@@ -25,7 +27,8 @@ export class PipelineService implements OnModuleInit {
 			try {
 				await this.processPipelineJob(msg.payload)
 			} catch (error) {
-				this.logger.error(`Failed to process pipeline job: ${error.message}`, error)
+				const errorMessage = error instanceof Error ? error.message : String(error)
+				this.logger.error(`Failed to process pipeline job: ${errorMessage}`, error)
 			}
 		})
 		this.logger.log('Pipeline queue subscriber initialized')
@@ -82,8 +85,8 @@ export class PipelineService implements OnModuleInit {
 		limit: number = 50,
 		offset: number = 0,
 		status?: string,
-	): Promise<any[]> {
-		const where: any = { organizationId }
+	): Promise<unknown[]> {
+		const where: Record<string, unknown> = { organizationId }
 		if (status && status.length > 0) {
 			where.status = status
 		}
@@ -100,7 +103,12 @@ export class PipelineService implements OnModuleInit {
 		})
 	}
 
-	async getPipelineRun(runId: string, organizationId: string): Promise<any> {
+	async getPipelineRun(
+		runId: string,
+		organizationId: string,
+	): Promise<
+		(PipelineRun & { sourceFile: StorageFile | null; resultFile: StorageFile | null }) | null
+	> {
 		return this.prisma.pipelineRun.findFirst({
 			where: { id: runId, organizationId },
 			include: {
@@ -110,7 +118,7 @@ export class PipelineService implements OnModuleInit {
 		})
 	}
 
-	async getRunPreview(runId: string, organizationId: string): Promise<any> {
+	async getRunPreview(runId: string, organizationId: string): Promise<unknown> {
 		const run = await this.prisma.pipelineRun.findFirst({
 			where: { id: runId, organizationId },
 			include: {
@@ -226,7 +234,7 @@ export class PipelineService implements OnModuleInit {
 	}
 
 	// Minimal CSV parser for pipeline processing and preview
-	private parseCsvBuffer(buffer: Buffer): { rows: any[]; columns: string[] } {
+	private parseCsvBuffer(buffer: Buffer): { rows: DataRow[]; columns: string[] } {
 		const text = buffer.toString('utf-8').trim()
 		if (!text) return { rows: [], columns: [] }
 
@@ -234,12 +242,12 @@ export class PipelineService implements OnModuleInit {
 		if (lines.length === 0) return { rows: [], columns: [] }
 
 		const columns = this.parseCsvLine(lines[0])
-		const rows: any[] = []
+		const rows: DataRow[] = []
 
 		for (let i = 1; i < lines.length; i++) {
 			const values = this.parseCsvLine(lines[i])
 			if (values.length === 0) continue
-			const row: any = {}
+			const row: DataRow = {}
 			columns.forEach((col, idx) => {
 				row[col] = values[idx] ?? ''
 			})
@@ -322,9 +330,9 @@ export class PipelineService implements OnModuleInit {
 			const dataLines = cleaned.data.map(row =>
 				columns
 					.map(col => {
-						const val = row[col]
+						const val: unknown = row[col]
 						if (val === null || val === undefined) return ''
-						const str = String(val)
+						const str = String(val as string | number | boolean | bigint | symbol)
 						return str.includes(',') || str.includes('"') || str.includes('\n')
 							? `"${str.replace(/"/g, '""')}"`
 							: str

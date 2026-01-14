@@ -71,7 +71,7 @@ export class CleaningService {
 		categoricalColumns: string[],
 	): { data: DataRow[]; count: number } {
 		let imputedCount = 0
-		const result = data.map(row => ({ ...row }))
+		const result: DataRow[] = data.map(row => ({ ...row }))
 
 		// Impute numeric columns with mean
 		numericColumns.forEach(col => {
@@ -107,7 +107,7 @@ export class CleaningService {
 			values.forEach(v => {
 				freq[String(v)] = (freq[String(v)] || 0) + 1
 			})
-			const mode = Object.keys(freq).reduce((a, b) => (freq[a] > freq[b] ? a : b))
+			const mode = Object.keys(freq).reduce((a: string, b: string) => (freq[a] > freq[b] ? a : b))
 
 			result.forEach(row => {
 				if (row[col] === null || row[col] === undefined || row[col] === '') {
@@ -117,7 +117,7 @@ export class CleaningService {
 			})
 		})
 
-		return { data: result, count: imputedCount }
+		return { data: result, count: imputedCount } as { data: DataRow[]; count: number }
 	}
 
 	private handleOutliers(
@@ -126,7 +126,7 @@ export class CleaningService {
 		threshold: number = 3,
 	): { data: DataRow[]; count: number } {
 		let cappedCount = 0
-		const result = data.map(row => ({ ...row }))
+		const result: DataRow[] = data.map(row => ({ ...row }))
 
 		numericColumns.forEach(col => {
 			const values = data

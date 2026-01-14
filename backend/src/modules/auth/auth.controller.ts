@@ -1,5 +1,5 @@
-import { Controller, Post, Get, Body, Res, UseGuards, HttpCode } from '@nestjs/common'
-import { Response } from 'express'
+import { Controller, Post, Get, Body, Res, UseGuards, HttpCode, Req } from '@nestjs/common'
+import { Response, Request } from 'express'
 import { ApiTags } from '@nestjs/swagger'
 import { AuthContextService } from './auth-context.service'
 import { AuthGuard } from './auth.guard'
@@ -11,8 +11,12 @@ export class AuthController {
 
 	@Post('change-password')
 	@UseGuards(AuthGuard)
-	async changePassword(@Body() body: { password: string }, @Res() res: Response): Promise<void> {
-		const { userId } = res.req.authContext!
+	async changePassword(
+		@Body() body: { password: string },
+		@Res() res: Response,
+		@Req() req: Request,
+	): Promise<void> {
+		const { userId } = req.authContext!
 
 		if (!body.password || body.password.length < 6) {
 			res.status(400).json({ success: false, error: 'Password must be at least 6 characters' })
@@ -26,8 +30,8 @@ export class AuthController {
 
 	@Post('delete-account')
 	@UseGuards(AuthGuard)
-	async deleteAccount(@Res() res: Response): Promise<void> {
-		const { userId, organizationId } = res.req.authContext!
+	async deleteAccount(@Res() res: Response, @Req() req: Request): Promise<void> {
+		const { userId, organizationId } = req.authContext!
 
 		await this.authContext.deleteAccount(userId, organizationId)
 
@@ -67,8 +71,8 @@ export class AuthController {
 
 	@Get('profile')
 	@UseGuards(AuthGuard)
-	async getProfile(@Res() res: Response): Promise<void> {
-		const { userId } = res.req.authContext!
+	async getProfile(@Res() res: Response, @Req() req: Request): Promise<void> {
+		const { userId } = req.authContext!
 		const user = await this.authContext.getUser(userId)
 
 		if (!user) {
@@ -85,8 +89,9 @@ export class AuthController {
 	@Post('logout')
 	@UseGuards(AuthGuard)
 	@HttpCode(200)
-	async logout(@Res() res: Response): Promise<void> {
-		const token = res.req.cookies?.['flowmatic_session']
+	async logout(@Res() res: Response, @Req() req: Request): Promise<void> {
+		const cookies = (req as unknown as { cookies: Record<string, string> }).cookies
+		const token = cookies?.['flowmatic_session']
 		if (token) {
 			await this.authContext.invalidateSession(token)
 		}

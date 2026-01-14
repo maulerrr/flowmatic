@@ -16,7 +16,7 @@ export interface ExportConfig {
 	organizationId: string
 	pipelineRunId: string
 	fileName: string
-	settings: Record<string, any>
+	settings: Record<string, unknown>
 }
 
 export interface ExportResult {
@@ -26,7 +26,7 @@ export interface ExportResult {
 	destination: string
 	recordsExported: number
 	message: string
-	metadata?: Record<string, any>
+	metadata?: Record<string, unknown>
 }
 
 export interface ExportAdapter {
@@ -35,8 +35,8 @@ export interface ExportAdapter {
 	description: string
 	requiredSettings: string[]
 
-	validate(settings: Record<string, any>): Promise<{ valid: boolean; errors?: string[] }>
-	export(data: any[], config: ExportConfig): Promise<ExportResult>
+	validate(settings: Record<string, unknown>): Promise<{ valid: boolean; errors?: string[] }>
+	export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult>
 }
 
 /**

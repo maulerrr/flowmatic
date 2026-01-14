@@ -46,9 +46,9 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 		return { valid: true }
 	}
 
-	async export(data: any[], config: ExportConfig): Promise<ExportResult> {
+	async export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult> {
 		const hfConfig = config.settings as HuggingFaceConfig
-		this.validate(hfConfig)
+		await this.validate(hfConfig)
 
 		try {
 			const convertedData = this.convertData(data)
@@ -79,7 +79,7 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 					private: hfConfig.private || false,
 					accessToken: hfConfig.token,
 				})
-			} catch (error) {
+			} catch {
 				// Repo likely already exists, continue
 			}
 
@@ -153,14 +153,21 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 	/**
 	 * Convert data array to CSV string
 	 */
-	private dataToCSV(data: any[]): string {
+	private dataToCSV(data: Record<string, unknown>[]): string {
 		if (data.length === 0) return ''
 
 		const headers = Object.keys(data[0])
 		const headerLine = headers.map(h => this.escapeCSV(h)).join(',')
 
 		const dataLines = data.map(row => {
-			return headers.map(header => this.escapeCSV(String(row[header] ?? ''))).join(',')
+			return headers
+				.map(header => {
+					const val = row[header]
+					if (val === null || val === undefined) return ''
+					if (typeof val === 'object') return this.escapeCSV(JSON.stringify(val))
+					return this.escapeCSV(String(val as string | number | boolean | bigint | symbol))
+				})
+				.join(',')
 		})
 
 		return [headerLine, ...dataLines].join('\n')
@@ -179,7 +186,11 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 	/**
 	 * Generate README.md for the dataset with metadata and column descriptions
 	 */
-	private generateReadme(data: any[], fileName: string, pipelineRunId: string): string {
+	private generateReadme(
+		data: Record<string, unknown>[],
+		fileName: string,
+		pipelineRunId: string,
+	): string {
 		const headers = data.length > 0 ? Object.keys(data[0]) : []
 		const timestamp = new Date().toISOString()
 
@@ -280,9 +291,10 @@ This dataset is released under the CC BY 4.0 license.
 	}
 
 	/**
-	 * Generate datasets.yml for Hugging Face Hub preview
+	 * Generate and upload datasets.yml for Hub preview
 	 */
-	private generateDatasetsYaml(data: any[], fileName: string): string {
+
+	private generateDatasetsYaml(data: Record<string, unknown>[], fileName: string): string {
 		const headers = data.length > 0 ? Object.keys(data[0]) : []
 
 		return `# Datasets Configuration for Hugging Face Hub

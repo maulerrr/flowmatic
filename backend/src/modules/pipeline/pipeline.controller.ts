@@ -16,11 +16,9 @@ import { PipelineService } from './pipeline.service'
 import { AuthGuard } from '../auth/auth.guard'
 import { AuthContext } from '../auth/auth-context.service'
 
-declare global {
-	namespace Express {
-		interface Request {
-			authContext?: AuthContext
-		}
+declare module 'express' {
+	interface Request {
+		authContext?: AuthContext
 	}
 }
 

@@ -3,6 +3,8 @@ import { PrismaService } from 'src/prisma/prisma.service'
 import { StorageService } from '../storage/storage.service'
 import { ExportAdapterRegistry } from './adapters/registry'
 import { ExportConfig, ExportResult, ExportAdapterType } from './types/export.types'
+import { PipelineRun, StorageFile } from '@prisma/client'
+import { DataRow } from '../ingestion/ingestion.service'
 
 /**
  * Service to orchestrate data exports to various destinations
@@ -94,7 +96,7 @@ export class ExportService {
 			const result = await adapter.export(data, exportConfig)
 
 			// Record export in database (TODO: uncomment after Prisma generation)
-			// await this.recordExport(pipelineRunId, adapterType, result)
+			await this.recordExport(pipelineRunId, adapterType, result)
 
 			return result
 		} catch (error) {
@@ -109,7 +111,9 @@ export class ExportService {
 	/**
 	 * Load data from pipeline run result file
 	 */
-	private async loadRunData(run: any): Promise<any[]> {
+	private async loadRunData(
+		run: PipelineRun & { resultFile: StorageFile | null },
+	): Promise<DataRow[]> {
 		// If no result file, fall back to mock data
 		if (!run.resultFile) {
 			return this.generateMockData(run.rowsIngested || 100)
@@ -128,33 +132,32 @@ export class ExportService {
 
 			// Decide parser based on mime or extension
 			if (mime.includes('json') || fileName.endsWith('.json')) {
-				return JSON.parse(buffer.toString('utf-8'))
+				return JSON.parse(buffer.toString('utf-8')) as DataRow[]
 			}
 
 			// Default: parse CSV
 			return this.parseCsv(buffer)
 		} catch (error) {
-			this.logger.error(
-				`Failed to load run data from S3 (key: ${key}): ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			this.logger.error(`Failed to load run data from S3 (key: ${key}): ${errorMessage}`)
 			// Fallback to mock data to avoid hard failures
 			return this.generateMockData(run.rowsIngested || 100)
 		}
 	}
 
-	private parseCsv(buffer: Buffer): any[] {
+	private parseCsv(buffer: Buffer): DataRow[] {
 		const csvText = buffer.toString('utf-8')
 		// Basic CSV parsing with header row; handles simple quoted fields
 		const lines = csvText.split(/\r?\n/).filter(l => l.trim().length > 0)
 		if (lines.length === 0) return []
 
 		const headers = this.parseCsvLine(lines[0])
-		const rows: any[] = []
+		const rows: DataRow[] = []
 
 		for (let i = 1; i < lines.length; i++) {
 			const values = this.parseCsvLine(lines[i])
 			if (values.length === 0) continue
-			const row: any = {}
+			const row: DataRow = {}
 			headers.forEach((h, idx) => {
 				row[h] = values[idx] ?? null
 			})
@@ -193,8 +196,8 @@ export class ExportService {
 	/**
 	 * Generate mock data for preview/export
 	 */
-	private generateMockData(rowCount: number): any[] {
-		const data: any[] = []
+	private generateMockData(rowCount: number): DataRow[] {
+		const data: DataRow[] = []
 		for (let i = 0; i < rowCount; i++) {
 			data.push({
 				id: i + 1,

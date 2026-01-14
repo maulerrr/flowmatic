@@ -16,7 +16,7 @@ export class CSVExportAdapter extends BaseExportAdapter {
 		super()
 	}
 
-	async export(data: any[], config: ExportConfig): Promise<ExportResult> {
+	async export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult> {
 		const csvConfig = config.settings as CSVConfig
 
 		try {
@@ -69,7 +69,7 @@ export class CSVExportAdapter extends BaseExportAdapter {
 		}
 	}
 
-	private dataToCSV(data: any[], config: CSVConfig): string {
+	private dataToCSV(data: Record<string, unknown>[], config: CSVConfig): string {
 		if (data.length === 0) return ''
 
 		const delimiter = config.delimiter || ','
@@ -78,7 +78,15 @@ export class CSVExportAdapter extends BaseExportAdapter {
 
 		const dataLines = data.map(row => {
 			return headers
-				.map(header => this.escapeCSV(String(row[header] ?? ''), delimiter))
+				.map(header => {
+					const val = row[header]
+					if (val === null || val === undefined) return this.escapeCSV('', delimiter)
+					if (typeof val === 'object') return this.escapeCSV(JSON.stringify(val), delimiter)
+					return this.escapeCSV(
+						String(val as string | number | boolean | bigint | symbol),
+						delimiter,
+					)
+				})
 				.join(delimiter)
 		})
 
@@ -107,7 +115,7 @@ export class JSONExportAdapter extends BaseExportAdapter {
 		super()
 	}
 
-	async export(data: any[], config: ExportConfig): Promise<ExportResult> {
+	async export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult> {
 		const jsonConfig = config.settings
 
 		try {

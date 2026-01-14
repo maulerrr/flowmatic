@@ -2,11 +2,9 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { Request } from 'express'
 import { AuthContextService, AuthContext } from './auth-context.service'
 
-declare global {
-	namespace Express {
-		interface Request {
-			authContext?: AuthContext
-		}
+declare module 'express' {
+	interface Request {
+		authContext?: AuthContext
 	}
 }
 
@@ -33,6 +31,8 @@ export class AuthGuard implements CanActivate {
 	}
 
 	private extractTokenFromCookie(request: Request): string | null {
-		return request.cookies?.['flowmatic_session'] || null
+		const cookies = (request as unknown as { cookies?: Record<string, unknown> }).cookies
+		const token = cookies?.['flowmatic_session']
+		return typeof token === 'string' ? token : null
 	}
 }

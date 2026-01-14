@@ -37,14 +37,23 @@ export class MongoDBExportAdapter extends BaseExportAdapter {
 		return { valid: true }
 	}
 
-	async export(data: any[], config: ExportConfig): Promise<ExportResult> {
+	async export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult> {
 		const mongoConfig = config.settings as MongoDBConfig
 
 		try {
 			// Dynamic import to avoid hard dependency
 			const { MongoClient } = await import('mongodb')
 
-			const client = new MongoClient(mongoConfig.uri)
+			const client = new MongoClient(mongoConfig.uri) as unknown as {
+				connect(): Promise<void>
+				close(): Promise<void>
+				db(name: string): {
+					collection(name: string): {
+						deleteMany(filter: unknown): Promise<unknown>
+						insertMany(docs: unknown[]): Promise<{ insertedCount: number }>
+					}
+				}
+			}
 			await client.connect()
 
 			try {

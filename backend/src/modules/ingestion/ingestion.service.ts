@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common'
 import * as fs from 'fs/promises'
-import { createReadStream } from 'fs'
 import * as path from 'path'
 
 export interface DataRow {
-	[key: string]: any
+	[key: string]: unknown
 }
 
 export interface IngestedData {
@@ -73,13 +72,13 @@ export class IngestionService {
 
 	private async ingestJSON(filePath: string): Promise<IngestedData> {
 		const content = await fs.readFile(filePath, 'utf-8')
-		const json = JSON.parse(content)
+		const json = JSON.parse(content) as unknown
 
 		let data: DataRow[]
 		if (Array.isArray(json)) {
-			data = json
+			data = json as DataRow[]
 		} else if (json.data && Array.isArray(json.data)) {
-			data = json.data
+			data = json.data as DataRow[]
 		} else {
 			throw new Error('JSON must be an array or have a "data" array property')
 		}
@@ -104,8 +103,9 @@ export class IngestionService {
 		for (const col of columns) {
 			const lowerCol = col.toLowerCase()
 			if (datetimeKeywords.some(keyword => lowerCol.includes(keyword))) {
-				if (data.length > 0 && data[0][col]) {
-					const parsed = new Date(data[0][col])
+				const val = data[0][col]
+				if (data.length > 0 && val) {
+					const parsed = new Date(String(val as string | number | Date))
 					if (!isNaN(parsed.getTime())) {
 						return col
 					}

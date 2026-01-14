@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ExportAdapter, ExportAdapterType } from '../types/export.types'
-import { BaseExportAdapter } from './base.adapter'
 import { PostgresExportAdapter } from './postgres.adapter'
 import { MongoDBExportAdapter } from './mongodb.adapter'
 import { HuggingFaceExportAdapter } from './huggingface.adapter'

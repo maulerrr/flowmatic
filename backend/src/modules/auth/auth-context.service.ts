@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
 import * as bcrypt from 'bcrypt'
+import { User } from '@prisma/client'
 
 export interface AuthContext {
 	userId: string
@@ -61,7 +62,7 @@ export class AuthContextService {
 			})
 	}
 
-	async getOrCreateUser(email: string): Promise<{ user: any; isNew: boolean }> {
+	async getOrCreateUser(email: string): Promise<{ user: User; isNew: boolean }> {
 		let user = await this.prisma.user.findUnique({
 			where: { email },
 		})

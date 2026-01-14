@@ -16,16 +16,7 @@ import { IngestionService } from './ingestion.service'
 import { PipelineService } from '../pipeline/pipeline.service'
 import { StorageService } from '../storage/storage.service'
 import { AuthGuard } from '../auth/auth.guard'
-import { AuthContext } from '../auth/auth-context.service'
 import { PrismaService } from 'src/prisma/prisma.service'
-
-declare global {
-	namespace Express {
-		interface Request {
-			authContext?: AuthContext
-		}
-	}
-}
 
 @ApiTags('ingestion')
 @Controller('ingestion')
@@ -127,7 +118,7 @@ export class IngestionController {
 			if (tempFilePath) {
 				try {
 					await fs.unlink(tempFilePath)
-				} catch (err) {
+				} catch {
 					// Ignore cleanup errors
 				}
 			}
