@@ -137,9 +137,7 @@ export class ExportController {
 				message: result.message,
 			}
 		} catch (error) {
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Export failed',
-			)
+			throw new BadRequestException(error instanceof Error ? error.message : 'Export failed')
 		}
 	}
 
@@ -213,9 +211,7 @@ export class ExportController {
 				id: i * step + 1,
 				value: (Math.random() * 100).toFixed(2),
 				status: ['active', 'inactive', 'pending'][Math.floor(Math.random() * 3)],
-				created_at: new Date(
-					Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
-				).toISOString(),
+				created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
 				quality_score: (Math.random() * 100).toFixed(2),
 			})
 		}

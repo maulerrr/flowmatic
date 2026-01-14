@@ -6,7 +6,6 @@ import { StorageModule } from '../storage/storage.module'
 import { AuthModule } from '../auth/auth.module'
 import { PrismaModule } from 'src/prisma/prisma.module'
 
-
 @Module({
 	imports: [StorageModule, AuthModule, PrismaModule],
 	controllers: [ExportController],

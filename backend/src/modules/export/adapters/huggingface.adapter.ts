@@ -1,5 +1,10 @@
 import { BaseExportAdapter } from './base.adapter'
-import { ExportAdapterType, ExportConfig, ExportResult, HuggingFaceConfig } from '../types/export.types'
+import {
+	ExportAdapterType,
+	ExportConfig,
+	ExportResult,
+	HuggingFaceConfig,
+} from '../types/export.types'
 import { whoAmI, createRepo, uploadFile } from '@huggingface/hub'
 
 /**
@@ -29,7 +34,9 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 
 		// Validate repo name format
 		if (config.repoName && !/^[a-zA-Z0-9_-]+$/.test(config.repoName)) {
-			errors.push('Repository name can only contain alphanumeric characters, hyphens, and underscores')
+			errors.push(
+				'Repository name can only contain alphanumeric characters, hyphens, and underscores',
+			)
 		}
 
 		if (errors.length > 0) {
@@ -87,7 +94,9 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 					path: fileName,
 					content: new Blob([csvContent], { type: 'text/csv' }),
 				},
-				commitTitle: hfConfig.commitMessage || `Upload cleaned data from flowmatic pipeline run ${config.pipelineRunId}`,
+				commitTitle:
+					hfConfig.commitMessage ||
+					`Upload cleaned data from flowmatic pipeline run ${config.pipelineRunId}`,
 				accessToken: hfConfig.token,
 			})
 
@@ -115,7 +124,12 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 				accessToken: hfConfig.token,
 			})
 
-			this.logExport(config, convertedData.length, `huggingface.co/datasets/${fullRepoId}`, 'success')
+			this.logExport(
+				config,
+				convertedData.length,
+				`huggingface.co/datasets/${fullRepoId}`,
+				'success',
+			)
 
 			return {
 				success: true,
@@ -143,10 +157,10 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 		if (data.length === 0) return ''
 
 		const headers = Object.keys(data[0])
-		const headerLine = headers.map((h) => this.escapeCSV(h)).join(',')
+		const headerLine = headers.map(h => this.escapeCSV(h)).join(',')
 
-		const dataLines = data.map((row) => {
-			return headers.map((header) => this.escapeCSV(String(row[header] ?? ''))).join(',')
+		const dataLines = data.map(row => {
+			return headers.map(header => this.escapeCSV(String(row[header] ?? ''))).join(',')
 		})
 
 		return [headerLine, ...dataLines].join('\n')
@@ -177,15 +191,15 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 		}
 
 		// Infer column types and get sample values
-		const columnInfo = headers.map((col) => {
-			const values = data.map((row) => row[col]).filter((v) => v !== null && v !== undefined)
+		const columnInfo = headers.map(col => {
+			const values = data.map(row => row[col]).filter(v => v !== null && v !== undefined)
 			const sample = values.slice(0, 3)
 			let type = 'text'
 
-			if (values.every((v) => typeof v === 'boolean')) type = 'boolean'
-			else if (values.every((v) => Number.isInteger(v))) type = 'integer'
-			else if (values.every((v) => typeof v === 'number')) type = 'float'
-			else if (values.every((v) => !isNaN(new Date(v).getTime()))) type = 'timestamp'
+			if (values.every(v => typeof v === 'boolean')) type = 'boolean'
+			else if (values.every(v => Number.isInteger(v))) type = 'integer'
+			else if (values.every(v => typeof v === 'number')) type = 'float'
+			else if (values.every(v => !isNaN(new Date(v).getTime()))) type = 'timestamp'
 
 			return {
 				name: col,
@@ -199,7 +213,7 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 		return `---
 dataset_info:
   features:
-  ${columnInfo.map((col) => `- name: ${col.name}\n    dtype: ${col.type}`).join('\n  ')}
+  ${columnInfo.map(col => `- name: ${col.name}\n    dtype: ${col.type}`).join('\n  ')}
   splits:
   - name: default
     num_bytes: ${Math.round(this.dataToCSV(data).length / 1024)}KB
@@ -224,7 +238,7 @@ This dataset was cleaned and exported by **Flowmatic**, an intelligent data prep
 
 | Column | Type | Non-Null | Null | Sample Values |
 |--------|------|----------|------|---------------|
-${columnInfo.map((col) => `| ${col.name} | ${col.type} | ${col.nonNull} | ${col.nullCount} | ${col.sampleValues.map((v) => JSON.stringify(v)).join(', ')} |`).join('\n')}
+${columnInfo.map(col => `| ${col.name} | ${col.type} | ${col.nonNull} | ${col.nullCount} | ${col.sampleValues.map(v => JSON.stringify(v)).join(', ')} |`).join('\n')}
 
 ## Data Quality
 
@@ -283,7 +297,7 @@ configs:
 
 dataset_info:
   features:
-${headers.map((col) => `    - name: ${col}\n      dtype: string\n      description: "Column ${col}"`).join('\n')}
+${headers.map(col => `    - name: ${col}\n      dtype: string\n      description: "Column ${col}"`).join('\n')}
   splits:
     - name: train
       num_bytes: ${Math.round(this.dataToCSV(data).length / 1024)}

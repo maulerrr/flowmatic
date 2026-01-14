@@ -1,23 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import {
-	Database,
-	Upload,
-	Activity,
-	BarChart3,
-	Settings,
-	ChevronRight,
-	Menu,
-	X,
-	Bell,
-	User,
-	LogOut,
-	Sparkles,
-	ChevronLeft,
-} from 'lucide-vue-next'
-import { apiClient } from '@/api/client'
-import type { User as UserType } from '@/api/client'
+import { apiClient } from '@/api/client';
+import type { User as UserType } from '@/api/client';
+import { Activity, BarChart3, Bell, ChevronLeft, ChevronRight, Database, LogOut, Menu, Settings, Sparkles, Upload, User, X } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+
+
+
 
 const router = useRouter()
 const route = useRoute()
@@ -76,10 +66,15 @@ async function handleLogout() {
 		>
 			<!-- Logo -->
 			<div class="p-6 border-b border-sidebar-border flex items-center gap-3 flex-shrink-0">
-				<div class="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 shadow-[var(--glow)]">
+				<div
+					class="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 shadow-[var(--glow)]"
+				>
 					<Sparkles class="w-6 h-6 text-white" />
 				</div>
-				<div v-if="!sidebarCollapsed" class="transition-all min-w-0">
+				<div
+					v-if="!sidebarCollapsed"
+					class="transition-all min-w-0"
+				>
 					<h1 class="text-lg font-bold tracking-tight truncate">Flowmatic</h1>
 					<p class="text-xs text-sidebar-foreground/70 truncate">Data Prep</p>
 				</div>
@@ -98,8 +93,15 @@ async function handleLogout() {
 							: 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-border/50',
 					]"
 				>
-					<component :is="item.icon" class="w-5 h-5 flex-shrink-0 group-hover:scale-110 transition-transform" />
-					<span v-if="!sidebarCollapsed" class="flex-1 font-medium text-sm">{{ item.label }}</span>
+					<component
+						:is="item.icon"
+						class="w-5 h-5 flex-shrink-0 group-hover:scale-110 transition-transform"
+					/>
+					<span
+						v-if="!sidebarCollapsed"
+						class="flex-1 font-medium text-sm"
+						>{{ item.label }}</span
+					>
 					<span
 						v-if="item.badge && !sidebarCollapsed"
 						class="px-2 py-0.5 bg-primary/15 text-primary text-xs rounded-full font-semibold"
@@ -115,18 +117,32 @@ async function handleLogout() {
 
 			<!-- User Profile Section -->
 			<div class="p-4 border-t border-sidebar-border space-y-3 flex-shrink-0">
-				<div v-if="user" class="flex items-center gap-3 p-3 rounded-xl bg-sidebar-border/40 hover:bg-sidebar-border/60 transition">
-					<div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
+				<div
+					v-if="user"
+					class="flex items-center gap-3 p-3 rounded-xl bg-sidebar-border/40 hover:bg-sidebar-border/60 transition"
+				>
+					<div
+						class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0"
+					>
 						<User class="w-5 h-5 text-white" />
 					</div>
-					<div v-if="!sidebarCollapsed" class="flex-1 min-w-0">
+					<div
+						v-if="!sidebarCollapsed"
+						class="flex-1 min-w-0"
+					>
 						<p class="text-sm font-semibold truncate">{{ userName }}</p>
 						<p class="text-xs text-sidebar-foreground/60 truncate">{{ userEmail }}</p>
 					</div>
 				</div>
-				<div v-else class="flex items-center gap-3 p-3 rounded-xl bg-sidebar-border/40 animate-pulse">
+				<div
+					v-else
+					class="flex items-center gap-3 p-3 rounded-xl bg-sidebar-border/40 animate-pulse"
+				>
 					<div class="w-10 h-10 rounded-full bg-sidebar-border/60"></div>
-					<div v-if="!sidebarCollapsed" class="flex-1 space-y-2">
+					<div
+						v-if="!sidebarCollapsed"
+						class="flex-1 space-y-2"
+					>
 						<div class="h-3 bg-sidebar-border/60 rounded w-24"></div>
 						<div class="h-2 bg-sidebar-border/60 rounded w-32"></div>
 					</div>
@@ -152,16 +168,28 @@ async function handleLogout() {
 							@click="sidebarOpen = !sidebarOpen"
 							class="lg:hidden p-2 hover:bg-border/50 rounded-xl transition text-foreground/70 hover:text-foreground"
 						>
-							<Menu v-if="!sidebarOpen" class="w-6 h-6" />
-							<X v-else class="w-6 h-6" />
+							<Menu
+								v-if="!sidebarOpen"
+								class="w-6 h-6"
+							/>
+							<X
+								v-else
+								class="w-6 h-6"
+							/>
 						</button>
 						<button
 							@click="sidebarCollapsed = !sidebarCollapsed"
 							class="hidden lg:inline-flex p-2 hover:bg-border/50 rounded-xl transition text-foreground/70 hover:text-foreground"
 							:title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
 						>
-							<ChevronRight v-if="sidebarCollapsed" class="w-5 h-5" />
-							<ChevronLeft v-else class="w-5 h-5" />
+							<ChevronRight
+								v-if="sidebarCollapsed"
+								class="w-5 h-5"
+							/>
+							<ChevronLeft
+								v-else
+								class="w-5 h-5"
+							/>
 						</button>
 					</div>
 

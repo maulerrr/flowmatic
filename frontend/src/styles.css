@@ -136,7 +136,7 @@
 	--gradient-flow: linear-gradient(135deg, #0d141f 0%, #1c2c3c 45%, #0e2235 100%);
 	--gradient-accent: linear-gradient(135deg, #34d0c3 0%, #7c8cff 100%);
 	--glass: rgba(15, 26, 40, 0.5);
-}
+
 	--primary: #34d0c3;
 	--primary-foreground: #04141a;
 	--secondary: #7c8cff;
@@ -241,7 +241,8 @@
 	}
 
 	@keyframes glow-pulse {
-		0%, 100% {
+		0%,
+		100% {
 			box-shadow: 0 0 20px rgba(52, 208, 195, 0.3);
 		}
 		50% {

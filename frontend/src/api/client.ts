@@ -136,11 +136,7 @@ export class ApiClient {
 		return response.json()
 	}
 
-	private async requestFormData<T>(
-		method: string,
-		path: string,
-		formData: FormData,
-	): Promise<T> {
+	private async requestFormData<T>(method: string, path: string, formData: FormData): Promise<T> {
 		const url = new URL(`${this.baseUrl}${path}`)
 
 		const response = await fetch(url.toString(), {
@@ -170,7 +166,7 @@ export class ApiClient {
 
 	async changePassword(password: string): Promise<ApiResponse<{ message: string }>> {
 		return this.request('POST', '/auth/change-password', {
-			body: { password }
+			body: { password },
 		})
 	}
 
@@ -223,7 +219,10 @@ export class ApiClient {
 		return this.request('DELETE', `/pipelines/runs/${runId}`)
 	}
 
-	async cleanupOldRuns(daysOld: number = 30, statuses: string[] = ['failed', 'completed']): Promise<ApiResponse<{ count: number }>> {
+	async cleanupOldRuns(
+		daysOld: number = 30,
+		statuses: string[] = ['failed', 'completed'],
+	): Promise<ApiResponse<{ count: number }>> {
 		return this.request('POST', '/pipelines/cleanup', {
 			query: {
 				daysOld,
@@ -253,7 +252,10 @@ export class ApiClient {
 		})
 	}
 
-	async validateExportConfig(adapterType: string, settings: Record<string, any>): Promise<ApiResponse<any>> {
+	async validateExportConfig(
+		adapterType: string,
+		settings: Record<string, any>,
+	): Promise<ApiResponse<any>> {
 		return this.request('POST', '/exports/validate', {
 			body: { adapterType, settings },
 		})
@@ -285,7 +287,7 @@ export class ApiClient {
 				return response.data
 			}
 
-			await new Promise((resolve) => setTimeout(resolve, interval))
+			await new Promise(resolve => setTimeout(resolve, interval))
 			attempts++
 		}
 

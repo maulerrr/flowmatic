@@ -11,12 +11,9 @@ export class AuthController {
 
 	@Post('change-password')
 	@UseGuards(AuthGuard)
-	async changePassword(
-		@Body() body: { password: string },
-		@Res() res: Response,
-	): Promise<void> {
+	async changePassword(@Body() body: { password: string }, @Res() res: Response): Promise<void> {
 		const { userId } = res.req.authContext!
-		
+
 		if (!body.password || body.password.length < 6) {
 			res.status(400).json({ success: false, error: 'Password must be at least 6 characters' })
 			return
@@ -29,13 +26,11 @@ export class AuthController {
 
 	@Post('delete-account')
 	@UseGuards(AuthGuard)
-	async deleteAccount(
-		@Res() res: Response,
-	): Promise<void> {
+	async deleteAccount(@Res() res: Response): Promise<void> {
 		const { userId, organizationId } = res.req.authContext!
 
 		await this.authContext.deleteAccount(userId, organizationId)
-		
+
 		res.clearCookie('flowmatic_session')
 		res.json({ success: true, message: 'Account deleted successfully' })
 	}
@@ -90,9 +85,7 @@ export class AuthController {
 	@Post('logout')
 	@UseGuards(AuthGuard)
 	@HttpCode(200)
-	async logout(
-		@Res() res: Response,
-	): Promise<void> {
+	async logout(@Res() res: Response): Promise<void> {
 		const token = res.req.cookies?.['flowmatic_session']
 		if (token) {
 			await this.authContext.invalidateSession(token)

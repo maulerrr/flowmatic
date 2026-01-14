@@ -1,4 +1,15 @@
-import { Controller, Post, Get, Param, Delete, Query, UseGuards, Req, BadRequestException, NotFoundException } from '@nestjs/common'
+import {
+	Controller,
+	Post,
+	Get,
+	Param,
+	Delete,
+	Query,
+	UseGuards,
+	Req,
+	BadRequestException,
+	NotFoundException,
+} from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { Request } from 'express'
 import { PipelineService } from './pipeline.service'
@@ -30,7 +41,10 @@ export class PipelineController {
 
 	@Get('analytics/charts')
 	async getAnalyticsCharts(@Req() req: Request, @Query('period') period: string = '7d') {
-		const charts = await this.pipelineService.getAnalyticsCharts(req.authContext!.organizationId, period)
+		const charts = await this.pipelineService.getAnalyticsCharts(
+			req.authContext!.organizationId,
+			period,
+		)
 		return {
 			success: true,
 			data: charts,

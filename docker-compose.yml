@@ -4,7 +4,7 @@ services:
   ########################################################################
   traefik:
     image: traefik:latest
-    container_name: itutor-traefik
+    container_name: flowmatic-traefik
     command:
       - '--api.dashboard=true'
       - '--entrypoints.web.address=:80'
@@ -30,7 +30,7 @@ services:
   # 2) Databases and Storage
   ########################################################################
   postgres:
-    container_name: itutor-postgres
+    container_name: flowmatic-postgres
     image: postgres:latest
     env_file:
       - ./.env
@@ -39,7 +39,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - itutor-web_db_data:/var/lib/postgresql/data
+      - flowmatic-web_db_data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
       interval: 10s
@@ -50,7 +50,7 @@ services:
       - app_network
 
   mongodb:
-    container_name: itutor-mongodb
+    container_name: flowmatic-mongodb
     image: mongo:7.0
     restart: unless-stopped
     ports:
@@ -66,7 +66,7 @@ services:
       - app_network
 
   minio:
-    container_name: itutor-minio
+    container_name: flowmatic-minio
     image: minio/minio:RELEASE.2025-02-18T16-25-55Z
     ports:
       - '9000:9000' # S3 API
@@ -85,7 +85,7 @@ services:
 
   # 3) Database Management Tools (Optional for Development)
   pgadmin:
-    container_name: itutor-pgadmin
+    container_name: flowmatic-pgadmin
     image: dpage/pgadmin4
     env_file:
       - ./.env
@@ -105,7 +105,7 @@ services:
   # 4) Backend (Golang Gin)
   ########################################################################
   backend:
-    container_name: itutor-backend
+    container_name: flowmatic-backend
     build:
       context: ./backend
       args:
@@ -205,7 +205,7 @@ services:
   # 5) Frontend (Vite Vue 3) w/ Nginx
   ########################################################################
   frontend:
-    container_name: itutor-frontend
+    container_name: flowmatic-frontend
     build:
       context: ./frontend
       args:
@@ -238,7 +238,7 @@ services:
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
   rabbitmq:
-    container_name: itutor-rabbitmq
+    container_name: flowmatic-rabbitmq
     image: rabbitmq:3.13-management
     restart: always
     networks:
@@ -255,7 +255,7 @@ services:
       - ./.env
 
   qdrant:
-    container_name: itutor-qdrant
+    container_name: flowmatic-qdrant
     image: qdrant/qdrant:latest
     restart: unless-stopped
     ports:
@@ -274,7 +274,7 @@ services:
       - ./.env
 
   mongo-express:
-    container_name: itutor-mongo-express
+    container_name: flowmatic-mongo-express
     image: mongo-express:1.0.2
     depends_on:
       - mongodb
@@ -293,7 +293,7 @@ services:
 
   pgbackup:
     image: eduardolat/pgbackweb:latest
-    container_name: itutor-pgbackup
+    container_name: flowmatic-pgbackup
     environment:
       PBW_ENCRYPTION_KEY: ${PBW_ENCRYPTION_KEY}
       PBW_POSTGRES_CONN_STRING: ${PBW_POSTGRES_CONN_STRING}
@@ -317,8 +317,8 @@ services:
 # Named Volumes
 ######################################################################
 volumes:
-  itutor-web_db_data:
-    name: itutor-web_db_data
+  flowmatic-web_db_data:
+    name: flowmatic-web_db_data
   mongodb-data:
   minio-data:
   rabbitmq-data:

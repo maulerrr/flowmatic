@@ -36,7 +36,7 @@ export abstract class BaseExportAdapter implements ExportAdapter {
 	 * Convert data rows to appropriate format for export
 	 */
 	protected convertData(data: any[]): any[] {
-		return data.map((row) => {
+		return data.map(row => {
 			const converted: any = {}
 			for (const [key, value] of Object.entries(row)) {
 				converted[key] = this.convertValue(value)

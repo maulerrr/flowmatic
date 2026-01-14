@@ -52,11 +52,13 @@ export class AuthContextService {
 	}
 
 	async invalidateSession(token: string): Promise<void> {
-		await this.prisma.session.delete({
-			where: { token },
-		}).catch(() => {
-			// Session may already be deleted
-		})
+		await this.prisma.session
+			.delete({
+				where: { token },
+			})
+			.catch(() => {
+				// Session may already be deleted
+			})
 	}
 
 	async getOrCreateUser(email: string): Promise<{ user: any; isNew: boolean }> {

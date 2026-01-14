@@ -24,7 +24,7 @@ const currentTitle = computed(() =>
 
 const currentDescription = computed(() =>
   stage.value === 'phone'
-    ? 'ITutor платформасына кіру үшін телефон нөміріңізді енгізіңіз'
+    ? 'Flowmatic платформасына кіру үшін телефон нөміріңізді енгізіңіз'
     : `Нөміріне жіберілген 4 сандық кодты енгізіңіз`
 );
 

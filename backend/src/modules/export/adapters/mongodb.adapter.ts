@@ -72,7 +72,7 @@ export class MongoDBExportAdapter extends BaseExportAdapter {
 
 				// Insert documents
 				const result = await collection.insertMany(
-					convertedData.map((doc) => ({
+					convertedData.map(doc => ({
 						...doc,
 						_importedAt: new Date(),
 						_pipelineRunId: config.pipelineRunId,

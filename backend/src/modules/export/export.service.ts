@@ -82,7 +82,9 @@ export class ExportService {
 		// Validate config
 		const validation = await this.validateExportConfig(exportConfig)
 		if (!validation.valid) {
-			throw new BadRequestException(`Invalid export configuration: ${validation.errors?.join(', ')}`)
+			throw new BadRequestException(
+				`Invalid export configuration: ${validation.errors?.join(', ')}`,
+			)
 		}
 
 		// Execute export
@@ -91,8 +93,8 @@ export class ExportService {
 		try {
 			const result = await adapter.export(data, exportConfig)
 
-		// Record export in database (TODO: uncomment after Prisma generation)
-		// await this.recordExport(pipelineRunId, adapterType, result)
+			// Record export in database (TODO: uncomment after Prisma generation)
+			// await this.recordExport(pipelineRunId, adapterType, result)
 
 			return result
 		} catch (error) {
@@ -132,7 +134,9 @@ export class ExportService {
 			// Default: parse CSV
 			return this.parseCsv(buffer)
 		} catch (error) {
-			this.logger.error(`Failed to load run data from S3 (key: ${key}): ${error instanceof Error ? error.message : 'Unknown error'}`)
+			this.logger.error(
+				`Failed to load run data from S3 (key: ${key}): ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 			// Fallback to mock data to avoid hard failures
 			return this.generateMockData(run.rowsIngested || 100)
 		}
@@ -141,7 +145,7 @@ export class ExportService {
 	private parseCsv(buffer: Buffer): any[] {
 		const csvText = buffer.toString('utf-8')
 		// Basic CSV parsing with header row; handles simple quoted fields
-		const lines = csvText.split(/\r?\n/).filter((l) => l.trim().length > 0)
+		const lines = csvText.split(/\r?\n/).filter(l => l.trim().length > 0)
 		if (lines.length === 0) return []
 
 		const headers = this.parseCsvLine(lines[0])
@@ -206,7 +210,11 @@ export class ExportService {
 	/**
 	 * Record export operation in database
 	 */
-	private async recordExport(pipelineRunId: string, adapterType: ExportAdapterType, result: ExportResult) {
+	private async recordExport(
+		pipelineRunId: string,
+		adapterType: ExportAdapterType,
+		result: ExportResult,
+	) {
 		try {
 			await this.prisma.pipelineExport.create({
 				data: {
@@ -219,7 +227,9 @@ export class ExportService {
 			})
 		} catch (error) {
 			// Log but don't fail the export if recording fails
-			this.logger.warn(`Failed to record export: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			this.logger.warn(
+				`Failed to record export: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	}
 

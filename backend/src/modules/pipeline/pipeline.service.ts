@@ -21,7 +21,7 @@ export class PipelineService implements OnModuleInit {
 
 	async onModuleInit() {
 		// Subscribe to pipeline queue messages
-		await this.queueClient.subscribe<PipelineJobData>('pipeline', async (msg) => {
+		await this.queueClient.subscribe<PipelineJobData>('pipeline', async msg => {
 			try {
 				await this.processPipelineJob(msg.payload)
 			} catch (error) {
@@ -190,7 +190,11 @@ export class PipelineService implements OnModuleInit {
 		}
 	}
 
-	async cleanupOldRuns(organizationId: string, daysOld: number, statuses: string[]): Promise<number> {
+	async cleanupOldRuns(
+		organizationId: string,
+		daysOld: number,
+		statuses: string[],
+	): Promise<number> {
 		const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000)
 
 		const oldRuns = await this.prisma.pipelineRun.findMany({
@@ -292,7 +296,10 @@ export class PipelineService implements OnModuleInit {
 
 			// Download source file from S3
 			const s3Bucket = process.env.S3_BUCKET || 'flowmatic-uploads'
-			const fileBuffer = await this.storageService.downloadFileFromS3(run.sourceFile.s3Key, s3Bucket)
+			const fileBuffer = await this.storageService.downloadFileFromS3(
+				run.sourceFile.s3Key,
+				s3Bucket,
+			)
 
 			// Parse CSV data
 			const { rows: rawRows, columns } = this.parseCsvBuffer(fileBuffer)
@@ -302,7 +309,11 @@ export class PipelineService implements OnModuleInit {
 			const quality = this.qualityService.analyzeQuality(rawRows, columns)
 
 			// Run cleaning operations
-			const cleaned = this.cleaningService.clean(rawRows, quality.numericColumns, quality.categoricalColumns)
+			const cleaned = this.cleaningService.clean(
+				rawRows,
+				quality.numericColumns,
+				quality.categoricalColumns,
+			)
 			const rowsCleaned = cleaned.data.length
 			const rowsErrors = Math.max(0, rowsIngested - rowsCleaned)
 
@@ -426,14 +437,14 @@ export class PipelineService implements OnModuleInit {
 		})
 
 		const total = runs.length
-		const completed = runs.filter((r) => r.status === 'completed').length
-		const failed = runs.filter((r) => r.status === 'failed').length
-		const inProgress = runs.filter((r) => r.status === 'processing' || r.status === 'queued').length
+		const completed = runs.filter(r => r.status === 'completed').length
+		const failed = runs.filter(r => r.status === 'failed').length
+		const inProgress = runs.filter(r => r.status === 'processing' || r.status === 'queued').length
 
 		const successRate = total > 0 ? (completed / total) * 100 : 0
 		const totalDataProcessed = runs.reduce((sum, r) => sum + (r.sourceFile?.fileSize || 0), 0)
 
-		const completedRuns = runs.filter((r) => r.status === 'completed' && r.processingTimeMs > 0)
+		const completedRuns = runs.filter(r => r.status === 'completed' && r.processingTimeMs > 0)
 		const avgProcessingTime =
 			completedRuns.length > 0
 				? completedRuns.reduce((sum, r) => sum + r.processingTimeMs, 0) / completedRuns.length
@@ -476,7 +487,7 @@ export class PipelineService implements OnModuleInit {
 
 		// Group by day
 		const dailyCounts: Record<string, number> = {}
-		runs.forEach((run) => {
+		runs.forEach(run => {
 			const day = run.createdAt.toISOString().split('T')[0]
 			dailyCounts[day] = (dailyCounts[day] || 0) + 1
 		})
@@ -492,9 +503,9 @@ export class PipelineService implements OnModuleInit {
 			statusDistribution: {
 				labels: ['Completed', 'Failed', 'Processing'],
 				values: [
-					runs.filter((r) => r.status === 'completed').length,
-					runs.filter((r) => r.status === 'failed').length,
-					runs.filter((r) => ['processing', 'queued'].includes(r.status)).length,
+					runs.filter(r => r.status === 'completed').length,
+					runs.filter(r => r.status === 'failed').length,
+					runs.filter(r => ['processing', 'queued'].includes(r.status)).length,
 				],
 			},
 		}

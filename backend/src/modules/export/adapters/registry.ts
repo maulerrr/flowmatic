@@ -64,7 +64,7 @@ export class ExportAdapterRegistry {
 	 * Get adapter metadata for UI
 	 */
 	getAdapterMetadata() {
-		return this.getAllAdapters().map((adapter) => ({
+		return this.getAllAdapters().map(adapter => ({
 			type: adapter.type,
 			name: adapter.name,
 			description: adapter.description,

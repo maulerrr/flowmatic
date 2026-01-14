@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { TrendingUp, FileText, CheckCircle, AlertCircle, Clock, ArrowUpRight, ArrowDownRight, Target } from 'lucide-vue-next'
-import { apiClient } from '@/api/client'
+import { apiClient } from '@/api/client';
+import { AlertCircle, ArrowDownRight, ArrowUpRight, CheckCircle, Clock, FileText, Target, TrendingUp } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
+
+
+
+
 
 const stats = ref([
 	{
@@ -116,14 +120,19 @@ onMounted(() => {
 		<div class="px-6 py-8 md:px-8 max-w-7xl mx-auto">
 			<!-- Stats Grid -->
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-				<div 
-					v-for="stat in stats" 
+				<div
+					v-for="stat in stats"
 					:key="stat.label"
 					class="rounded-xl border border-border bg-card/70 backdrop-blur-md p-6 hover:border-primary/40 transition-all duration-300 group hover:shadow-[var(--glow)]"
 				>
 					<div class="flex items-start justify-between mb-4">
-						<div :class="[stat.bg, 'w-12 h-12 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform']">
-							<component :is="stat.icon" :class="['w-6 h-6', getColorClass(stat.color)]" />
+						<div
+							:class="[stat.bg, 'w-12 h-12 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform']"
+						>
+							<component
+								:is="stat.icon"
+								:class="['w-6 h-6', getColorClass(stat.color)]"
+							/>
 						</div>
 					</div>
 					<p class="text-foreground/70 text-sm font-medium mb-1">{{ stat.label }}</p>
@@ -140,18 +149,24 @@ onMounted(() => {
 					<div class="rounded-xl border border-border bg-card/70 backdrop-blur-md overflow-hidden">
 						<div class="px-6 py-4 border-b border-border/50 flex items-center justify-between">
 							<h3 class="text-xl font-bold text-foreground">Recent Activity</h3>
-							<a href="/pipelines" class="text-primary hover:text-primary/80 text-sm font-semibold transition">View all →</a>
+							<a
+								href="/pipelines"
+								class="text-primary hover:text-primary/80 text-sm font-semibold transition"
+								>View all →</a
+							>
 						</div>
-						
+
 						<div class="divide-y divide-border/30">
-							<div 
-								v-for="activity in recentActivity" 
+							<div
+								v-for="activity in recentActivity"
 								:key="activity.id"
 								class="px-6 py-4 hover:bg-card/50 transition-colors group"
 							>
 								<div class="flex items-start justify-between mb-3">
 									<div class="flex-1">
-										<h4 class="font-semibold text-foreground group-hover:text-primary transition">{{ activity.title }}</h4>
+										<h4 class="font-semibold text-foreground group-hover:text-primary transition">
+											{{ activity.title }}
+										</h4>
 										<div class="flex items-center gap-4 mt-1">
 											<span class="text-xs text-foreground/60">{{ activity.time }}</span>
 											<span class="text-xs text-foreground/50">{{ activity.size }}</span>
@@ -168,7 +183,7 @@ onMounted(() => {
 										{{ activity.status }}
 									</span>
 								</div>
-								
+
 								<!-- Progress Bar -->
 								<div class="w-full bg-border/30 rounded-full h-1.5 overflow-hidden">
 									<div
@@ -182,7 +197,10 @@ onMounted(() => {
 
 						<!-- Footer -->
 						<div class="px-6 py-4 border-t border-border/50 bg-card/50 backdrop-blur-md">
-							<a href="/upload" class="text-sm text-primary hover:text-primary/80 font-semibold transition">
+							<a
+								href="/upload"
+								class="text-sm text-primary hover:text-primary/80 font-semibold transition"
+							>
 								Start new upload →
 							</a>
 						</div>
@@ -204,17 +222,23 @@ onMounted(() => {
 								<FileText class="w-5 h-5 group-hover:scale-110 transition-transform" />
 								<span>New Upload</span>
 							</a>
-							<button class="w-full px-4 py-3 bg-border/30 hover:bg-border/50 text-foreground rounded-lg font-semibold transition-colors">
+							<button
+								class="w-full px-4 py-3 bg-border/30 hover:bg-border/50 text-foreground rounded-lg font-semibold transition-colors"
+							>
 								View Reports
 							</button>
-							<button class="w-full px-4 py-3 bg-border/30 hover:bg-border/50 text-foreground rounded-lg font-semibold transition-colors">
+							<button
+								class="w-full px-4 py-3 bg-border/30 hover:bg-border/50 text-foreground rounded-lg font-semibold transition-colors"
+							>
 								Schedule Task
 							</button>
 						</div>
 					</div>
 
 					<!-- Info Card -->
-					<div class="rounded-xl border border-primary/30 bg-primary/5 backdrop-blur-sm overflow-hidden">
+					<div
+						class="rounded-xl border border-primary/30 bg-primary/5 backdrop-blur-sm overflow-hidden"
+					>
 						<div class="p-6 space-y-3">
 							<div class="flex items-start gap-3">
 								<Target class="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
@@ -229,7 +253,9 @@ onMounted(() => {
 									<span class="text-xs font-bold text-primary">72%</span>
 								</div>
 								<div class="w-full bg-primary/20 rounded-full h-2 overflow-hidden">
-									<div class="w-[72%] h-full bg-gradient-to-r from-primary to-secondary rounded-full" />
+									<div
+										class="w-[72%] h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+									/>
 								</div>
 							</div>
 						</div>

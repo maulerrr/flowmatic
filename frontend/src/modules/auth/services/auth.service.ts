@@ -1,5 +1,7 @@
 import { type AxiosError, isAxiosError } from 'axios'
+
 import { apiClient } from '@/core/configs/axios-instance.config'
+
 import type { AdminDto } from '../models/auth.models'
 
 export class AuthServiceError extends Error {
@@ -20,7 +22,10 @@ class AuthService {
 			if (response.status >= 200 && response.status < 300) {
 				return response.data
 			} else {
-				throw new AuthServiceError(`Failed to fetch current user. Status: ${response.status}`, response.status)
+				throw new AuthServiceError(
+					`Failed to fetch current user. Status: ${response.status}`,
+					response.status,
+				)
 			}
 		} catch (error) {
 			if (isAxiosError(error)) {
@@ -48,7 +53,10 @@ class AuthService {
 		} catch (error) {
 			if (isAxiosError(error)) {
 				const axiosError = error as AxiosError
-				throw new AuthServiceError(axiosError.message || 'Login failed', axiosError.response?.status)
+				throw new AuthServiceError(
+					axiosError.message || 'Login failed',
+					axiosError.response?.status,
+				)
 			} else {
 				throw new AuthServiceError('Unknown error', 500)
 			}
@@ -62,7 +70,10 @@ class AuthService {
 		} catch (error) {
 			if (isAxiosError(error)) {
 				const axiosError = error as AxiosError
-				throw new AuthServiceError(axiosError.message || 'Logout failed', axiosError.response?.status)
+				throw new AuthServiceError(
+					axiosError.message || 'Logout failed',
+					axiosError.response?.status,
+				)
 			} else {
 				throw new AuthServiceError('Unknown error', 500)
 			}

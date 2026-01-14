@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { LogIn, Mail, AlertCircle, Sparkles } from 'lucide-vue-next'
-import { apiClient } from '@/api/client'
+import { apiClient } from '@/api/client';
+import { AlertCircle, LogIn, Mail, Sparkles } from 'lucide-vue-next';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+
+
+
 
 const router = useRouter()
 const email = ref('admin@flowmatic.local')
@@ -18,9 +22,9 @@ async function handleLogin() {
 	try {
 		isLoading.value = true
 		error.value = ''
-		
+
 		const response = await apiClient.login(email.value)
-		
+
 		// Redirect to dashboard after successful login
 		router.push('/dashboard')
 	} catch (err: any) {
@@ -32,11 +36,18 @@ async function handleLogin() {
 </script>
 
 <template>
-	<div class="min-h-screen bg-background flex flex-col items-center justify-center relative overflow-hidden p-4">
+	<div
+		class="min-h-screen bg-background flex flex-col items-center justify-center relative overflow-hidden p-4"
+	>
 		<!-- Animated background elements -->
 		<div class="absolute inset-0 overflow-hidden pointer-events-none">
-			<div class="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl opacity-30 animate-pulse"></div>
-			<div class="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl opacity-30 animate-pulse" style="animation-delay: 1s;"></div>
+			<div
+				class="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl opacity-30 animate-pulse"
+			></div>
+			<div
+				class="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl opacity-30 animate-pulse"
+				style="animation-delay: 1s;"
+			></div>
 		</div>
 
 		<!-- Main Content -->
@@ -44,9 +55,13 @@ async function handleLogin() {
 			<!-- Logo Section -->
 			<div class="text-center mb-12 space-y-3">
 				<div class="flex justify-center mb-6">
-					<div class="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-[0_10px_40px_rgba(52,208,195,0.3)]">
+					<div
+						class="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-[0_10px_40px_rgba(52,208,195,0.3)]"
+					>
 						<Sparkles class="w-8 h-8 text-foreground" />
-						<div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-secondary opacity-20 blur-xl -z-10"></div>
+						<div
+							class="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-secondary opacity-20 blur-xl -z-10"
+						></div>
 					</div>
 				</div>
 				<div>
@@ -56,7 +71,9 @@ async function handleLogin() {
 			</div>
 
 			<!-- Login Card -->
-			<div class="rounded-2xl border border-border bg-card/50 backdrop-blur-xl shadow-2xl overflow-hidden">
+			<div
+				class="rounded-2xl border border-border bg-card/50 backdrop-blur-xl shadow-2xl overflow-hidden"
+			>
 				<div class="p-8 md:p-10 space-y-8">
 					<!-- Heading -->
 					<div>
@@ -64,10 +81,17 @@ async function handleLogin() {
 						<p class="text-foreground/60 text-sm mt-1">Enter your email to access your workspace</p>
 					</div>
 
-					<form @submit.prevent="handleLogin" class="space-y-5">
+					<form
+						@submit.prevent="handleLogin"
+						class="space-y-5"
+					>
 						<!-- Email Input -->
 						<div class="space-y-2.5">
-							<label for="email" class="text-sm font-medium text-foreground/80">Email Address</label>
+							<label
+								for="email"
+								class="text-sm font-medium text-foreground/80"
+								>Email Address</label
+							>
 							<div class="relative">
 								<Mail class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
 								<input
@@ -84,7 +108,10 @@ async function handleLogin() {
 
 						<!-- Error Message -->
 						<transition name="slide-fade">
-							<div v-if="error" class="flex items-start gap-3 bg-destructive/10 border border-destructive/30 rounded-xl p-4">
+							<div
+								v-if="error"
+								class="flex items-start gap-3 bg-destructive/10 border border-destructive/30 rounded-xl p-4"
+							>
 								<AlertCircle class="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
 								<p class="text-destructive text-sm font-medium">{{ error }}</p>
 							</div>
@@ -97,14 +124,36 @@ async function handleLogin() {
 							class="w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
 							:class="isLoading ? 'bg-primary/70' : 'bg-gradient-to-r from-primary to-secondary hover:shadow-[var(--glow)] text-foreground'"
 						>
-							<span v-if="!isLoading" class="flex items-center justify-center gap-2">
+							<span
+								v-if="!isLoading"
+								class="flex items-center justify-center gap-2"
+							>
 								<span>Sign In</span>
 								<LogIn class="w-4 h-4" />
 							</span>
-							<span v-else class="flex items-center justify-center gap-2">
-								<svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							<span
+								v-else
+								class="flex items-center justify-center gap-2"
+							>
+								<svg
+									class="animate-spin w-4 h-4"
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path
+										class="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+									></path>
 								</svg>
 								<span>Signing in...</span>
 							</span>
@@ -135,9 +184,17 @@ async function handleLogin() {
 				<div class="px-8 py-6 md:py-8 border-t border-border/50 bg-card/30 backdrop-blur-sm">
 					<p class="text-xs text-foreground/50 text-center leading-relaxed">
 						By signing in, you agree to our
-						<a href="#" class="text-primary hover:text-primary/80 underline">Terms of Service</a>
+						<a
+							href="#"
+							class="text-primary hover:text-primary/80 underline"
+							>Terms of Service</a
+						>
 						and
-						<a href="#" class="text-primary hover:text-primary/80 underline">Privacy Policy</a>
+						<a
+							href="#"
+							class="text-primary hover:text-primary/80 underline"
+							>Privacy Policy</a
+						>
 					</p>
 				</div>
 			</div>

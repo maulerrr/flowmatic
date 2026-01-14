@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import {
+	S3Client,
+	PutObjectCommand,
+	GetObjectCommand,
+	DeleteObjectCommand,
+} from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 export interface S3UploadOptions {
@@ -63,9 +68,13 @@ export class StorageService {
 			this.logger.error(`Failed to upload file to S3: ${error}`)
 			throw error
 		}
-	}   
+	}
 
-	async getSignedDownloadUrl(bucket: string, key: string, expiresIn: number = 3600): Promise<string> {
+	async getSignedDownloadUrl(
+		bucket: string,
+		key: string,
+		expiresIn: number = 3600,
+	): Promise<string> {
 		if (!this.s3Client) {
 			throw new Error('S3 credentials not configured')
 		}

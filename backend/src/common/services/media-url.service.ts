@@ -28,7 +28,7 @@ export class MediaUrlService implements OnModuleInit {
 	/**
 	 * Build a full media URL based on key (if not already a full URL).
 	 * Example: key = "images/picture_description/foo.webp" →
-	 * http://itutor.sytes.net/cdn/itutor-media/images/picture_description/foo.webp
+	 * http://flowmatic.sytes.net/cdn/flowmatic-media/images/picture_description/foo.webp
 	 */
 	static buildMediaUrl(key: string): string {
 		if (!MediaUrlService.responseEndpoint || !MediaUrlService.bucketName) {
@@ -45,7 +45,7 @@ export class MediaUrlService implements OnModuleInit {
 
 	/**
 	 * Extracts the S3 object key from a full media URL.
-	 * Example: https://cdn.domain.com/itutor-media/images/foo.webp →
+	 * Example: https://cdn.domain.com/flowmatic-media/images/foo.webp →
 	 *          images/foo.webp
 	 */
 	static extractKeyFromUrl(url: string): string | null {

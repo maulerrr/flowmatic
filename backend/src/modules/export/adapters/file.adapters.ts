@@ -74,10 +74,12 @@ export class CSVExportAdapter extends BaseExportAdapter {
 
 		const delimiter = config.delimiter || ','
 		const headers = Object.keys(data[0])
-		const headerLine = headers.map((h) => this.escapeCSV(h, delimiter)).join(delimiter)
+		const headerLine = headers.map(h => this.escapeCSV(h, delimiter)).join(delimiter)
 
-		const dataLines = data.map((row) => {
-			return headers.map((header) => this.escapeCSV(String(row[header] ?? ''), delimiter)).join(delimiter)
+		const dataLines = data.map(row => {
+			return headers
+				.map(header => this.escapeCSV(String(row[header] ?? ''), delimiter))
+				.join(delimiter)
 		})
 
 		return [headerLine, ...dataLines].join('\n')

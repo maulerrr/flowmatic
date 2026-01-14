@@ -1,5 +1,10 @@
 import { BaseExportAdapter } from './base.adapter'
-import { ExportAdapterType, ExportConfig, ExportResult, PostgresConfig } from '../types/export.types'
+import {
+	ExportAdapterType,
+	ExportConfig,
+	ExportResult,
+	PostgresConfig,
+} from '../types/export.types'
 
 /**
  * PostgreSQL Export Adapter
@@ -61,7 +66,7 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 		const columns = Object.keys(data[0])
 
 		for (const col of columns) {
-			const values = data.map((row) => row[col]).filter((v) => v !== null && v !== undefined)
+			const values = data.map(row => row[col]).filter(v => v !== null && v !== undefined)
 
 			if (values.length === 0) {
 				typeMap[col] = 'TEXT'
@@ -69,28 +74,30 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 			}
 
 			// Check for boolean
-			if (values.every((v) => typeof v === 'boolean')) {
+			if (values.every(v => typeof v === 'boolean')) {
 				typeMap[col] = 'BOOLEAN'
 				continue
 			}
 
 			// Check for integer
-			if (values.every((v) => typeof v === 'number' && Number.isInteger(v))) {
+			if (values.every(v => typeof v === 'number' && Number.isInteger(v))) {
 				typeMap[col] = 'INTEGER'
 				continue
 			}
 
 			// Check for float/number
-			if (values.every((v) => typeof v === 'number')) {
+			if (values.every(v => typeof v === 'number')) {
 				typeMap[col] = 'NUMERIC(15,6)'
 				continue
 			}
 
 			// Check for date/timestamp
-			if (values.every((v) => {
-				const date = new Date(v)
-				return !isNaN(date.getTime())
-			})) {
+			if (
+				values.every(v => {
+					const date = new Date(v)
+					return !isNaN(date.getTime())
+				})
+			) {
 				typeMap[col] = 'TIMESTAMP'
 				continue
 			}
@@ -190,10 +197,10 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 									.join(',')})`,
 						)
 						.join(',')
-					const values = batch.flatMap((row) => columns.map((col) => row[col]))
+					const values = batch.flatMap(row => columns.map(col => row[col]))
 
 					const query = `
-            INSERT INTO "${pgConfig.table}" (${columns.map((c) => `"${c}"`).join(',')})
+            INSERT INTO "${pgConfig.table}" (${columns.map(c => `"${c}"`).join(',')})
             VALUES ${placeholders}
           `
 
@@ -201,7 +208,12 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 					inserted += batch.length
 				}
 
-				this.logExport(config, inserted, `${pgConfig.host}/${pgConfig.database}.${pgConfig.table}`, 'success')
+				this.logExport(
+					config,
+					inserted,
+					`${pgConfig.host}/${pgConfig.database}.${pgConfig.table}`,
+					'success',
+				)
 
 				return {
 					success: true,

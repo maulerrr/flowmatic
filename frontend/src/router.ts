@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
 import { apiClient } from '@/api/client'
+import { createRouter, createWebHistory } from 'vue-router'
 
 // Import pages
 const LoginPage = () => import('@/pages/login-page.vue')
@@ -75,6 +75,7 @@ router.beforeEach(async (to, from, next) => {
 		await apiClient.getProfile()
 		next()
 	} catch (error) {
+		console.warn('Auth required but user not logged in:', error)
 		// Not authenticated, redirect to login
 		next({
 			path: '/login',

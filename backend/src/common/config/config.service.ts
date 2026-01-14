@@ -102,7 +102,7 @@ export class AppConfigService {
 			region: this.get<string>('S3_REGION', 'ap-northeast-2'),
 			accessKeyId: this.get<string>('S3_ACCESS_KEY', 'minio'),
 			secretAccessKey: this.get<string>('S3_SECRET_KEY', 'minio123'),
-			bucket: this.get<string>('S3_BUCKET', 'itutor-media'),
+			bucket: this.get<string>('S3_BUCKET', 'flowmatic-media'),
 			imagePrefix: this.get<string>('S3_IMAGE_PREFIX', 'images'),
 			audioPrefix: this.get<string>('S3_AUDIO_PREFIX', 'audio'),
 			usePathStyle: this.get<boolean>('S3_PATH_STYLE', true),

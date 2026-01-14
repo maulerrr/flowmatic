@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx'
 import { isImportHeaderKey } from '../i18n/excel-l10n'
 
-const SHEET_NAME = 'itutor'
+const SHEET_NAME = 'flowmatic'
 
 export function parseExcelBuffer<T = Record<string, unknown>>(buffer: Buffer): T[] {
 	const workbook = XLSX.read(buffer, { type: 'buffer' })

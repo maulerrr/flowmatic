@@ -59,9 +59,9 @@ const isSidebarCollapsed = computed(() => {
 						<h1
 							class="bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 font-bold text-transparent text-xl"
 						>
-							ITutor
+							Flowmatic
 						</h1>
-						<span class="font-medium text-gray-500 text-xs tracking-wide"> Oқу платформасы </span>
+						<span class="font-medium text-gray-500 text-xs tracking-wide"> Data Prep </span>
 					</div>
 				</Transition>
 			</div>

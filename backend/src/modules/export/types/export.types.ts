@@ -34,7 +34,7 @@ export interface ExportAdapter {
 	name: string
 	description: string
 	requiredSettings: string[]
-	
+
 	validate(settings: Record<string, any>): Promise<{ valid: boolean; errors?: string[] }>
 	export(data: any[], config: ExportConfig): Promise<ExportResult>
 }

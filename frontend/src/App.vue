@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import 'vue-sonner/style.css'
-import { Toaster } from '@/core/components/ui/sonner'
-import SidebarLayout from '@/layouts/sidebar-layout.vue'
+import SidebarLayout from '@/layouts/sidebar-layout.vue';
+import 'vue-sonner/style.css';
+
+
+
+import { Toaster } from '@/core/components/ui/sonner';
 </script>
 
 <template>
