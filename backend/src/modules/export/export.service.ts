@@ -38,7 +38,9 @@ export class ExportService {
 		runId: string,
 		organizationId: string,
 		pagination: PaginationParamsFilter,
-	): Promise<PaginatedResponse<Record<string, any>> & { meta: { columns: string[]; fileName: string } }> {
+	): Promise<
+		PaginatedResponse<Record<string, any>> & { meta: { columns: string[]; fileName: string } }
+	> {
 		const run = await this.prisma.pipelineRun.findUnique({
 			where: { id: runId },
 			include: { resultFile: true, sourceFile: true },
@@ -53,15 +55,15 @@ export class ExportService {
 		}
 
 		// Load all rows (from S3 or local storage)
-		// Note: For very large files, this should be optimized to stream/seek, 
+		// Note: For very large files, this should be optimized to stream/seek,
 		// but for MVP/Preview loading into memory matches current loadRunData logic.
 		const allRows = await this.loadRunData(run)
-		
+
 		const { page = 1, pageSize = 10 } = pagination
 		const totalCount = allRows.length
 		const startIndex = (page - 1) * pageSize
 		const endIndex = startIndex + pageSize
-		
+
 		const slicedData = allRows.slice(startIndex, endIndex)
 		const columns = allRows.length > 0 ? Object.keys(allRows[0]) : []
 
@@ -71,7 +73,7 @@ export class ExportService {
 			meta: {
 				columns,
 				fileName: run.resultFile?.fileName || run.sourceFileName,
-			}
+			},
 		}
 	}
 

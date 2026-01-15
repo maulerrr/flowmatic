@@ -50,11 +50,11 @@ export class ExportController {
 	) {
 		try {
 			const result = await this.exportService.getPreviewData(
-				runId, 
+				runId,
 				req.authContext!.organizationId,
-				query
+				query,
 			)
-			
+
 			return {
 				success: true,
 				data: result,
