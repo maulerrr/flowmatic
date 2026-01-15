@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { type PipelineRun, apiClient } from '@/api/client';
-import { AlertCircle, ArrowDownRight, ArrowUpRight, CheckCircle, Clock, Database, Download, Eye, Filter, RefreshCw, Search, Send, ToggleLeft, Trash2, TrendingUp, Upload, X } from 'lucide-vue-next';
+import { AlertCircle, ArrowDownRight, ArrowUpRight, CheckCircle, Clock, Database, Download, Eye, Filter, RefreshCw, Search, Send, ToggleLeft, Trash2, TrendingUp, Upload, X, Sparkles, ArrowRight, Lightbulb, CheckSquare } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 
 
 import PipelineRunCard from '@/core/components/pipeline-run-card.vue';
+import PaginationBar from '@/core/components/pagination-bar/pagination-bar.vue';
 
 
 
@@ -26,6 +27,8 @@ const showExportModal = ref(false)
 const exportingRunId = ref<string | null>(null)
 const previewData = ref<any>(null)
 const previewLoading = ref(false)
+const previewPage = ref(1)
+const previewPageSize = ref(25)
 const exportAdapters = ref<any[]>([])
 const selectedAdapter = ref<string>('')
 const exportSettings = ref<Record<string, any>>({})
@@ -53,6 +56,29 @@ const runMetrics = computed(() => {
 	const failed = runs.value.filter(r => r.status === 'failed').length
 	const inProgress = runs.value.filter(r => r.status === 'processing' || r.status === 'queued').length
 	return { total, completed, failed, inProgress }
+})
+
+const selectedRunSummary = computed(() => {
+	if (!selectedRun.value?.summary) return null
+	try {
+		const parsed = JSON.parse(selectedRun.value.summary)
+		if (parsed.scores && parsed.overview) {
+			return parsed
+		}
+		return {
+			overview: selectedRun.value.summary,
+			scores: null,
+			insights: [],
+			recommendation: null
+		}
+	} catch (e) {
+		return {
+			overview: selectedRun.value.summary,
+			scores: null,
+			insights: [],
+			recommendation: null
+		}
+	}
 })
 
 const setFeedback = (type: 'success' | 'error' | 'info', message: string) => {
@@ -122,10 +148,11 @@ const deleteRun = async () => {
 	try {
 		const response = await apiClient.deleteRun(runToDelete.value.id)
 		if (response.success) {
-			runs.value = runs.value.filter(r => r.id !== runToDelete.value!.id)
+			const deletedId = runToDelete.value!.id
+			runs.value = runs.value.filter(r => r.id !== deletedId)
 			showDeleteConfirm.value = false
 			runToDelete.value = null
-			if (selectedRun.value?.id === runToDelete.value?.id) {
+			if (selectedRun.value?.id === deletedId) {
 				selectedRun.value = null
 			}
 			setFeedback('success', 'Run deleted successfully')
@@ -140,10 +167,20 @@ const deleteRun = async () => {
 
 const showDataPreview = async (run: PipelineRun) => {
 	previewLoading.value = true
+	selectedRun.value = run
+	previewPage.value = 1
+	
+	await fetchPreviewPage(run.id, 1)
+}
+
+const fetchPreviewPage = async (runId: string, page: number) => {
 	try {
-		const response = await apiClient.previewPipelineData(run.id, 10)
+		previewLoading.value = true
+		const response = await apiClient.previewPipelineData(runId, page, previewPageSize.value)
+		
 		if (response.success && response.data) {
 			previewData.value = response.data
+			previewPage.value = page
 			showPreview.value = true
 		}
 	} catch (error) {
@@ -151,6 +188,12 @@ const showDataPreview = async (run: PipelineRun) => {
 		setFeedback('error', 'Failed to load data preview')
 	} finally {
 		previewLoading.value = false
+	}
+}
+
+const handlePreviewPageChange = (page: number) => {
+	if (selectedRun.value) {
+		fetchPreviewPage(selectedRun.value.id, page)
 	}
 }
 
@@ -504,6 +547,63 @@ onMounted(() => {
 						</div>
 					</div>
 
+					<!-- AI Analysis Section -->
+					<div v-if="selectedRunSummary" class="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/10 overflow-hidden">
+						<!-- Header -->
+						<div class="px-4 py-3 border-b border-primary/10 flex items-center gap-2 bg-primary/5">
+							<Sparkles class="w-4 h-4 text-primary animate-pulse" />
+							<span class="text-sm font-bold text-primary tracking-wide uppercase">AI Analysis</span>
+						</div>
+						
+						<div class="p-4 space-y-5">
+							<!-- Overview -->
+							<div class="text-sm text-foreground/80 leading-relaxed">
+								{{ selectedRunSummary.overview.replace(/\*\*/g, '') }}
+							</div>
+
+							<!-- Scores -->
+							<div v-if="selectedRunSummary.scores" class="flex items-center gap-4 bg-white/5 rounded-lg p-3">
+								<div class="flex-1 text-center border-r border-white/10">
+									<p class="text-xs text-foreground/50 uppercase mb-1">Raw Quality</p>
+									<p :class="['text-xl font-bold', selectedRunSummary.scores.initial > 80 ? 'text-success' : 'text-warning']">
+										{{ selectedRunSummary.scores.initial }}<span class="text-xs text-foreground/40 ml-0.5">/100</span>
+									</p>
+								</div>
+								<div class="flex items-center text-foreground/40">
+									<ArrowRight class="w-4 h-4" />
+								</div>
+								<div class="flex-1 text-center">
+									<p class="text-xs text-foreground/50 uppercase mb-1">Cleaned Quality</p>
+									<p :class="['text-xl font-bold', selectedRunSummary.scores.final > 90 ? 'text-primary' : 'text-success']">
+										{{ selectedRunSummary.scores.final }}<span class="text-xs text-foreground/40 ml-0.5">/100</span>
+									</p>
+								</div>
+							</div>
+
+							<!-- Key Insights -->
+							<div v-if="selectedRunSummary.insights?.length">
+								<h4 class="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-2 flex items-center gap-2">
+									<Lightbulb class="w-3.5 h-3.5" /> Key Insights
+								</h4>
+								<ul class="space-y-2">
+									<li v-for="(insight, idx) in selectedRunSummary.insights" :key="idx" class="flex gap-2 text-sm text-foreground/70">
+										<span class="block w-1.5 h-1.5 mt-1.5 rounded-full bg-primary/50 flex-shrink-0" />
+										{{ insight }}
+									</li>
+								</ul>
+							</div>
+
+							<!-- Actions -->
+							<div v-if="selectedRunSummary.recommendation" class="bg-primary/10 rounded-lg p-3 flex gap-3 items-start border border-primary/20">
+								<CheckSquare class="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+								<div>
+									<p class="text-xs font-bold text-primary uppercase mb-0.5">Recommended Action</p>
+									<p class="text-sm text-foreground/90">{{ selectedRunSummary.recommendation }}</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
 					<div
 						v-if="selectedRun.errorMessage"
 						class="bg-destructive/10 border border-destructive/30 rounded-xl p-4"
@@ -580,9 +680,10 @@ onMounted(() => {
 				>
 					<div>
 						<h2 class="text-2xl font-bold text-foreground">Data Preview</h2>
-						<p class="text-sm text-foreground/60">
-							{{ previewData.fileName }} • {{ previewData.previewRows }} of
-							{{ previewData.totalRows }} rows
+						<p class="text-sm text-foreground/60" v-if="previewData?.meta">
+							{{ previewData.meta.fileName }} • 
+							Page {{ previewData.pagination?.page }} of {{ previewData.pagination?.totalPages }}
+							({{ previewData.pagination?.totalCount }} rows)
 						</p>
 					</div>
 					<button
@@ -594,29 +695,35 @@ onMounted(() => {
 				</div>
 
 				<div class="p-6">
-					<div class="overflow-x-auto rounded-lg border border-white/10">
+					<div 
+						v-if="previewData?.meta?.columns"
+						class="overflow-x-auto rounded-lg border border-white/10"
+					>
 						<table class="w-full text-sm">
 							<thead class="border-b border-white/10 bg-white/5">
 								<tr>
 									<th
-										v-for="col in previewData.columns"
+										v-for="col in previewData.meta.columns"
 										:key="col"
-										class="text-left px-4 py-3 text-foreground/80 font-semibold uppercase tracking-[0.08em]"
+										class="text-left px-4 py-3 text-foreground/80 font-semibold uppercase tracking-[0.08em] whitespace-nowrap"
 									>
 										{{ col }}
 									</th>
 								</tr>
 							</thead>
-							<tbody>
+							<tbody class="relative">
+								<div v-if="previewLoading" class="absolute inset-0 bg-background/50 flex items-center justify-center z-10 min-h-[200px]">
+									<RefreshCw class="animate-spin w-8 h-8 text-primary" />
+								</div>
 								<tr
 									v-for="(row, idx) in previewData.data"
 									:key="idx"
 									class="border-b border-white/5 hover:bg-white/5 transition-colors last:border-0"
 								>
 									<td
-										v-for="col in previewData.columns"
+										v-for="col in previewData.meta.columns"
 										:key="col"
-										class="px-4 py-3 text-foreground/70"
+										class="px-4 py-3 text-foreground/70 whitespace-nowrap"
 									>
 										{{ row[col] }}
 									</td>
@@ -624,12 +731,23 @@ onMounted(() => {
 							</tbody>
 						</table>
 					</div>
+
+					<!-- Pagination Controls -->
+					<div class="mt-4" v-if="previewData?.pagination && previewData.pagination.totalPages > 1">
+						<PaginationBar
+							:total-pages="previewData.pagination.totalPages"
+							:total-count="previewData.pagination.totalCount"
+							:page-size="previewData.pagination.pageSize"
+							:default-page="previewPage"
+							@page-change="handlePreviewPageChange"
+						/>
+					</div>
 					<div
 						class="mt-4 p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between"
 					>
 						<p class="text-sm text-foreground/70">
 							Total rows in dataset:
-							<span class="text-foreground font-semibold">{{ previewData.totalRows }}</span>
+							<span class="text-foreground font-semibold">{{ previewData.pagination?.totalCount || 0 }}</span>
 						</p>
 					</div>
 				</div>

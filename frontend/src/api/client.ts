@@ -16,6 +16,7 @@ export interface User {
 	displayName: string
 	organizationId: string
 	role: 'admin' | 'member' | 'viewer'
+	createdAt: string
 }
 
 export interface Organization {
@@ -44,6 +45,7 @@ export interface PipelineRun {
 	errorMessage: string | null
 	resultFileId: string | null
 	resultFileSize: number | null
+	summary: string | null
 	createdAt: string
 	updatedAt: string
 	sourceFile?: {
@@ -236,9 +238,9 @@ export class ApiClient {
 		return this.request('GET', '/exports/adapters')
 	}
 
-	async previewPipelineData(runId: string, limit: number = 10): Promise<ApiResponse<any>> {
+	async previewPipelineData(runId: string, page: number = 1, pageSize: number = 25): Promise<ApiResponse<any>> {
 		return this.request('GET', '/exports/runs/:runId/preview'.replace(':runId', runId), {
-			query: { limit: String(limit) },
+			query: { page, pageSize },
 		})
 	}
 

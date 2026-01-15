@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import SidebarLayout from '@/layouts/sidebar-layout.vue';
 import 'vue-sonner/style.css';
+import { isDark } from '@/core/composables/theme';
 
+// Initialize theme
+isDark.value
 
 
 import { Toaster } from '@/core/components/ui/sonner';

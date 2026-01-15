@@ -15,6 +15,7 @@ import { ExportService } from './export.service'
 import { AuthGuard } from '../auth/auth.guard'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { ExportAdapterType } from './types/export.types'
+import { PaginationParamsFilter } from 'src/common/utils/pagination.util'
 
 @ApiTags('exports')
 @Controller('exports')
@@ -39,46 +40,27 @@ export class ExportController {
 
 	/**
 	 * Preview cleaned data from a pipeline run (shows sample rows)
-	 * GET /api/v1/exports/runs/:runId/preview?limit=10
+	 * GET /api/v1/exports/runs/:runId/preview?page=1&pageSize=10
 	 */
 	@Get('runs/:runId/preview')
 	async previewRunData(
 		@Req() req: Request,
 		@Param('runId') runId: string,
-		@Query('limit') limit?: string,
+		@Query() query: PaginationParamsFilter,
 	) {
-		const limitNum = limit ? Math.min(parseInt(limit, 10), 100) : 10
-
-		// Verify run exists and user has access
-		const run = await this.prisma.pipelineRun.findUnique({
-			where: { id: runId },
-			include: { sourceFile: true, resultFile: true },
-		})
-
-		if (!run) {
-			throw new BadRequestException('Pipeline run not found')
-		}
-
-		if (run.organizationId !== req.authContext!.organizationId) {
-			throw new BadRequestException('Unauthorized to preview this run')
-		}
-
-		// Generate sample data (in production, load from result file)
-		const sampleData = this.generateSampleData(
-			run.rowsCleaned || run.rowsIngested || limitNum,
-			limitNum,
-		)
-
-		return {
-			success: true,
-			data: {
-				runId,
-				fileName: run.sourceFileName,
-				totalRows: run.rowsCleaned || run.rowsIngested,
-				previewRows: limitNum,
-				columns: sampleData.length > 0 ? Object.keys(sampleData[0]) : [],
-				data: sampleData,
-			},
+		try {
+			const result = await this.exportService.getPreviewData(
+				runId, 
+				req.authContext!.organizationId,
+				query
+			)
+			
+			return {
+				success: true,
+				data: result,
+			}
+		} catch (error) {
+			throw new BadRequestException(error instanceof Error ? error.message : 'Unknown error')
 		}
 	}
 

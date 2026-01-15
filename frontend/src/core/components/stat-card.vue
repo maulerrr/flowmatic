@@ -1,14 +1,10 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
-import { LucideIcon } from 'lucide-vue-next';
+import type { LucideIcon } from 'lucide-vue-next';
 
-
-
-
-
-interface Props {
+export interface Props {
 	label: string
 	value: string | number
-	icon: typeof LucideIcon
+	icon: LucideIcon
 	color: 'primary' | 'success' | 'warning' | 'destructive'
 	description?: string
 	trend?: {

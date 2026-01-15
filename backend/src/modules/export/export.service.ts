@@ -5,6 +5,11 @@ import { ExportAdapterRegistry } from './adapters/registry'
 import { ExportConfig, ExportResult, ExportAdapterType } from './types/export.types'
 import { PipelineRun, StorageFile } from '@prisma/client'
 import { DataRow } from '../ingestion/ingestion.service'
+import {
+	createPaginationMeta,
+	PaginationParamsFilter,
+	PaginatedResponse,
+} from 'src/common/utils/pagination.util'
 
 /**
  * Service to orchestrate data exports to various destinations
@@ -24,6 +29,50 @@ export class ExportService {
 	 */
 	getAvailableAdapters() {
 		return this.adapterRegistry.getAdapterMetadata()
+	}
+
+	/**
+	 * Get paginated preview data for a pipeline run
+	 */
+	async getPreviewData(
+		runId: string,
+		organizationId: string,
+		pagination: PaginationParamsFilter,
+	): Promise<PaginatedResponse<Record<string, any>> & { meta: { columns: string[]; fileName: string } }> {
+		const run = await this.prisma.pipelineRun.findUnique({
+			where: { id: runId },
+			include: { resultFile: true, sourceFile: true },
+		})
+
+		if (!run) {
+			throw new Error('Pipeline run not found')
+		}
+
+		if (run.organizationId !== organizationId) {
+			throw new Error('Unauthorized access to run')
+		}
+
+		// Load all rows (from S3 or local storage)
+		// Note: For very large files, this should be optimized to stream/seek, 
+		// but for MVP/Preview loading into memory matches current loadRunData logic.
+		const allRows = await this.loadRunData(run)
+		
+		const { page = 1, pageSize = 10 } = pagination
+		const totalCount = allRows.length
+		const startIndex = (page - 1) * pageSize
+		const endIndex = startIndex + pageSize
+		
+		const slicedData = allRows.slice(startIndex, endIndex)
+		const columns = allRows.length > 0 ? Object.keys(allRows[0]) : []
+
+		return {
+			data: slicedData,
+			pagination: createPaginationMeta(page, pageSize, totalCount),
+			meta: {
+				columns,
+				fileName: run.resultFile?.fileName || run.sourceFileName,
+			}
+		}
 	}
 
 	/**

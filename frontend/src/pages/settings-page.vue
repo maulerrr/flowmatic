@@ -3,6 +3,7 @@ import { type User, apiClient } from '@/api/client';
 import { Bell, Database, Lock, Palette, X } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import { isDark, toggleDark } from '@/core/composables/theme';
 
 
 
@@ -40,9 +41,6 @@ const settings = [
 const user = ref<User | null>(null)
 const loading = ref(false)
 
-// Theme State
-const isDark = ref(false)
-
 // Password State
 const showPasswordModal = ref(false)
 const newPassword = ref('')
@@ -54,15 +52,6 @@ const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
 
 onMounted(async () => {
-	// Theme Init
-	const savedTheme = localStorage.getItem('theme')
-	if (savedTheme) {
-		isDark.value = savedTheme === 'dark'
-	} else {
-		isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-	}
-	updateTheme()
-
 	loading.value = true
 	try {
 		const response = await apiClient.getProfile()
@@ -75,22 +64,6 @@ onMounted(async () => {
 		loading.value = false
 	}
 })
-
-const updateTheme = () => {
-	const el = document.documentElement
-	if (isDark.value) {
-		el.classList.add('dark')
-		localStorage.setItem('theme', 'dark')
-	} else {
-		el.classList.remove('dark')
-		localStorage.setItem('theme', 'light')
-	}
-}
-
-const toggleTheme = () => {
-	isDark.value = !isDark.value
-	updateTheme()
-}
 
 const handleChangePassword = async () => {
 	if (newPassword.value.length < 6) {
@@ -263,8 +236,7 @@ const formatDate = (dateString?: string) => {
 						<label class="relative inline-flex cursor-pointer">
 							<input
 								type="checkbox"
-								:checked="isDark"
-								@change="toggleTheme"
+								v-model="isDark"
 								class="sr-only peer"
 							/>
 							<div

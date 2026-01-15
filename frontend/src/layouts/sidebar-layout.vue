@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { apiClient } from '@/api/client';
 import type { User as UserType } from '@/api/client';
-import { Activity, BarChart3, Bell, ChevronLeft, ChevronRight, Database, LogOut, Menu, Settings, Sparkles, Upload, User, X } from 'lucide-vue-next';
+import { Activity, BarChart3, Bell, ChevronLeft, ChevronRight, Database, LogOut, Menu, Settings, Sparkles, Upload, User, X, Network } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -20,6 +20,7 @@ const isLoggingOut = ref(false)
 
 const menuItems = [
 	{ icon: Database, label: 'Dashboard', path: '/dashboard', badge: null },
+	{ icon: Network, label: 'Connectors', path: '/connectors', badge: 'beta' },
 	{ icon: Upload, label: 'Upload', path: '/upload', badge: null },
 	{ icon: Activity, label: 'Pipelines', path: '/pipelines', badge: 'live' },
 	{ icon: BarChart3, label: 'Analytics', path: '/analytics', badge: null },

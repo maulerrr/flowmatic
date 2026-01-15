@@ -15,3 +15,13 @@ export interface PipelineJobResult {
 	resultFileSize?: number
 	errorMessage?: string
 }
+
+export interface PipelineSummary {
+	overview: string
+	scores: {
+		initial: number
+		final: number
+	}
+	insights: string[]
+	recommendation: string | null
+}

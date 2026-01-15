@@ -73,6 +73,7 @@ model PipelineRun {
   // Job tracking
   jobId            String?  @unique // RabbitMQ job ID
   errorMessage     String?
+  summary          String?  @db.Text
   
   // Results
   resultFileId     String?

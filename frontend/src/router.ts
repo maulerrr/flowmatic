@@ -8,6 +8,7 @@ const UploadPage = () => import('@/modules/auth/pages/upload-page.vue')
 const PipelinesPage = () => import('@/modules/auth/pages/pipelines-page.vue')
 const AnalyticsPage = () => import('@/pages/analytics-page.vue')
 const SettingsPage = () => import('@/pages/settings-page.vue')
+const ConnectorsPage = () => import('@/pages/connectors-page.vue')
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,6 +36,12 @@ const router = createRouter({
 			path: '/upload',
 			name: 'UPLOAD',
 			component: UploadPage,
+			meta: { requiresAuth: true },
+		},
+		{
+			path: '/connectors',
+			name: 'CONNECTORS',
+			component: ConnectorsPage,
 			meta: { requiresAuth: true },
 		},
 		{

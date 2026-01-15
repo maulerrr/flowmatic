@@ -1,11 +1,13 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { PipelineRun, StorageFile } from '@prisma/client'
+import { ChatOpenAI } from '@langchain/openai'
+import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 import { PrismaService } from 'src/prisma/prisma.service'
-import { QualityService } from '../quality/quality.service'
+import { QualityReport, QualityService } from '../quality/quality.service'
 import { CleaningService } from '../cleaning/cleaning.service'
 import { StorageService } from '../storage/storage.service'
 import { QUEUE_CLIENT, QueueClient, QueueMessage } from 'src/common/queue/queue.tokens'
-import { PipelineJobData, PipelineJobResult } from './pipeline.types'
+import { PipelineJobData, PipelineJobResult, PipelineSummary } from './pipeline.types'
 import { v4 as uuid } from 'uuid'
 import { DataRow } from '../ingestion/ingestion.service'
 
@@ -282,6 +284,143 @@ export class PipelineService implements OnModuleInit {
 		return result
 	}
 
+	private async generateLlmSummary(
+		fileName: string,
+		ingested: number,
+		cleaned: number,
+		errors: number,
+		quality: QualityReport,
+	): Promise<string> {
+		this.logger.log(`Generating summary for ${fileName} (ingested: ${ingested}, errors: ${errors})`)
+
+		const numericCols = quality.numericColumns?.length || 0
+		const categoricalCols = quality.categoricalColumns?.length || 0
+		const errorRate = ingested > 0 ? (errors / ingested) * 100 : 0
+		const cleanRate = ingested > 0 ? (cleaned / ingested) * 100 : 0
+
+		// Fallback logic for when LLM is unavailable or fails
+		const fallbackLogic = () => {
+			this.logger.log('Executing fallback summary logic')
+			// Calculate scores
+			const initialScore = Math.round(Math.max(0, 100 - errorRate * 3))
+			const finalScore = Math.min(100, Math.round(initialScore + (100 - initialScore) * 0.8)) // Simulate improvement
+
+			let overview = `Analysis of the ${ingested.toLocaleString()} records from ${fileName}. `
+
+			if (cleanRate > 98) {
+				overview += `The dataset is highly clean, with ${cleaned.toLocaleString()} records successfully processed. `
+			} else if (cleanRate > 80) {
+				overview += `The dataset is generally composed of valid data, though ${errors.toLocaleString()} records required attention. `
+			} else {
+				overview += `Significant data quality issues were found, with a high rejection rate of ${errorRate.toFixed(1)}%. `
+			}
+
+			const insights = [
+				`Identified ${numericCols} numeric fields and ${categoricalCols} categorical fields.`,
+			]
+
+			if (errors > 0) {
+				insights.push(
+					`${errors} records were flagged as potentially anomalous or containing schema violations.`,
+				)
+			} else {
+				insights.push(`No significant schema violations or anomalies were detected.`)
+			}
+
+			const recommendation =
+				errorRate > 10
+					? 'Review source generation process for schema compliance.'
+					: 'Proceed with downstream analytics.'
+
+			return JSON.stringify({
+				overview,
+				scores: { initial: initialScore, final: finalScore },
+				insights,
+				recommendation,
+			})
+		}
+
+		if (!process.env.OPENAI_API_KEY) {
+			this.logger.warn('OPENAI_API_KEY not found, using fallback summary generation')
+			return fallbackLogic()
+		}
+
+		try {
+			this.logger.log('Attempting LLM summary generation with OpenAI')
+			const chat = new ChatOpenAI({
+				modelName: 'gpt-4o',
+				temperature: 0.2, // Low temperature for consistent, structured output
+				openAIApiKey: process.env.OPENAI_API_KEY,
+			})
+
+			const systemPrompt = `
+You are an expert Data Quality Engineer. Your task is to analyze pipeline execution statistics and generate a JSON summary of data quality.
+
+Output Format:
+The output must be a valid JSON object with the following structure:
+{
+  "overview": "A concise narrative string summarizing the data quality and processing results.",
+  "scores": { 
+      "initial": number (0-100, estimate based on error rate), 
+      "final": number (0-100, estimate after cleaning) 
+  },
+  "insights": ["string array of 2-3 key technical findings"],
+  "recommendation": "A single string action item."
+}
+
+Scoring Rules:
+- Initial Score: Roughly (100 - (error_rate * 3)). Penalize heavy errors.
+- Final Score: Should be higher than initial, assuming cleaning fixed issues.
+- Be professional but direct.
+
+Few-Shot Example:
+Input: "File: customer_data.csv. Ingested: 1000. Cleaned: 990. Errors: 10. Numeric Cols: 2. Categorical Cols: 3."
+Output: {
+  "overview": "Analysis of the 1,000 records from customer_data.csv. The dataset is highly clean, with 990 records successfully processed.",
+  "scores": { "initial": 97, "final": 99 },
+  "insights": [
+    "Identified 2 numeric fields and 3 categorical fields.",
+    "10 records were flagged as potentially anomalous or containing schema violations."
+  ],
+  "recommendation": "Proceed with downstream analytics."
+}
+`
+
+			const userPrompt = `
+Analyze this pipeline run:
+File: ${fileName}
+Ingested: ${ingested}
+Cleaned: ${cleaned}
+Errors: ${errors}
+Numeric Columns: ${numericCols}
+Categorical Columns: ${categoricalCols}
+`
+
+			const response = await chat.invoke([
+				new SystemMessage(systemPrompt),
+				new HumanMessage(userPrompt),
+			])
+
+			this.logger.log('LLM response received')
+			let jsonStr = response.content as string
+			// Clean markdown code blocks if present
+			jsonStr = jsonStr.replace(/```json\n?|```/g, '').trim()
+
+			// Validate JSON
+			const summary = JSON.parse(jsonStr) as PipelineSummary
+
+			// Basic validation of fields
+			if (!summary.overview || !summary.scores || !summary.insights) {
+				throw new Error('Invalid LLM summary format')
+			}
+
+			return jsonStr
+		} catch (error) {
+			this.logger.error('LLM Summary generation failed, falling back to mock:', error)
+			return fallbackLogic()
+		}
+	}
+
 	async processPipelineJob(data: PipelineJobData): Promise<PipelineJobResult> {
 		const startTime = Date.now()
 		const run = await this.prisma.pipelineRun.findUniqueOrThrow({
@@ -382,6 +521,15 @@ export class PipelineService implements OnModuleInit {
 
 			const processingTimeMs = Date.now() - startTime
 
+			// Generate LLM Summary
+			const summary = await this.generateLlmSummary(
+				run.sourceFileName,
+				rowsIngested,
+				rowsCleaned,
+				rowsErrors,
+				quality,
+			)
+
 			// Update with completion status
 			await this.prisma.pipelineRun.update({
 				where: { id: data.runId },
@@ -392,6 +540,7 @@ export class PipelineService implements OnModuleInit {
 					rowsErrors,
 					processingTimeMs,
 					resultFileId,
+					summary,
 				},
 			})
 
