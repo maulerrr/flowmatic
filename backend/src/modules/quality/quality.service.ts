@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { DataRow } from '../ingestion/ingestion.service'
+import { DataRow } from 'src/common/types/data.types'
 
 export interface QualityReport {
 	missing: Record<string, number>
@@ -115,38 +115,32 @@ export class QualityService {
 		numericColumns: string[],
 		threshold: number = 3,
 	): { count: number; rows: DataRow[]; columns: string[] } {
+		// Pre-compute stats per column once (O(n*m)) instead of per row (O(n^2*m))
+		const stats = new Map<string, { mean: number; stdDev: number }>()
+		for (const col of numericColumns) {
+			const values = data.map(r => Number(r[col])).filter(v => !isNaN(v))
+			if (values.length < 2) continue
+			const mean = values.reduce((a, b) => a + b, 0) / values.length
+			const variance = values.reduce((a, v) => a + Math.pow(v - mean, 2), 0) / values.length
+			const stdDev = Math.sqrt(variance)
+			if (stdDev > 0) stats.set(col, { mean, stdDev })
+		}
+
 		const outlierRows: DataRow[] = []
 		const outlierColumns = new Set<string>()
 
 		for (const row of data) {
 			let isOutlier = false
-
-			for (const col of numericColumns) {
+			for (const col of stats.keys()) {
 				const value = Number(row[col])
 				if (isNaN(value)) continue
-
-				const columnValues = data.map(r => Number(r[col])).filter(v => !isNaN(v))
-
-				if (columnValues.length < 2) continue
-
-				const mean = columnValues.reduce((a, b) => a + b, 0) / columnValues.length
-				const variance =
-					columnValues.reduce((a, v) => a + Math.pow(v - mean, 2), 0) / columnValues.length
-				const stdDev = Math.sqrt(variance)
-
-				if (stdDev === 0) continue
-
-				const zScore = Math.abs((value - mean) / stdDev)
-
-				if (zScore > threshold) {
+				const { mean, stdDev } = stats.get(col)!
+				if (Math.abs((value - mean) / stdDev) > threshold) {
 					isOutlier = true
 					outlierColumns.add(col)
 				}
 			}
-
-			if (isOutlier) {
-				outlierRows.push(row)
-			}
+			if (isOutlier) outlierRows.push(row)
 		}
 
 		return {

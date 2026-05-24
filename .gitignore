@@ -1,2 +1,24 @@
 *__pycache__
 *.env
+.env
+*.env.*
+!.env.example
+
+# Dependency installs
+node_modules/
+**/node_modules/
+
+# Build and cache output
+dist/
+build/
+coverage/
+.turbo/
+.cache/
+
+# Local datasets, trained checkpoints, and generated model artifacts.
+# Mirror these to external artifact storage instead of committing them.
+data/
+backend/model-artifacts/
+models/datasets/
+models/checkpoints/
+models/artifacts/

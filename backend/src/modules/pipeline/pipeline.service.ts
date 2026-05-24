@@ -9,19 +9,30 @@ import { StorageService } from '../storage/storage.service'
 import { QUEUE_CLIENT, QueueClient, QueueMessage } from 'src/common/queue/queue.tokens'
 import { PipelineJobData, PipelineJobResult, PipelineSummary } from './pipeline.types'
 import { v4 as uuid } from 'uuid'
-import { DataRow } from '../ingestion/ingestion.service'
+import { AppConfigService } from 'src/common/config/config.service'
+import { parseCsvBuffer, rowsToCsv } from 'src/common/utils/csv-parser.util'
 
 @Injectable()
 export class PipelineService implements OnModuleInit {
 	private readonly logger = new Logger(PipelineService.name)
+	private readonly chatModel?: ChatOpenAI
 
 	constructor(
 		private prisma: PrismaService,
 		private qualityService: QualityService,
 		private cleaningService: CleaningService,
 		private storageService: StorageService,
+		private config: AppConfigService,
 		@Inject(QUEUE_CLIENT) private queueClient: QueueClient,
-	) {}
+	) {
+		if (this.config.openai.apiKey) {
+			this.chatModel = new ChatOpenAI({
+				modelName: this.config.openai.model,
+				temperature: 0.2,
+				openAIApiKey: this.config.openai.apiKey,
+			})
+		}
+	}
 
 	async onModuleInit() {
 		// Subscribe to pipeline queue messages
@@ -135,7 +146,7 @@ export class PipelineService implements OnModuleInit {
 		try {
 			// Download source file from S3 and get preview
 			const fileBuffer = await this.storageService.downloadFileFromS3(run.sourceFile.s3Key)
-			const { rows, columns } = this.parseCsvBuffer(fileBuffer)
+			const { rows, columns } = parseCsvBuffer(fileBuffer)
 			const previewRows = rows.slice(0, 20)
 
 			return {
@@ -171,14 +182,16 @@ export class PipelineService implements OnModuleInit {
 		}
 
 		try {
-			const s3Bucket = process.env.S3_BUCKET || 'flowmatic-uploads'
-
 			// Delete S3 files if they exist
 			if (run.sourceFile?.s3Key) {
-				await this.storageService.deleteFileFromS3(s3Bucket, run.sourceFile.s3Key).catch(() => {})
+				await this.storageService
+					.deleteFileFromS3(this.storageService.defaultBucket, run.sourceFile.s3Key)
+					.catch(() => {})
 			}
 			if (run.resultFile?.s3Key) {
-				await this.storageService.deleteFileFromS3(s3Bucket, run.resultFile.s3Key).catch(() => {})
+				await this.storageService
+					.deleteFileFromS3(this.storageService.defaultBucket, run.resultFile.s3Key)
+					.catch(() => {})
 			}
 
 			// Delete database records
@@ -233,55 +246,6 @@ export class PipelineService implements OnModuleInit {
 
 		this.logger.log(`Cleaned up ${deleted} old pipeline runs (${daysOld} days)`)
 		return deleted
-	}
-
-	// Minimal CSV parser for pipeline processing and preview
-	private parseCsvBuffer(buffer: Buffer): { rows: DataRow[]; columns: string[] } {
-		const text = buffer.toString('utf-8').trim()
-		if (!text) return { rows: [], columns: [] }
-
-		const lines = text.split(/\r?\n/).filter(l => l.length > 0)
-		if (lines.length === 0) return { rows: [], columns: [] }
-
-		const columns = this.parseCsvLine(lines[0])
-		const rows: DataRow[] = []
-
-		for (let i = 1; i < lines.length; i++) {
-			const values = this.parseCsvLine(lines[i])
-			if (values.length === 0) continue
-			const row: DataRow = {}
-			columns.forEach((col, idx) => {
-				row[col] = values[idx] ?? ''
-			})
-			rows.push(row)
-		}
-
-		return { rows, columns }
-	}
-
-	private parseCsvLine(line: string): string[] {
-		const result: string[] = []
-		let current = ''
-		let inQuotes = false
-
-		for (let i = 0; i < line.length; i++) {
-			const char = line[i]
-			if (char === '"') {
-				if (inQuotes && line[i + 1] === '"') {
-					current += '"'
-					i++
-				} else {
-					inQuotes = !inQuotes
-				}
-			} else if (char === ',' && !inQuotes) {
-				result.push(current)
-				current = ''
-			} else {
-				current += char
-			}
-		}
-		result.push(current)
-		return result
 	}
 
 	private async generateLlmSummary(
@@ -340,19 +304,13 @@ export class PipelineService implements OnModuleInit {
 			})
 		}
 
-		if (!process.env.OPENAI_API_KEY) {
+		if (!this.chatModel) {
 			this.logger.warn('OPENAI_API_KEY not found, using fallback summary generation')
 			return fallbackLogic()
 		}
 
 		try {
 			this.logger.log('Attempting LLM summary generation with OpenAI')
-			const chat = new ChatOpenAI({
-				modelName: 'gpt-4o',
-				temperature: 0.2, // Low temperature for consistent, structured output
-				openAIApiKey: process.env.OPENAI_API_KEY,
-			})
-
 			const systemPrompt = `
 You are an expert Data Quality Engineer. Your task is to analyze pipeline execution statistics and generate a JSON summary of data quality.
 
@@ -396,7 +354,7 @@ Numeric Columns: ${numericCols}
 Categorical Columns: ${categoricalCols}
 `
 
-			const response = await chat.invoke([
+			const response = await this.chatModel.invoke([
 				new SystemMessage(systemPrompt),
 				new HumanMessage(userPrompt),
 			])
@@ -442,14 +400,13 @@ Categorical Columns: ${categoricalCols}
 			this.logger.log(`Processing pipeline job: ${data.runId}`)
 
 			// Download source file from S3
-			const s3Bucket = process.env.S3_BUCKET || 'flowmatic-uploads'
 			const fileBuffer = await this.storageService.downloadFileFromS3(
 				run.sourceFile.s3Key,
-				s3Bucket,
+				this.storageService.defaultBucket,
 			)
 
 			// Parse CSV data
-			const { rows: rawRows, columns } = this.parseCsvBuffer(fileBuffer)
+			const { rows: rawRows, columns } = parseCsvBuffer(fileBuffer)
 			const rowsIngested = rawRows.length
 
 			// Run quality checks
@@ -465,20 +422,7 @@ Categorical Columns: ${categoricalCols}
 			const rowsErrors = Math.max(0, rowsIngested - rowsCleaned)
 
 			// Convert cleaned data back to CSV
-			const headerLine = columns.join(',')
-			const dataLines = cleaned.data.map(row =>
-				columns
-					.map(col => {
-						const val: unknown = row[col]
-						if (val === null || val === undefined) return ''
-						const str = String(val as string | number | boolean | bigint | symbol)
-						return str.includes(',') || str.includes('"') || str.includes('\n')
-							? `"${str.replace(/"/g, '""')}"`
-							: str
-					})
-					.join(','),
-			)
-			const resultCsv = [headerLine, ...dataLines].join('\n')
+			const resultCsv = rowsToCsv(cleaned.data, { headers: columns })
 			const resultBuffer = Buffer.from(resultCsv, 'utf-8')
 
 			// Upload result if cleaning succeeded
@@ -492,7 +436,7 @@ Categorical Columns: ${categoricalCols}
 					)
 
 					await this.storageService.uploadFileToS3({
-						bucket: s3Bucket,
+						bucket: this.storageService.defaultBucket,
 						key: resultS3Key,
 						body: resultBuffer,
 						contentType: 'text/csv',

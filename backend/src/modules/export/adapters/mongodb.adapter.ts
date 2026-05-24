@@ -11,12 +11,14 @@ export class MongoDBExportAdapter extends BaseExportAdapter {
 	description = 'Export data to a MongoDB collection'
 	requiredSettings = ['uri', 'database', 'collection']
 
-	async validate(settings: Record<string, any>): Promise<{ valid: boolean; errors?: string[] }> {
+	async validate(
+		settings: Record<string, unknown>,
+	): Promise<{ valid: boolean; errors?: string[] }> {
 		const baseValidation = await super.validate(settings)
 		if (!baseValidation.valid) return baseValidation
 
 		const errors: string[] = []
-		const config = settings as MongoDBConfig
+		const config = settings as unknown as MongoDBConfig
 
 		if (!config.uri.startsWith('mongodb')) {
 			errors.push('URI must be a valid MongoDB connection string')
@@ -38,7 +40,7 @@ export class MongoDBExportAdapter extends BaseExportAdapter {
 	}
 
 	async export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult> {
-		const mongoConfig = config.settings as MongoDBConfig
+		const mongoConfig = config.settings as unknown as MongoDBConfig
 
 		try {
 			// Dynamic import to avoid hard dependency

@@ -1,5 +1,5 @@
 // API Response Types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
 	success: boolean
 	message?: string
 	data?: T
@@ -7,12 +7,6 @@ export interface ApiResponse<T = any> {
 }
 
 // Auth Types
-export interface AuthContext {
-	userId: string
-	organizationId: string
-	role: 'admin' | 'member' | 'viewer'
-}
-
 export interface User {
 	id: string
 	email: string
@@ -31,14 +25,14 @@ export interface AuthLoginResponse extends ApiResponse {
 }
 
 export interface AuthProfileResponse extends ApiResponse {
-	data?: AuthContext
+	data?: User
 }
 
 // File Upload & Ingestion Types
 export interface FilePreview {
 	columns: string[]
 	rowCount: number
-	sampleRows: Record<string, any>[]
+	sampleRows: Record<string, unknown>[]
 }
 
 export interface FileUploadResponse extends ApiResponse {

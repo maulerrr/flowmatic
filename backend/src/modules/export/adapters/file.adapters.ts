@@ -1,6 +1,7 @@
 import { BaseExportAdapter } from './base.adapter'
 import { ExportAdapterType, ExportConfig, ExportResult, CSVConfig } from '../types/export.types'
 import { StorageService } from '../../storage/storage.service'
+import { rowsToCsv } from 'src/common/utils/csv-parser.util'
 
 /**
  * CSV Export Adapter
@@ -33,7 +34,7 @@ export class CSVExportAdapter extends BaseExportAdapter {
 				}
 			}
 
-			const csvContent = this.dataToCSV(convertedData, csvConfig)
+			const csvContent = rowsToCsv(convertedData, { delimiter: csvConfig.delimiter || ',' })
 			const s3Key = this.storageService.generateS3Key(
 				config.organizationId,
 				`${config.fileName}_${Date.now()}`,
@@ -41,7 +42,7 @@ export class CSVExportAdapter extends BaseExportAdapter {
 			)
 
 			await this.storageService.uploadFileToS3({
-				bucket: process.env.S3_BUCKET || 'flowmatic-uploads',
+				bucket: this.storageService.defaultBucket,
 				key: s3Key,
 				body: Buffer.from(csvContent),
 				contentType: 'text/csv',
@@ -67,37 +68,6 @@ export class CSVExportAdapter extends BaseExportAdapter {
 			this.logExport(config, 0, 'CSV file', 'failed')
 			throw new Error(`CSV export failed: ${message}`)
 		}
-	}
-
-	private dataToCSV(data: Record<string, unknown>[], config: CSVConfig): string {
-		if (data.length === 0) return ''
-
-		const delimiter = config.delimiter || ','
-		const headers = Object.keys(data[0])
-		const headerLine = headers.map(h => this.escapeCSV(h, delimiter)).join(delimiter)
-
-		const dataLines = data.map(row => {
-			return headers
-				.map(header => {
-					const val = row[header]
-					if (val === null || val === undefined) return this.escapeCSV('', delimiter)
-					if (typeof val === 'object') return this.escapeCSV(JSON.stringify(val), delimiter)
-					return this.escapeCSV(
-						String(val as string | number | boolean | bigint | symbol),
-						delimiter,
-					)
-				})
-				.join(delimiter)
-		})
-
-		return [headerLine, ...dataLines].join('\n')
-	}
-
-	private escapeCSV(value: string, delimiter: string): string {
-		if (value.includes(delimiter) || value.includes('"') || value.includes('\n')) {
-			return `"${value.replace(/"/g, '""')}"`.replace(/\n/g, '\\n')
-		}
-		return value
 	}
 }
 
@@ -140,7 +110,7 @@ export class JSONExportAdapter extends BaseExportAdapter {
 			)
 
 			await this.storageService.uploadFileToS3({
-				bucket: process.env.S3_BUCKET || 'flowmatic-uploads',
+				bucket: this.storageService.defaultBucket,
 				key: s3Key,
 				body: Buffer.from(jsonContent),
 				contentType: 'application/json',

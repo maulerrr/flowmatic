@@ -25,6 +25,7 @@ export interface OpenAIConfig {
 export interface SecurityConfig {
 	backendCorsOrigins: string[]
 	allowedHosts: string[]
+	exportCredentialsSecret: string
 }
 
 export interface S3Config {
@@ -45,6 +46,11 @@ export interface QueueConfig {
 	defaultTtlMs?: number
 }
 
+export interface ServerConfig {
+	port: number
+	requestTimeoutMs: number
+}
+
 export interface QdrantConfig {
 	url: string
 	apiKey?: string
@@ -54,6 +60,10 @@ export interface QdrantConfig {
 export interface EmbeddingConfig {
 	endpointUrl: string
 	apiKey?: string
+}
+
+export interface SensorSimulatorConfig {
+	baseUrl: string
 }
 
 @Injectable()
@@ -112,6 +122,14 @@ export class AppConfigService {
 	get nodeEnv(): string {
 		return this.get<string>('NODE_ENV', 'development')
 	}
+
+	get server(): ServerConfig {
+		return {
+			port: Number(this.get<string>('SERVER_PORT', '8080')),
+			requestTimeoutMs: Number(this.get<string>('REQUEST_TIMEOUT_MS', '300000')),
+		}
+	}
+
 	get isProduction(): boolean {
 		return this.nodeEnv === 'production'
 	}
@@ -120,6 +138,10 @@ export class AppConfigService {
 		return {
 			backendCorsOrigins: this.get<string>('SECURITY_BACKEND_CORS_ORIGINS', '').split(','),
 			allowedHosts: this.get<string>('SECURITY_ALLOWED_HOSTS', '').split(','),
+			exportCredentialsSecret: this.get<string>(
+				'EXPORT_CREDENTIALS_SECRET',
+				this.get<string>('JWT_SECRET', this.database.url),
+			),
 		}
 	}
 
@@ -143,6 +165,12 @@ export class AppConfigService {
 		return {
 			endpointUrl: this.get<string>('EMBEDDING_ENDPOINT_URL', 'http://localhost:8000'),
 			apiKey: this.get<string | undefined>('EMBEDDING_API_KEY'),
+		}
+	}
+
+	get sensorSimulator(): SensorSimulatorConfig {
+		return {
+			baseUrl: this.get<string>('SENSOR_SIMULATOR_URL', 'http://localhost:8091'),
 		}
 	}
 }

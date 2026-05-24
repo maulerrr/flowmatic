@@ -16,12 +16,14 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 	description = 'Export data to a PostgreSQL database table'
 	requiredSettings = ['host', 'port', 'username', 'password', 'database', 'table']
 
-	async validate(settings: Record<string, any>): Promise<{ valid: boolean; errors?: string[] }> {
+	async validate(
+		settings: Record<string, unknown>,
+	): Promise<{ valid: boolean; errors?: string[] }> {
 		const baseValidation = await super.validate(settings)
 		if (!baseValidation.valid) return baseValidation
 
 		const errors: string[] = []
-		const config = settings as PostgresConfig
+		const config = settings as unknown as PostgresConfig
 
 		if (!Number.isInteger(config.port) || config.port < 1 || config.port > 65535) {
 			errors.push('Port must be a valid port number (1-65535)')
@@ -94,7 +96,7 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 			// Check for date/timestamp
 			if (
 				values.every(v => {
-					const date = new Date(v)
+					const date = new Date(v as string | number | Date)
 					return !isNaN(date.getTime())
 				})
 			) {
@@ -137,13 +139,13 @@ export class PostgresExportAdapter extends BaseExportAdapter {
 	}
 
 	async export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult> {
-		const pgConfig = config.settings as PostgresConfig
+		const pgConfig = config.settings as unknown as PostgresConfig
 
 		try {
 			// Dynamic import to avoid hard dependency
 
 			const pgModule = (await import('pg')) as unknown as {
-				Pool: new (config: Record<string, unknown>) => PgPool
+				Pool: new (config: Record<string, unknown>) => unknown
 			}
 			const { Pool } = pgModule
 

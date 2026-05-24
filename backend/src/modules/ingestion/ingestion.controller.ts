@@ -1,17 +1,9 @@
-import {
-	Controller,
-	Post,
-	UploadedFile,
-	UseInterceptors,
-	UseGuards,
-	BadRequestException,
-	Req,
-} from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express'
+import { Controller, Post, UseGuards, BadRequestException, Req } from '@nestjs/common'
 import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger'
 import * as fs from 'fs/promises'
 import * as path from 'path'
-import { Request } from 'express'
+import { MultipartFile } from '@fastify/multipart'
+import { AuthenticatedRequest } from 'src/common/types/http.types'
 import { IngestionService } from './ingestion.service'
 import { PipelineService } from '../pipeline/pipeline.service'
 import { StorageService } from '../storage/storage.service'
@@ -30,7 +22,6 @@ export class IngestionController {
 	) {}
 
 	@Post('upload')
-	@UseInterceptors(FileInterceptor('file'))
 	@ApiConsumes('multipart/form-data')
 	@ApiBody({
 		schema: {
@@ -43,10 +34,15 @@ export class IngestionController {
 			},
 		},
 	})
-	async uploadFile(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
+	async uploadFile(@Req() req: AuthenticatedRequest) {
+		const file = await req.file()
 		if (!file) {
 			throw new BadRequestException('No file uploaded')
 		}
+		const upload = file as MultipartFile
+		const fileBuffer = await upload.toBuffer()
+		const originalName = upload.filename
+		const mimetype = upload.mimetype
 
 		const { organizationId, userId } = req.authContext!
 
@@ -57,25 +53,24 @@ export class IngestionController {
 			const tmpDir = path.join(process.cwd(), 'tmp')
 			await fs.mkdir(tmpDir, { recursive: true })
 
-			tempFilePath = path.join(tmpDir, `${Date.now()}_${file.originalname}`)
-			await fs.writeFile(tempFilePath, file.buffer)
+			tempFilePath = path.join(tmpDir, `${Date.now()}_${originalName}`)
+			await fs.writeFile(tempFilePath, fileBuffer)
 
 			// Validate file by ingesting it
 			const ingestedData = await this.ingestionService.ingestFromFile(tempFilePath)
 
 			// Generate S3 key and upload to S3
-			const s3Key = this.storageService.generateS3Key(organizationId, file.originalname, 'source')
+			const s3Key = this.storageService.generateS3Key(organizationId, originalName, 'source')
 
-			const s3Bucket = process.env.S3_BUCKET || 'flowmatic-uploads'
 			await this.storageService.uploadFileToS3({
-				bucket: s3Bucket,
+				bucket: this.storageService.defaultBucket,
 				key: s3Key,
-				body: file.buffer,
-				contentType: file.mimetype,
+				body: fileBuffer,
+				contentType: mimetype,
 				metadata: {
 					organizationId,
 					userId,
-					originalName: file.originalname,
+					originalName,
 				},
 			})
 
@@ -83,9 +78,9 @@ export class IngestionController {
 			const storageFile = await this.prisma.storageFile.create({
 				data: {
 					organizationId,
-					fileName: file.originalname,
-					fileSize: file.size,
-					mimeType: file.mimetype,
+					fileName: originalName,
+					fileSize: fileBuffer.length,
+					mimeType: mimetype,
 					s3Key,
 				},
 			})
@@ -94,7 +89,7 @@ export class IngestionController {
 			const { runId, jobId } = await this.pipelineService.createPipelineRun(
 				organizationId,
 				storageFile.id,
-				file.originalname,
+				originalName,
 			)
 
 			return {
@@ -104,8 +99,8 @@ export class IngestionController {
 					runId,
 					jobId,
 					fileId: storageFile.id,
-					fileName: file.originalname,
-					fileSize: file.size,
+					fileName: originalName,
+					fileSize: fileBuffer.length,
 					preview: {
 						columns: ingestedData.columns.slice(0, 10),
 						rowCount: ingestedData.rowCount,

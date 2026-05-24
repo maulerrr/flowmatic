@@ -1,10 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
 import * as fs from 'fs/promises'
 import * as path from 'path'
-
-export interface DataRow {
-	[key: string]: unknown
-}
+import { DataRow } from 'src/common/types/data.types'
+import { parseCsvBuffer } from 'src/common/utils/csv-parser.util'
 
 export interface IngestedData {
 	data: DataRow[]
@@ -33,37 +31,20 @@ export class IngestionService {
 	}
 
 	private async ingestCSV(filePath: string): Promise<IngestedData> {
-		const content = await fs.readFile(filePath, 'utf-8')
-		const lines = content.trim().split('\n')
+		const buffer = await fs.readFile(filePath)
+		const { rows: data, columns } = parseCsvBuffer(buffer)
 
-		if (lines.length < 1) {
+		if (columns.length < 1) {
 			throw new Error('CSV file is empty')
 		}
 
-		const headers = lines[0].split(',').map(h => h.trim())
-		const data: DataRow[] = []
-
-		for (let i = 1; i < lines.length; i++) {
-			const values = lines[i].split(',').map(v => {
-				const trimmed = v.trim()
-				// Try to parse as number
-				const num = Number(trimmed)
-				return isNaN(num) ? trimmed : num
-			})
-			const row: DataRow = {}
-			headers.forEach((header, idx) => {
-				row[header] = values[idx]
-			})
-			data.push(row)
-		}
-
-		const datetimeColumn = this.detectDatetimeColumn(data, headers)
+		const datetimeColumn = this.detectDatetimeColumn(data, columns)
 
 		return {
 			data,
-			columns: headers,
+			columns,
 			rowCount: data.length,
-			columnCount: headers.length,
+			columnCount: columns.length,
 			source: filePath,
 			sourceType: 'csv',
 			detectedDatetimeColumn: datetimeColumn,
@@ -72,7 +53,7 @@ export class IngestionService {
 
 	private async ingestJSON(filePath: string): Promise<IngestedData> {
 		const content = await fs.readFile(filePath, 'utf-8')
-		const json = JSON.parse(content) as unknown
+		const json = JSON.parse(content) as { data?: unknown[]; [key: string]: unknown }
 
 		let data: DataRow[]
 		if (Array.isArray(json)) {

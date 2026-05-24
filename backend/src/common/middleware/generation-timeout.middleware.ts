@@ -1,32 +1,27 @@
-import type { Request, Response, NextFunction } from 'express'
+import type { FastifyInstance } from 'fastify'
 
 /**
- * Returns an express middleware that sets a longer socket timeout for
+ * Registers a Fastify hook that sets a longer socket timeout for
  * long-running generation endpoints (paths containing `/generate`).
- *
- * Usage: app.use(generationTimeoutMiddleware())
  */
-export function generationTimeoutMiddleware() {
+export function registerGenerationTimeoutHook(
+	fastify: FastifyInstance,
+	timeoutMs: number,
+) {
 	try {
-		const timeoutMs = Number(process.env.REQUEST_TIMEOUT_MS ?? '300000')
-		if (Number.isNaN(timeoutMs) || timeoutMs <= 0) {
-			// no-op middleware
-			return (_req: Request, _res: Response, next: NextFunction) => next()
-		}
+		if (Number.isNaN(timeoutMs) || timeoutMs <= 0) return
 
-		return (req: Request, res: Response, next: NextFunction) => {
-			const path = req.path || req.url || ''
+		fastify.addHook('onRequest', (request, reply, done) => {
+			const path = request.url || ''
 			if (/\/generate(\/|$)/.test(String(path))) {
-				const maybeRes = res as unknown as { setTimeout?: (msec: number) => void }
-				if (typeof maybeRes.setTimeout === 'function') {
-					maybeRes.setTimeout(timeoutMs)
+				if (typeof reply.raw.setTimeout === 'function') {
+					reply.raw.setTimeout(timeoutMs)
 				}
 				console.log(`Set per-request timeout ${timeoutMs}ms for ${path}`)
 			}
-			next()
-		}
+			done()
+		})
 	} catch (err) {
 		console.warn('Could not create generation timeout middleware', err)
-		return (_req: Request, _res: Response, next: NextFunction) => next()
 	}
 }

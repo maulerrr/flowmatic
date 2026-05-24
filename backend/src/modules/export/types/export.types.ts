@@ -17,6 +17,7 @@ export interface ExportConfig {
 	pipelineRunId: string
 	fileName: string
 	settings: Record<string, unknown>
+	saveCredentials?: boolean
 }
 
 export interface ExportResult {

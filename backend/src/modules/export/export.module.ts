@@ -5,10 +5,12 @@ import { ExportAdapterRegistry } from './adapters/registry'
 import { StorageModule } from '../storage/storage.module'
 import { AuthModule } from '../auth/auth.module'
 import { PrismaModule } from 'src/prisma/prisma.module'
+import { AppConfigModule } from 'src/common/config/config.module'
 
 @Module({
-	imports: [StorageModule, AuthModule, PrismaModule],
+	imports: [StorageModule, AuthModule, PrismaModule, AppConfigModule],
 	controllers: [ExportController],
 	providers: [ExportAdapterRegistry, ExportService],
+	exports: [ExportService, ExportAdapterRegistry],
 })
 export class ExportModule {}

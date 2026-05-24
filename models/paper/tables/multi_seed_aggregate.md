@@ -1,0 +1,11 @@
+| baseName                                  | kind                   | dataset    | metric        | n | mean   | std    | ci95   | min    | max    |
+| ----------------------------------------- | ---------------------- | ---------- | ------------- | - | ------ | ------ | ------ | ------ | ------ |
+| q1_astana_itransformer_speed_forecaster   | itransformer_forecast  | astana     | testRmse      | 3 | 0.9989 | 0.0009 | 0.0011 | 0.9980 | 0.9998 |
+| q1_astana_patchtst_density_forecaster     | patchtst_forecast      | astana     | testRmse      | 3 | 0.5609 | 0.0035 | 0.0039 | 0.5585 | 0.5649 |
+| q1_astana_saits_imputer                   | saits_imputer          | astana     | testMaskedMse | 3 | 0.6397 | 0.0080 | 0.0090 | 0.6307 | 0.6458 |
+| q1_astana_tranad_anomaly_detector         | tranad_anomaly         | astana     | testRmse      | 3 | 0.0345 | 0.0033 | 0.0037 | 0.0308 | 0.0372 |
+| q1_astana_transformer_severity_classifier | transformer_classifier | astana     | testMacroF1   | 3 | 0.9110 | 0.0147 | 0.0166 | 0.8959 | 0.9252 |
+| q1_hf_ett_dlinear_energy_forecaster       | dlinear_forecast       | hf_ett     | testRmse      | 3 | 0.1528 | 0.0096 | 0.0108 | 0.1450 | 0.1635 |
+| q1_hf_ett_nlinear_energy_forecaster       | nlinear_forecast       | hf_ett     | testRmse      | 3 | 0.7243 | 0.0344 | 0.0389 | 0.6970 | 0.7629 |
+| q1_hf_traffic_stgcn_forecaster            | stgcn_forecast         | hf_traffic | testRmse      | 3 | 0.4787 | 0.0014 | 0.0016 | 0.4776 | 0.4803 |
+| q1_hf_weather_timesblock_forecaster       | timesblock_forecast    | hf_weather | testRmse      | 3 | 0.0341 | 0.0013 | 0.0015 | 0.0332 | 0.0356 |

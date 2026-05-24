@@ -42,7 +42,7 @@ export class PgBossQueueAdapter implements QueueClient, OnModuleInit, OnModuleDe
 	): Promise<void> {
 		if (!this.bossService?.instance) throw new Error('PgBossQueueAdapter: boss not started')
 		await this.bossService.subscribe(queue, async (job: unknown) => {
-			if (!job || typeof job !== 'object' || !(('data' in job) as any)) {
+			if (!job || typeof job !== 'object' || !('data' in job)) {
 				throw new Error('PgBossQueueAdapter: job missing data property')
 			}
 			const { data } = job as PgBossJob<unknown>

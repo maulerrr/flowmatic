@@ -1,102 +1,286 @@
-import { Controller, Post, Get, Body, Res, UseGuards, HttpCode, Req } from '@nestjs/common'
-import { Response, Request } from 'express'
+import {
+	Controller,
+	Post,
+	Get,
+	Body,
+	Param,
+	Patch,
+	Delete,
+	Res,
+	UseGuards,
+	HttpCode,
+	Req,
+	NotFoundException,
+} from '@nestjs/common'
+import { FastifyReply } from 'fastify'
 import { ApiTags } from '@nestjs/swagger'
 import { AuthContextService } from './auth-context.service'
 import { AuthGuard } from './auth.guard'
+import { AppConfigService } from 'src/common/config/config.service'
+import { ChangePasswordDto } from './dto/change-password.dto'
+import { LoginDto } from './dto/login.dto'
+import { AuthenticatedRequest } from 'src/common/types/http.types'
+import { RegisterDto } from './dto/register.dto'
+import { UpdateProfileDto } from './dto/update-profile.dto'
+import { CreateOrganizationDto } from './dto/create-organization.dto'
+import { UpdateOrganizationDto } from './dto/update-organization.dto'
+import { InviteMemberDto } from './dto/invite-member.dto'
+import { SwitchOrganizationDto } from './dto/switch-organization.dto'
+import { DeleteOrganizationDto } from './dto/delete-organization.dto'
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-	constructor(private readonly authContext: AuthContextService) {}
+	constructor(
+		private readonly authContext: AuthContextService,
+		private readonly config: AppConfigService,
+	) {}
 
 	@Post('change-password')
 	@UseGuards(AuthGuard)
-	async changePassword(
-		@Body() body: { password: string },
-		@Res() res: Response,
-		@Req() req: Request,
-	): Promise<void> {
+	async changePassword(@Body() body: ChangePasswordDto, @Req() req: AuthenticatedRequest) {
 		const { userId } = req.authContext!
-
-		if (!body.password || body.password.length < 6) {
-			res.status(400).json({ success: false, error: 'Password must be at least 6 characters' })
-			return
-		}
 
 		await this.authContext.changePassword(userId, body.password)
 
-		res.json({ success: true, message: 'Password updated successfully' })
+		return { success: true, message: 'Password updated successfully' }
 	}
 
 	@Post('delete-account')
 	@UseGuards(AuthGuard)
-	async deleteAccount(@Res() res: Response, @Req() req: Request): Promise<void> {
+	async deleteAccount(
+		@Res({ passthrough: true }) res: FastifyReply,
+		@Req() req: AuthenticatedRequest,
+	) {
 		const { userId, organizationId } = req.authContext!
 
 		await this.authContext.deleteAccount(userId, organizationId)
 
-		res.clearCookie('flowmatic_session')
-		res.json({ success: true, message: 'Account deleted successfully' })
+		this.clearSessionCookies(res)
+		return { success: true, message: 'Account deleted successfully' }
 	}
 
 	@Post('login')
 	@HttpCode(200)
-	async login(
-		@Body() body: { email: string; password?: string },
-		@Res() res: Response,
-	): Promise<void> {
-		// For MVP: simple email-based login (SSO provider will validate password)
-		// In production: integrate with OAuth2/OIDC provider
-		const { user } = await this.authContext.getOrCreateUser(body.email)
+	async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: FastifyReply) {
+		const user = await this.authContext.login(body.email, body.password)
 		const token = await this.authContext.createSession(user.id)
 
-		res.cookie('flowmatic_session', token, {
+		this.clearSessionCookies(res)
+		res.setCookie('flowmatic_session', token, {
 			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
+			secure: this.config.isProduction,
 			sameSite: 'lax',
-			maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+			path: '/',
+			maxAge: 30 * 24 * 60 * 60,
 		})
 
-		res.json({
+		return {
 			success: true,
-			user: {
+			data: {
+				user: {
+					id: user.id,
+					email: user.email,
+					displayName: user.displayName,
+					organizationId: user.organizationId,
+					role: user.role,
+				},
+			},
+		}
+	}
+
+	@Post('register')
+	@HttpCode(201)
+	async register(@Body() body: RegisterDto, @Res({ passthrough: true }) res: FastifyReply) {
+		const user = await this.authContext.register(body)
+		const token = await this.authContext.createSession(user.id)
+
+		this.clearSessionCookies(res)
+		res.setCookie('flowmatic_session', token, {
+			httpOnly: true,
+			secure: this.config.isProduction,
+			sameSite: 'lax',
+			path: '/',
+			maxAge: 30 * 24 * 60 * 60,
+		})
+
+		return {
+			success: true,
+			data: {
+				user: {
+					id: user.id,
+					email: user.email,
+					displayName: user.displayName,
+					organizationId: user.organizationId,
+					role: user.role,
+				},
+			},
+		}
+	}
+
+	@Post('switch-organization')
+	@UseGuards(AuthGuard)
+	async switchOrganization(@Body() body: SwitchOrganizationDto, @Req() req: AuthenticatedRequest) {
+		const organization = await this.authContext.switchOrganization(
+			req.authContext!.userId,
+			body.organizationId,
+		)
+		return { success: true, data: organization }
+	}
+
+	@Get('organizations')
+	@UseGuards(AuthGuard)
+	async listOrganizations(@Req() req: AuthenticatedRequest) {
+		const organizations = await this.authContext.listOrganizations(req.authContext!.userId)
+		return { success: true, data: organizations }
+	}
+
+	@Post('organizations')
+	@UseGuards(AuthGuard)
+	async createOrganization(@Body() body: CreateOrganizationDto, @Req() req: AuthenticatedRequest) {
+		const organization = await this.authContext.createOrganization(
+			req.authContext!.userId,
+			body.name,
+		)
+		return { success: true, data: organization }
+	}
+
+	@Patch('organizations/:organizationId')
+	@UseGuards(AuthGuard)
+	async updateOrganization(
+		@Param('organizationId') organizationId: string,
+		@Body() body: UpdateOrganizationDto,
+		@Req() req: AuthenticatedRequest,
+	) {
+		const organization = await this.authContext.updateOrganization(
+			req.authContext!.userId,
+			organizationId,
+			body.name,
+		)
+		return { success: true, data: organization }
+	}
+
+	@Delete('organizations/:organizationId')
+	@UseGuards(AuthGuard)
+	async deleteOrganization(
+		@Param('organizationId') organizationId: string,
+		@Body() body: DeleteOrganizationDto,
+		@Req() req: AuthenticatedRequest,
+	) {
+		const result = await this.authContext.deleteOrganization(
+			req.authContext!.userId,
+			organizationId,
+			body.confirmationName,
+		)
+		return { success: true, data: result }
+	}
+
+	@Get('organizations/:organizationId/members')
+	@UseGuards(AuthGuard)
+	async listMembers(
+		@Param('organizationId') organizationId: string,
+		@Req() req: AuthenticatedRequest,
+	) {
+		const members = await this.authContext.listMembers(req.authContext!.userId, organizationId)
+		return { success: true, data: members }
+	}
+
+	@Post('organizations/:organizationId/invitations')
+	@UseGuards(AuthGuard)
+	async inviteMember(
+		@Param('organizationId') organizationId: string,
+		@Body() body: InviteMemberDto,
+		@Req() req: AuthenticatedRequest,
+	) {
+		const invitation = await this.authContext.inviteMember(
+			req.authContext!.userId,
+			organizationId,
+			body.email,
+			body.role,
+		)
+		return { success: true, data: invitation }
+	}
+
+	@Get('invitations')
+	@UseGuards(AuthGuard)
+	async listInvitations(@Req() req: AuthenticatedRequest) {
+		const invitations = await this.authContext.listMyInvitations(req.authContext!.userId)
+		return { success: true, data: invitations }
+	}
+
+	@Post('invitations/:invitationId/accept')
+	@UseGuards(AuthGuard)
+	async acceptInvitation(
+		@Param('invitationId') invitationId: string,
+		@Req() req: AuthenticatedRequest,
+	) {
+		const organization = await this.authContext.acceptInvitation(
+			req.authContext!.userId,
+			invitationId,
+		)
+		return { success: true, data: organization }
+	}
+
+	@Post('invitations/:invitationId/decline')
+	@UseGuards(AuthGuard)
+	async declineInvitation(
+		@Param('invitationId') invitationId: string,
+		@Req() req: AuthenticatedRequest,
+	) {
+		await this.authContext.declineInvitation(req.authContext!.userId, invitationId)
+		return { success: true, data: { declined: true } }
+	}
+
+	@Patch('profile')
+	@UseGuards(AuthGuard)
+	async updateProfile(@Body() body: UpdateProfileDto, @Req() req: AuthenticatedRequest) {
+		const user = await this.authContext.updateProfile(req.authContext!.userId, body)
+		return {
+			success: true,
+			data: {
 				id: user.id,
 				email: user.email,
 				displayName: user.displayName,
 				organizationId: user.organizationId,
 				role: user.role,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
 			},
-		})
+		}
 	}
 
 	@Get('profile')
 	@UseGuards(AuthGuard)
-	async getProfile(@Res() res: Response, @Req() req: Request): Promise<void> {
+	async getProfile(@Req() req: AuthenticatedRequest) {
 		const { userId } = req.authContext!
 		const user = await this.authContext.getUser(userId)
 
 		if (!user) {
-			res.status(404).json({ success: false, error: 'User not found' })
-			return
+			throw new NotFoundException('User not found')
 		}
 
-		res.json({
+		return {
 			success: true,
 			data: user,
-		})
+		}
 	}
 
 	@Post('logout')
-	@UseGuards(AuthGuard)
 	@HttpCode(200)
-	async logout(@Res() res: Response, @Req() req: Request): Promise<void> {
-		const cookies = (req as unknown as { cookies: Record<string, string> }).cookies
+	async logout(@Res({ passthrough: true }) res: FastifyReply, @Req() req: AuthenticatedRequest) {
+		const cookies = req.cookies
 		const token = cookies?.['flowmatic_session']
 		if (token) {
 			await this.authContext.invalidateSession(token)
 		}
 
-		res.clearCookie('flowmatic_session')
-		res.json({ success: true })
+		this.clearSessionCookies(res)
+		return { success: true, data: { loggedOut: true } }
+	}
+
+	private clearSessionCookies(res: FastifyReply) {
+		for (const path of ['/', '/api/v1', '/api/v1/auth', '/auth']) {
+			res.clearCookie('flowmatic_session', { path })
+		}
 	}
 }

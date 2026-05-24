@@ -1,15 +1,18 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common'
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { StorageService } from '../storage/storage.service'
 import { ExportAdapterRegistry } from './adapters/registry'
 import { ExportConfig, ExportResult, ExportAdapterType } from './types/export.types'
 import { PipelineRun, StorageFile } from '@prisma/client'
-import { DataRow } from '../ingestion/ingestion.service'
+import { DataRow } from 'src/common/types/data.types'
 import {
 	createPaginationMeta,
 	PaginationParamsFilter,
 	PaginatedResponse,
 } from 'src/common/utils/pagination.util'
+import { parseCsvBuffer } from 'src/common/utils/csv-parser.util'
+import { AppConfigService } from 'src/common/config/config.service'
 
 /**
  * Service to orchestrate data exports to various destinations
@@ -22,6 +25,7 @@ export class ExportService {
 		private prisma: PrismaService,
 		private storageService: StorageService,
 		private adapterRegistry: ExportAdapterRegistry,
+		private config: AppConfigService,
 	) {}
 
 	/**
@@ -39,7 +43,7 @@ export class ExportService {
 		organizationId: string,
 		pagination: PaginationParamsFilter,
 	): Promise<
-		PaginatedResponse<Record<string, any>> & { meta: { columns: string[]; fileName: string } }
+		PaginatedResponse<Record<string, unknown>> & { meta: { columns: string[]; fileName: string } }
 	> {
 		const run = await this.prisma.pipelineRun.findUnique({
 			where: { id: runId },
@@ -99,7 +103,8 @@ export class ExportService {
 		pipelineRunId: string,
 		organizationId: string,
 		adapterType: ExportAdapterType,
-		settings: Record<string, any>,
+		settings: Record<string, unknown>,
+		saveCredentials: boolean = false,
 	): Promise<ExportResult> {
 		// Validate adapter exists
 		if (!this.adapterRegistry.hasAdapter(adapterType)) {
@@ -123,13 +128,20 @@ export class ExportService {
 		// Load cleaned data from result file (S3)
 		const data = await this.loadRunData(run)
 
-		// Create export config
+		const mergedSettings = await this.mergeSavedCredentials(
+			organizationId,
+			adapterType,
+			settings,
+			saveCredentials,
+		)
+
 		const exportConfig: ExportConfig = {
 			adapterType,
 			organizationId,
 			pipelineRunId,
 			fileName: run.sourceFileName,
-			settings,
+			settings: mergedSettings,
+			saveCredentials,
 		}
 
 		// Validate config
@@ -146,6 +158,10 @@ export class ExportService {
 		try {
 			const result = await adapter.export(data, exportConfig)
 
+			if (saveCredentials) {
+				await this.saveAdapterCredentials(organizationId, adapterType, mergedSettings)
+			}
+
 			// Record export in database (TODO: uncomment after Prisma generation)
 			await this.recordExport(pipelineRunId, adapterType, result)
 
@@ -159,25 +175,76 @@ export class ExportService {
 		}
 	}
 
+	async exportDataRows(params: {
+		organizationId: string
+		adapterType: ExportAdapterType
+		fileName: string
+		rows: Record<string, unknown>[]
+		settings?: Record<string, unknown>
+		saveCredentials?: boolean
+		referenceId?: string
+	}): Promise<ExportResult> {
+		if (!this.adapterRegistry.hasAdapter(params.adapterType)) {
+			throw new BadRequestException(`Unknown adapter type: ${params.adapterType}`)
+		}
+
+		const mergedSettings = await this.mergeSavedCredentials(
+			params.organizationId,
+			params.adapterType,
+			params.settings ?? {},
+			params.saveCredentials ?? false,
+		)
+
+		const exportConfig: ExportConfig = {
+			adapterType: params.adapterType,
+			organizationId: params.organizationId,
+			pipelineRunId: params.referenceId ?? `smart-city:${Date.now()}`,
+			fileName: params.fileName,
+			settings: mergedSettings,
+			saveCredentials: params.saveCredentials,
+		}
+
+		const validation = await this.validateExportConfig(exportConfig)
+		if (!validation.valid) {
+			throw new BadRequestException(
+				`Invalid export configuration: ${validation.errors?.join(', ')}`,
+			)
+		}
+
+		const adapter = this.adapterRegistry.getAdapter(params.adapterType)!
+		const preparedRows = params.rows.map(row => this.prepareRowForAdapter(row))
+
+		const result = await adapter.export(preparedRows, exportConfig)
+		if (params.saveCredentials) {
+			await this.saveAdapterCredentials(
+				params.organizationId,
+				params.adapterType,
+				mergedSettings,
+			)
+		}
+		return result
+	}
+
 	/**
 	 * Load data from pipeline run result file
 	 */
 	private async loadRunData(
 		run: PipelineRun & { resultFile: StorageFile | null },
 	): Promise<DataRow[]> {
-		// If no result file, fall back to mock data
 		if (!run.resultFile) {
-			return this.generateMockData(run.rowsIngested || 100)
+			throw new Error('No result file available for this pipeline run')
 		}
 
-		const bucket = process.env.S3_BUCKET || 'flowmatic-uploads'
 		const key = run.resultFile.s3Key
 		if (!key) {
-			return this.generateMockData(run.rowsIngested || 100)
+			throw new Error('Result file has no S3 key')
 		}
 
 		try {
-			const buffer = await this.storageService.downloadFileFromS3(key, bucket)
+			const buffer = await this.storageService.downloadFileFromS3(
+				key,
+				this.storageService.defaultBucket,
+			)
 			const mime = run.resultFile.mimeType?.toLowerCase() || ''
 			const fileName = run.resultFile.fileName?.toLowerCase() || ''
 
@@ -191,74 +258,151 @@ export class ExportService {
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 			this.logger.error(`Failed to load run data from S3 (key: ${key}): ${errorMessage}`)
-			// Fallback to mock data to avoid hard failures
-			return this.generateMockData(run.rowsIngested || 100)
+			throw new Error(`Failed to load run data: ${errorMessage}`)
 		}
 	}
 
 	private parseCsv(buffer: Buffer): DataRow[] {
-		const csvText = buffer.toString('utf-8')
-		// Basic CSV parsing with header row; handles simple quoted fields
-		const lines = csvText.split(/\r?\n/).filter(l => l.trim().length > 0)
-		if (lines.length === 0) return []
-
-		const headers = this.parseCsvLine(lines[0])
-		const rows: DataRow[] = []
-
-		for (let i = 1; i < lines.length; i++) {
-			const values = this.parseCsvLine(lines[i])
-			if (values.length === 0) continue
-			const row: DataRow = {}
-			headers.forEach((h, idx) => {
-				row[h] = values[idx] ?? null
-			})
-			rows.push(row)
-		}
-
-		return rows
+		return parseCsvBuffer(buffer).rows
 	}
 
-	// Minimal CSV line parser to handle quotes and commas
-	private parseCsvLine(line: string): string[] {
-		const result: string[] = []
-		let current = ''
-		let inQuotes = false
-
-		for (let i = 0; i < line.length; i++) {
-			const char = line[i]
-			if (char === '"') {
-				if (inQuotes && line[i + 1] === '"') {
-					current += '"'
-					i++
-				} else {
-					inQuotes = !inQuotes
-				}
-			} else if (char === ',' && !inQuotes) {
-				result.push(current)
-				current = ''
-			} else {
-				current += char
-			}
-		}
-		result.push(current)
-		return result
+	private prepareRowForAdapter(row: Record<string, unknown>) {
+		return Object.fromEntries(
+			Object.entries(row).map(([key, value]) => [key, this.prepareValueForAdapter(value)]),
+		)
 	}
 
-	/**
-	 * Generate mock data for preview/export
-	 */
-	private generateMockData(rowCount: number): DataRow[] {
-		const data: DataRow[] = []
-		for (let i = 0; i < rowCount; i++) {
-			data.push({
-				id: i + 1,
-				value: Math.random() * 100,
-				status: ['active', 'inactive', 'pending'][Math.floor(Math.random() * 3)],
-				created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-				_row_number: i + 1,
-			})
+	private prepareValueForAdapter(value: unknown): unknown {
+		if (value instanceof Date) return value.toISOString()
+		if (Array.isArray(value)) return JSON.stringify(value)
+		if (value && typeof value === 'object') return JSON.stringify(value)
+		return value ?? null
+	}
+
+	private async mergeSavedCredentials(
+		organizationId: string,
+		adapterType: ExportAdapterType,
+		settings: Record<string, unknown>,
+		saveCredentials: boolean,
+	): Promise<Record<string, unknown>> {
+		const credentialKeys = this.getCredentialKeys(adapterType)
+		if (credentialKeys.length === 0) return settings
+
+		const saved = await this.getSavedAdapterCredentials(organizationId, adapterType)
+		const merged = { ...(saved ?? {}), ...this.removeEmptyValues(settings) }
+
+		const missingCredentialKeys = credentialKeys.filter(key => !this.hasValue(merged[key]))
+		if (missingCredentialKeys.length > 0 && !saveCredentials) {
+			throw new BadRequestException(
+				`Missing credentials for ${adapterType}: ${missingCredentialKeys.join(', ')}. Provide them or save credentials first.`,
+			)
 		}
-		return data
+
+		return merged
+	}
+
+	private async getSavedAdapterCredentials(
+		organizationId: string,
+		adapterType: ExportAdapterType,
+	): Promise<Record<string, unknown> | null> {
+		const credential = await this.prisma.exportCredential.findUnique({
+			where: {
+				organizationId_adapterType: {
+					organizationId,
+					adapterType,
+				},
+			},
+		})
+
+		if (!credential) return null
+		return this.decryptSettings(credential.encryptedSettings, credential.iv, credential.authTag)
+	}
+
+	private async saveAdapterCredentials(
+		organizationId: string,
+		adapterType: ExportAdapterType,
+		settings: Record<string, unknown>,
+	) {
+		const credentialKeys = this.getCredentialKeys(adapterType)
+		if (credentialKeys.length === 0) return
+
+		const credentials = credentialKeys.reduce<Record<string, unknown>>((acc, key) => {
+			if (this.hasValue(settings[key])) acc[key] = settings[key]
+			return acc
+		}, {})
+
+		if (Object.keys(credentials).length === 0) return
+
+		const encrypted = this.encryptSettings(credentials)
+		await this.prisma.exportCredential.upsert({
+			where: {
+				organizationId_adapterType: {
+					organizationId,
+					adapterType,
+				},
+			},
+			create: {
+				organizationId,
+				adapterType,
+				...encrypted,
+			},
+			update: encrypted,
+		})
+	}
+
+	private getCredentialKeys(adapterType: ExportAdapterType): string[] {
+		switch (adapterType) {
+			case ExportAdapterType.HUGGINGFACE:
+				return ['token']
+			case ExportAdapterType.POSTGRES:
+				return ['host', 'port', 'username', 'password', 'database']
+			case ExportAdapterType.MONGODB:
+				return ['uri', 'database']
+			default:
+				return []
+		}
+	}
+
+	private removeEmptyValues(settings: Record<string, unknown>) {
+		return Object.fromEntries(Object.entries(settings).filter(([, value]) => this.hasValue(value)))
+	}
+
+	private hasValue(value: unknown): boolean {
+		return value !== undefined && value !== null && String(value).trim().length > 0
+	}
+
+	private encryptSettings(settings: Record<string, unknown>) {
+		const iv = randomBytes(12)
+		const cipher = createCipheriv('aes-256-gcm', this.getCredentialEncryptionKey(), iv)
+		const encrypted = Buffer.concat([
+			cipher.update(JSON.stringify(settings), 'utf8'),
+			cipher.final(),
+		])
+
+		return {
+			encryptedSettings: encrypted.toString('base64'),
+			iv: iv.toString('base64'),
+			authTag: cipher.getAuthTag().toString('base64'),
+		}
+	}
+
+	private decryptSettings(encryptedSettings: string, iv: string, authTag: string) {
+		const decipher = createDecipheriv(
+			'aes-256-gcm',
+			this.getCredentialEncryptionKey(),
+			Buffer.from(iv, 'base64'),
+		)
+		decipher.setAuthTag(Buffer.from(authTag, 'base64'))
+		const decrypted = Buffer.concat([
+			decipher.update(Buffer.from(encryptedSettings, 'base64')),
+			decipher.final(),
+		])
+
+		return JSON.parse(decrypted.toString('utf8')) as Record<string, unknown>
+	}
+
+	private getCredentialEncryptionKey() {
+		return createHash('sha256').update(this.config.security.exportCredentialsSecret).digest()
 	}
 
 	/**
@@ -276,7 +420,7 @@ export class ExportService {
 					adapterType,
 					destination: result.destination,
 					recordsExported: result.recordsExported,
-					metadata: result.metadata || {},
+					metadata: JSON.parse(JSON.stringify(result.metadata ?? {})),
 				},
 			})
 		} catch (error) {

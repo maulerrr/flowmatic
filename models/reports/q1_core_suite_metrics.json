@@ -1,0 +1,164 @@
+{
+  "createdAt": "2026-04-09T09:18:08.452375+00:00",
+  "config": "models/configs/q1_enhanced_suite.yaml",
+  "experiments": [
+    {
+      "name": "q1_astana_patchtst_density_forecaster",
+      "kind": "patchtst_forecast",
+      "dataset": "astana",
+      "final": {
+        "epoch": 8,
+        "train_loss": 0.32530119915534483,
+        "val_loss": 0.2914434742615474,
+        "seconds": 0.8530936241149902,
+        "mae": 0.3521425426006317,
+        "rmse": 0.5398550629615784
+      },
+      "test": {
+        "test_loss": 0.3425562016270305,
+        "test_mae": 0.3431200683116913,
+        "test_rmse": 0.5852830410003662
+      }
+    },
+    {
+      "name": "q1_astana_itransformer_speed_forecaster",
+      "kind": "itransformer_forecast",
+      "dataset": "astana",
+      "final": {
+        "epoch": 8,
+        "train_loss": 0.8063400742849423,
+        "val_loss": 1.1664780458906439,
+        "seconds": 0.812450647354126,
+        "mae": 0.9070084691047668,
+        "rmse": 1.0800361633300781
+      },
+      "test": {
+        "test_loss": 1.0099496958957832,
+        "test_mae": 0.875656247138977,
+        "test_rmse": 1.0049625635147095
+      }
+    },
+    {
+      "name": "q1_hf_weather_timesblock_forecaster",
+      "kind": "timesblock_forecast",
+      "dataset": "hf_weather",
+      "final": {
+        "epoch": 8,
+        "train_loss": 0.4417436772529211,
+        "val_loss": 0.006364709552068981,
+        "seconds": 0.48459863662719727,
+        "mae": 0.06487464904785156,
+        "rmse": 0.07977913320064545
+      },
+      "test": {
+        "test_loss": 0.003361226956992394,
+        "test_mae": 0.051035404205322266,
+        "test_rmse": 0.05797608941793442
+      }
+    },
+    {
+      "name": "q1_hf_ett_dlinear_energy_forecaster",
+      "kind": "dlinear_forecast",
+      "dataset": "hf_ett",
+      "final": {
+        "epoch": 8,
+        "train_loss": 0.03898060523385902,
+        "val_loss": 0.020793679204948068,
+        "seconds": 0.3386857509613037,
+        "mae": 0.11747784167528152,
+        "rmse": 0.1442001312971115
+      },
+      "test": {
+        "test_loss": 0.023263964005362597,
+        "test_mae": 0.11758840829133987,
+        "test_rmse": 0.15252529084682465
+      }
+    },
+    {
+      "name": "q1_hf_ett_nlinear_energy_forecaster",
+      "kind": "nlinear_forecast",
+      "dataset": "hf_ett",
+      "final": {
+        "epoch": 8,
+        "train_loss": 0.23030429448349896,
+        "val_loss": 1.0950871986970212,
+        "seconds": 0.33510661125183105,
+        "mae": 0.9964445233345032,
+        "rmse": 1.0464640855789185
+      },
+      "test": {
+        "test_loss": 0.9175888251215905,
+        "test_mae": 0.8647600412368774,
+        "test_rmse": 0.957908570766449
+      }
+    },
+    {
+      "name": "q1_astana_saits_imputer",
+      "kind": "saits_imputer",
+      "dataset": "astana",
+      "final": {
+        "epoch": 8,
+        "train_loss": 0.6177937700648463,
+        "val_loss": 0.6214071737980692,
+        "seconds": 1.2336859703063965
+      },
+      "test": {
+        "test_masked_mse": 0.6587265181001394
+      }
+    },
+    {
+      "name": "q1_astana_tranad_anomaly_detector",
+      "kind": "tranad_anomaly",
+      "dataset": "astana",
+      "final": {
+        "epoch": 8,
+        "train_loss": 0.0015832413926680897,
+        "val_loss": 0.0005805397144167082,
+        "seconds": 1.4414002895355225,
+        "mae": 0.017670413479208946,
+        "rmse": 0.024094391614198685
+      },
+      "test": {
+        "test_loss": 0.0021330758452351834,
+        "test_mae": 0.03445030003786087,
+        "test_rmse": 0.04618523269891739
+      }
+    },
+    {
+      "name": "q1_astana_transformer_severity_classifier",
+      "kind": "transformer_classifier",
+      "dataset": "astana",
+      "final": {
+        "epoch": 8,
+        "train_loss": 0.03412429641389329,
+        "val_loss": 0.02033898575607351,
+        "seconds": 0.8182339668273926,
+        "accuracy": 0.9948013424873352,
+        "macro_f1": 0.9506866350567478
+      },
+      "test": {
+        "test_loss": 0.029105582585398523,
+        "test_accuracy": 0.9892313480377197,
+        "test_macro_f1": 0.9177103357869454
+      }
+    },
+    {
+      "name": "q1_hf_traffic_stgcn_forecaster",
+      "kind": "stgcn_forecast",
+      "dataset": "hf_traffic",
+      "final": {
+        "epoch": 8,
+        "train_loss": 0.13337647238899553,
+        "val_loss": 0.19682633525193088,
+        "seconds": 0.18982887268066406,
+        "mae": 0.25927579402923584,
+        "rmse": 0.44365113973617554
+      },
+      "test": {
+        "test_loss": 0.2541641902743721,
+        "test_mae": 0.2853931188583374,
+        "test_rmse": 0.5041469931602478
+      }
+    }
+  ]
+}

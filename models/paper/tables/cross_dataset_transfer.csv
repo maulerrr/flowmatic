@@ -1,0 +1,5 @@
+featureCount,kind,protocol,sourceDataset,sourceValRmse,targetDataset,test_loss,test_mae,test_rmse
+7,dlinear,cross_dataset_transfer,hf_ett,0.757346510887146,hf_weather,0.027389750853052553,0.127997487783432,0.1654984951019287
+7,dlinear,cross_dataset_transfer,hf_weather,0.14667584002017975,hf_ett,0.4016384300321958,0.5270216464996338,0.6337495446205139
+7,patchtst,cross_dataset_transfer,hf_ett,0.25417786836624146,hf_weather,0.08488509173500161,0.24969077110290527,0.29135048389434814
+7,patchtst,cross_dataset_transfer,hf_weather,0.10759327560663223,hf_ett,0.2419461190746275,0.4017627239227295,0.4918801784515381

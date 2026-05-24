@@ -6,6 +6,7 @@ import {
 	HuggingFaceConfig,
 } from '../types/export.types'
 import { whoAmI, createRepo, uploadFile } from '@huggingface/hub'
+import { rowsToCsv } from 'src/common/utils/csv-parser.util'
 
 /**
  * Hugging Face Export Adapter
@@ -17,12 +18,14 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 	description = 'Export data to Hugging Face Datasets hub'
 	requiredSettings = ['token', 'repoName']
 
-	async validate(settings: Record<string, any>): Promise<{ valid: boolean; errors?: string[] }> {
+	async validate(
+		settings: Record<string, unknown>,
+	): Promise<{ valid: boolean; errors?: string[] }> {
 		const baseValidation = await super.validate(settings)
 		if (!baseValidation.valid) return baseValidation
 
 		const errors: string[] = []
-		const config = settings as HuggingFaceConfig
+		const config = settings as unknown as HuggingFaceConfig
 
 		if (!config.token || config.token.trim().length === 0) {
 			errors.push('Hugging Face token cannot be empty')
@@ -47,8 +50,8 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 	}
 
 	async export(data: Record<string, unknown>[], config: ExportConfig): Promise<ExportResult> {
-		const hfConfig = config.settings as HuggingFaceConfig
-		await this.validate(hfConfig)
+		const hfConfig = config.settings as unknown as HuggingFaceConfig
+		await this.validate(config.settings)
 
 		try {
 			const convertedData = this.convertData(data)
@@ -101,7 +104,12 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 			})
 
 			// Generate and upload README.md
-			const readmeContent = this.generateReadme(convertedData, fileName, config.pipelineRunId)
+			const readmeContent = this.generateReadme(
+				convertedData,
+				fileName,
+				config.pipelineRunId,
+				fullRepoId,
+			)
 			await uploadFile({
 				repo: datasetRepoId,
 				file: {
@@ -154,33 +162,7 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 	 * Convert data array to CSV string
 	 */
 	private dataToCSV(data: Record<string, unknown>[]): string {
-		if (data.length === 0) return ''
-
-		const headers = Object.keys(data[0])
-		const headerLine = headers.map(h => this.escapeCSV(h)).join(',')
-
-		const dataLines = data.map(row => {
-			return headers
-				.map(header => {
-					const val = row[header]
-					if (val === null || val === undefined) return ''
-					if (typeof val === 'object') return this.escapeCSV(JSON.stringify(val))
-					return this.escapeCSV(String(val as string | number | boolean | bigint | symbol))
-				})
-				.join(',')
-		})
-
-		return [headerLine, ...dataLines].join('\n')
-	}
-
-	/**
-	 * Escape CSV values
-	 */
-	private escapeCSV(value: string): string {
-		if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-			return `"${value.replace(/"/g, '""')}"`.replace(/\n/g, '\\n')
-		}
-		return value
+		return rowsToCsv(data)
 	}
 
 	/**
@@ -190,6 +172,7 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 		data: Record<string, unknown>[],
 		fileName: string,
 		pipelineRunId: string,
+		fullRepoId: string,
 	): string {
 		const headers = data.length > 0 ? Object.keys(data[0]) : []
 		const timestamp = new Date().toISOString()
@@ -210,7 +193,8 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 			if (values.every(v => typeof v === 'boolean')) type = 'boolean'
 			else if (values.every(v => Number.isInteger(v))) type = 'integer'
 			else if (values.every(v => typeof v === 'number')) type = 'float'
-			else if (values.every(v => !isNaN(new Date(v).getTime()))) type = 'timestamp'
+			else if (values.every(v => !isNaN(new Date(v as string | number | Date).getTime())))
+				type = 'timestamp'
 
 			return {
 				name: col,
@@ -268,7 +252,7 @@ Load the dataset using Hugging Face \`datasets\` library:
 \`\`\`python
 from datasets import load_dataset
 
-dataset = load_dataset('${this.getCurrentUser() || 'username'}/dataset_name')
+dataset = load_dataset('${fullRepoId}')
 df = dataset['train'].to_pandas()
 \`\`\`
 
@@ -277,7 +261,7 @@ Or load directly as CSV:
 \`\`\`python
 import pandas as pd
 
-df = pd.read_csv('https://huggingface.co/datasets/${this.getCurrentUser() || 'username'}/dataset_name/raw/main/${fileName}')
+df = pd.read_csv('https://huggingface.co/datasets/${fullRepoId}/raw/main/${fileName}')
 \`\`\`
 
 ## License
@@ -321,13 +305,5 @@ ${headers.map(col => `    - name: ${col}\n      dtype: string\n      description
     - flowmatic
     - tabular
 `
-	}
-
-	/**
-	 * Get current Hugging Face user (placeholder)
-	 */
-	private getCurrentUser(): string | null {
-		// In real implementation, this would get from the whoAmI call
-		return null
 	}
 }

@@ -3,6 +3,17 @@ import PgBoss from 'pg-boss'
 import { AppConfigService } from '../config/config.service'
 
 type PublishOptions = Parameters<PgBoss['publish']>[2]
+type SubscribeOptions = Record<string, unknown>
+
+interface BossApi {
+	publish(queue: string, data?: object, options?: PublishOptions): Promise<unknown>
+	subscribe(queue: string, handler: (job: unknown) => unknown): Promise<unknown>
+	subscribe(
+		queue: string,
+		options: SubscribeOptions,
+		handler: (job: unknown) => unknown,
+	): Promise<unknown>
+}
 
 @Injectable()
 export class BossService implements OnModuleInit, OnModuleDestroy {
@@ -35,27 +46,23 @@ export class BossService implements OnModuleInit, OnModuleDestroy {
 
 	async publish(queue: string, data?: object, options?: PublishOptions): Promise<void> {
 		if (!this.boss) throw new Error('pg-boss not started')
-		const b = this.boss as unknown as { publish: (q: string, d?: any, o?: any) => Promise<unknown> }
-		await b.publish(queue, data, options)
+		const boss = this.boss as unknown as BossApi
+		await boss.publish(queue, data, options)
 	}
 
 	async subscribe(queue: string, handler: (job: unknown) => Promise<void> | void): Promise<void> {
 		if (!this.boss) throw new Error('pg-boss not started')
-		const b = this.boss as unknown as {
-			subscribe: (q: string, h: (job: any) => any) => Promise<unknown>
-		}
-		await b.subscribe(queue, handler as (job: any) => any)
+		const boss = this.boss as unknown as BossApi
+		await boss.subscribe(queue, handler)
 	}
 
 	async subscribeWithOptions(
 		queue: string,
-		options: any,
+		options: SubscribeOptions,
 		handler: (job: unknown) => Promise<void> | void,
 	): Promise<void> {
 		if (!this.boss) throw new Error('pg-boss not started')
-		const b = this.boss as unknown as {
-			subscribe: (q: string, o: any, h: (job: any) => any) => Promise<unknown>
-		}
-		await b.subscribe(queue, options, handler as (job: any) => any)
+		const boss = this.boss as unknown as BossApi
+		await boss.subscribe(queue, options, handler)
 	}
 }

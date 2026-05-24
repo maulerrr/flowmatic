@@ -1,12 +1,12 @@
 // src/common/types/learner-request.interface.ts
 
-import { Request } from 'express'
+import { FastifyRequest } from 'fastify'
 
 export interface LearnerClaims {
 	id: number
 	nativeLanguage?: string
 }
 
-export interface LearnerRequest extends Request {
+export interface LearnerRequest extends FastifyRequest {
 	learner: LearnerClaims
 }

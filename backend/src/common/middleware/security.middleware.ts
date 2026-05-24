@@ -1,18 +1,14 @@
-import { Injectable, NestMiddleware } from '@nestjs/common'
-import { Request, Response, NextFunction } from 'express'
-import { AppConfigService } from '../config/config.service'
+import type { FastifyInstance } from 'fastify'
 
-@Injectable()
-export class SecurityMiddleware implements NestMiddleware {
-	constructor(private readonly appConfigService: AppConfigService) {}
+export function registerSecurityHook(fastify: FastifyInstance, allowedHosts: string[]) {
+	const normalizedAllowedHosts = allowedHosts.filter(Boolean)
 
-	use(req: Request, res: Response, next: NextFunction) {
-		const allowedHosts = this.appConfigService.security.allowedHosts
-		const host = req.headers.host?.split(':')[0] // Remove port if present
-
-		if (allowedHosts.length > 0 && host && !allowedHosts.includes(host)) {
-			return res.status(400).send('Bad Request: Invalid Host Header')
+	fastify.addHook('onRequest', (request, reply, done) => {
+		const host = request.headers.host?.split(':')[0]
+		if (normalizedAllowedHosts.length > 0 && host && !normalizedAllowedHosts.includes(host)) {
+			reply.code(400).send('Bad Request: Invalid Host Header')
+			return
 		}
-		next()
-	}
+		done()
+	})
 }

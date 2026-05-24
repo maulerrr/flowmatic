@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { DataRow } from '../ingestion/ingestion.service'
+import { DataRow } from 'src/common/types/data.types'
 
 export interface CleaningResult {
 	data: DataRow[]

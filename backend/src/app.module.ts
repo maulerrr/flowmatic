@@ -1,11 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { Module } from '@nestjs/common'
 import { DevtoolsModule } from '@nestjs/devtools-integration'
 import { LoggerModule } from 'nestjs-pino'
 import { ScheduleModule } from '@nestjs/schedule'
 
 import { AppConfigModule } from './common/config/config.module'
-import { SecurityMiddleware } from './common/middleware/security.middleware'
 import { BossModule } from './common/queue/boss.module'
 import { PrismaModule } from './prisma/prisma.module'
 
@@ -17,6 +15,7 @@ import { PipelineModule } from './modules/pipeline/pipeline.module'
 import { ExportModule } from './modules/export/export.module'
 import { StorageModule } from './modules/storage/storage.module'
 import { AuthModule } from './modules/auth/auth.module'
+import { SmartCityModule } from './modules/smart-city/smart-city.module'
 
 @Module({
 	imports: [
@@ -30,7 +29,6 @@ import { AuthModule } from './modules/auth/auth.module'
 		}),
 
 		// Global config & DB
-		ConfigModule.forRoot({ isGlobal: true }),
 		AppConfigModule,
 		ScheduleModule.forRoot(),
 		BossModule,
@@ -44,10 +42,7 @@ import { AuthModule } from './modules/auth/auth.module'
 		PipelineModule,
 		ExportModule,
 		StorageModule,
+		SmartCityModule,
 	],
 })
-export class AppModule implements NestModule {
-	configure(consumer: MiddlewareConsumer) {
-		consumer.apply(SecurityMiddleware).forRoutes('*')
-	}
-}
+export class AppModule {}

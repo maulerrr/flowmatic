@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { apiClient } from '@/api/client';
-import { AlertCircle, LogIn, Mail, Sparkles } from 'lucide-vue-next';
+import { AlertCircle, LogIn, Mail, Sparkles, UserPlus } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -9,13 +9,21 @@ import { useRouter } from 'vue-router';
 
 
 const router = useRouter()
-const email = ref('admin@flowmatic.local')
+const mode = ref<'login' | 'register'>('login')
+const email = ref('')
+const password = ref('')
+const displayName = ref('')
+const organizationName = ref('')
 const isLoading = ref(false)
 const error = ref('')
 
-async function handleLogin() {
-	if (!email.value) {
-		error.value = 'Please enter your email'
+async function handleSubmit() {
+	if (!email.value || !password.value) {
+		error.value = 'Please enter your email and password'
+		return
+	}
+	if (mode.value === 'register' && !displayName.value) {
+		error.value = 'Please enter your name'
 		return
 	}
 
@@ -23,15 +31,28 @@ async function handleLogin() {
 		isLoading.value = true
 		error.value = ''
 
-		const response = await apiClient.login(email.value)
+		if (mode.value === 'login') {
+			await apiClient.login(email.value, password.value)
+		} else {
+			await apiClient.register({
+				email: email.value,
+				password: password.value,
+				displayName: displayName.value,
+				organizationName: organizationName.value || undefined,
+			})
+		}
 
-		// Redirect to dashboard after successful login
 		router.push('/dashboard')
 	} catch (err: any) {
 		error.value = err.message || 'Login failed. Please try again.'
 	} finally {
 		isLoading.value = false
 	}
+}
+
+function toggleMode() {
+	mode.value = mode.value === 'login' ? 'register' : 'login'
+	error.value = ''
 }
 </script>
 
@@ -77,14 +98,37 @@ async function handleLogin() {
 				<div class="p-8 md:p-10 space-y-8">
 					<!-- Heading -->
 					<div>
-						<h2 class="text-xl md:text-2xl font-bold text-foreground">Welcome back</h2>
-						<p class="text-foreground/60 text-sm mt-1">Enter your email to access your workspace</p>
+						<h2 class="text-xl md:text-2xl font-bold text-foreground">
+							{{ mode === 'login' ? 'Welcome back' : 'Create your workspace' }}
+						</h2>
+						<p class="text-foreground/60 text-sm mt-1">
+							{{ mode === 'login' ? 'Sign in with your email and password' : 'Your first organization will be created automatically' }}
+						</p>
 					</div>
 
 					<form
-						@submit.prevent="handleLogin"
+						@submit.prevent="handleSubmit"
 						class="space-y-5"
 					>
+						<div
+							v-if="mode === 'register'"
+							class="space-y-2.5"
+						>
+							<label
+								for="displayName"
+								class="text-sm font-medium text-foreground/80"
+								>Your Name</label
+							>
+							<input
+								id="displayName"
+								v-model="displayName"
+								type="text"
+								required
+								placeholder="Ada Lovelace"
+								:disabled="isLoading"
+								class="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-foreground/40 transition-all duration-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+							/>
+						</div>
 						<!-- Email Input -->
 						<div class="space-y-2.5">
 							<label
@@ -99,11 +143,48 @@ async function handleLogin() {
 									v-model="email"
 									type="email"
 									required
-									placeholder="admin@flowmatic.local"
+									placeholder="you@example.com"
 									:disabled="isLoading"
 									class="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-foreground/40 transition-all duration-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
 								/>
 							</div>
+						</div>
+
+						<div class="space-y-2.5">
+							<label
+								for="password"
+								class="text-sm font-medium text-foreground/80"
+								>Password</label
+							>
+							<input
+								id="password"
+								v-model="password"
+								type="password"
+								required
+								minlength="6"
+								placeholder="At least 6 characters"
+								:disabled="isLoading"
+								class="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-foreground/40 transition-all duration-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+							/>
+						</div>
+
+						<div
+							v-if="mode === 'register'"
+							class="space-y-2.5"
+						>
+							<label
+								for="organizationName"
+								class="text-sm font-medium text-foreground/80"
+								>Organization Name</label
+							>
+							<input
+								id="organizationName"
+								v-model="organizationName"
+								type="text"
+								placeholder='Defaults to "Your Name&apos;s Organization"'
+								:disabled="isLoading"
+								class="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-foreground/40 transition-all duration-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+							/>
 						</div>
 
 						<!-- Error Message -->
@@ -129,7 +210,10 @@ async function handleLogin() {
 								class="flex items-center justify-center gap-2"
 							>
 								<span>Sign In</span>
-								<LogIn class="w-4 h-4" />
+								<component
+									:is="mode === 'login' ? LogIn : UserPlus"
+									class="w-4 h-4"
+								/>
 							</span>
 							<span
 								v-else
@@ -155,7 +239,7 @@ async function handleLogin() {
 										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 									></path>
 								</svg>
-								<span>Signing in...</span>
+								<span>{{ mode === 'login' ? 'Signing in...' : 'Creating account...' }}</span>
 							</span>
 						</button>
 					</form>
@@ -170,14 +254,13 @@ async function handleLogin() {
 						</div>
 					</div>
 
-					<!-- Info Box -->
-					<div class="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-2">
-						<div class="flex items-center gap-2">
-							<Mail class="w-4 h-4 text-primary" />
-							<code class="text-sm text-foreground/80 font-mono">admin@flowmatic.local</code>
-						</div>
-						<p class="text-xs text-foreground/60">Use this email to log in with any password</p>
-					</div>
+					<button
+						type="button"
+						@click="toggleMode"
+						class="w-full text-sm text-primary hover:text-primary/80 font-semibold"
+					>
+						{{ mode === 'login' ? 'Need an account? Register' : 'Already have an account? Sign in' }}
+					</button>
 				</div>
 
 				<!-- Footer -->

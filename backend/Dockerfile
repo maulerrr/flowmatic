@@ -125,8 +125,6 @@ COPY --from=builder /app/bun.lock ./
 COPY --from=builder /app/node_modules/ ./node_modules/ 
 COPY --from=builder /app/dist/ ./dist/                
 COPY --from=builder /app/prisma/ ./prisma/
-COPY --from=builder /app/src/modules/notifications/locales/ ./dist/modules/notifications/locales/
-
 
 # ------------------
 # Runtime environment variables

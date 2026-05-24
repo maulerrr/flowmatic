@@ -18,28 +18,95 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users       User[]
-  pipelines   PipelineRun[]
-  storageFiles StorageFile[]
+  users               User[]
+  members             OrganizationMember[]
+  invitations         OrganizationInvitation[]
+  exportCredentials   ExportCredential[]
+  pipelines           PipelineRun[]
+  smartCityPipelines  SmartCityPipeline[]
+  smartCityExportTargets SmartCityExportTarget[]
+  smartCityExportRuns SmartCityExportRun[]
+  sensorSources       SensorSource[]
+  sensorEvents        SensorEvent[]
+  dataLakeConnections DataLakeConnection[]
+  modelTrainingRuns   ModelTrainingRun[]
+  modelArtifacts      ModelArtifact[]
+  storageFiles        StorageFile[]
 
   @@index([slug])
 }
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
+  id             String  @id @default(cuid())
+  email          String  @unique
   password       String?
   displayName    String?
   organizationId String
-  role           String   @default("member") // admin, member, viewer
-  
+  role           String  @default("member") // admin, member, viewer
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization    Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  memberships     OrganizationMember[]
+  sentInvitations OrganizationInvitation[] @relation("InvitationSender")
 
   @@index([organizationId])
   @@index([email])
+}
+
+model OrganizationMember {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  role           String   @default("member") // admin, member, viewer
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model OrganizationInvitation {
+  id             String    @id @default(cuid())
+  organizationId String
+  email          String
+  role           String    @default("member") // admin, member, viewer
+  token          String    @unique
+  invitedById    String
+  acceptedAt     DateTime?
+  declinedAt     DateTime?
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([organizationId])
+  @@index([token])
+}
+
+model ExportCredential {
+  id                String   @id @default(cuid())
+  organizationId    String
+  adapterType       String
+  encryptedSettings String   @db.Text
+  iv                String
+  authTag           String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, adapterType])
+  @@index([organizationId])
+  @@index([adapterType])
 }
 
 model Session {
@@ -58,34 +125,34 @@ model Session {
 // ============================================================================
 
 model PipelineRun {
-  id               String   @id @default(cuid())
-  organizationId   String
-  status           String   @default("queued") // queued, processing, completed, failed
-  sourceFileName   String
-  sourceFileId     String?
-  
+  id             String  @id @default(cuid())
+  organizationId String
+  status         String  @default("queued") // queued, processing, completed, failed
+  sourceFileName String
+  sourceFileId   String?
+
   // Processing stats
-  rowsIngested     Int      @default(0)
-  rowsCleaned      Int      @default(0)
-  rowsErrors       Int      @default(0)
-  processingTimeMs Int      @default(0)
-  
+  rowsIngested     Int @default(0)
+  rowsCleaned      Int @default(0)
+  rowsErrors       Int @default(0)
+  processingTimeMs Int @default(0)
+
   // Job tracking
-  jobId            String?  @unique // RabbitMQ job ID
-  errorMessage     String?
-  summary          String?  @db.Text
-  
+  jobId        String? @unique // RabbitMQ job ID
+  errorMessage String?
+  summary      String? @db.Text
+
   // Results
-  resultFileId     String?
-  resultFileSize   Int?
-  
+  resultFileId   String?
+  resultFileSize Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  sourceFile       StorageFile? @relation("source", fields: [sourceFileId], references: [id])
-  resultFile       StorageFile? @relation("result", fields: [resultFileId], references: [id])
-  exports          PipelineExport[]
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sourceFile   StorageFile?     @relation("source", fields: [sourceFileId], references: [id])
+  resultFile   StorageFile?     @relation("result", fields: [resultFileId], references: [id])
+  exports      PipelineExport[]
 
   @@index([organizationId])
   @@index([status])
@@ -94,40 +161,258 @@ model PipelineRun {
 }
 
 model StorageFile {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   organizationId String
   fileName       String
   fileSize       Int
   mimeType       String
-  s3Key          String   @unique
-  
+  s3Key          String @unique
+
   // Reference to runs
-  sourceRuns     PipelineRun[] @relation("source")
-  resultRuns     PipelineRun[] @relation("result")
-  
+  sourceRuns PipelineRun[] @relation("source")
+  resultRuns PipelineRun[] @relation("result")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([createdAt])
 }
 
 model PipelineExport {
-  id               String   @id @default(cuid())
-  pipelineRunId    String
-  adapterType      String   // postgres, mongodb, huggingface, csv, json, parquet
-  destination      String   // where the data was exported (DB name, repo URL, etc)
-  recordsExported  Int      @default(0)
-  metadata         Json     @default("{}")
-  
+  id              String @id @default(cuid())
+  pipelineRunId   String
+  adapterType     String // postgres, mongodb, huggingface, csv, json, parquet
+  destination     String // where the data was exported (DB name, repo URL, etc)
+  recordsExported Int    @default(0)
+  metadata        Json   @default("{}")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  pipelineRun      PipelineRun @relation(fields: [pipelineRunId], references: [id], onDelete: Cascade)
+  pipelineRun PipelineRun @relation(fields: [pipelineRunId], references: [id], onDelete: Cascade)
 
   @@index([pipelineRunId])
   @@index([adapterType])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// REAL-TIME SMART CITY PIPELINES
+// ============================================================================
+
+model SmartCityPipeline {
+  id                   String   @id @default(cuid())
+  organizationId       String
+  createdByUserId      String
+  name                 String
+  description          String?  @db.Text
+  status               String   @default("DRAFT") // DRAFT, ACTIVE, PAUSED, ERROR, ARCHIVED
+  graphJson            Json     @default("{}")
+  streamConfig         Json     @default("{}")
+  activeModelId        String?
+  dataLakeConnectionId String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sensorSources SensorSource[]
+  sensorEvents  SensorEvent[]
+  exportTargets SmartCityExportTarget[]
+  exportRuns    SmartCityExportRun[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SmartCityExportTarget {
+  id             String   @id @default(cuid())
+  organizationId String
+  pipelineId     String
+  createdByUserId String
+  name           String
+  stage          String
+  adapterType    String
+  settingsJson   Json     @default("{}")
+  saveCredentials Boolean @default(false)
+  isContinuous   Boolean  @default(false)
+  status         String   @default("ACTIVE") // ACTIVE, PAUSED, ERROR, ARCHIVED
+  cadenceSeconds Int      @default(60)
+  lastCursorAt   DateTime?
+  lastRunAt      DateTime?
+  lastRunId      String?
+  lastError      String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pipeline     SmartCityPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  runs         SmartCityExportRun[]
+
+  @@index([organizationId])
+  @@index([pipelineId])
+  @@index([status])
+  @@index([isContinuous])
+}
+
+model SmartCityExportRun {
+  id             String   @id @default(cuid())
+  organizationId String
+  pipelineId     String
+  targetId       String?
+  stage          String
+  adapterType    String
+  status         String   @default("QUEUED") // QUEUED, RUNNING, SUCCEEDED, FAILED
+  rowCount       Int      @default(0)
+  recordsExported Int     @default(0)
+  destination    String?
+  message        String?  @db.Text
+  errorMessage   String?  @db.Text
+  metadata       Json     @default("{}")
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pipeline     SmartCityPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  target       SmartCityExportTarget? @relation(fields: [targetId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([pipelineId])
+  @@index([targetId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SensorSource {
+  id               String    @id @default(cuid())
+  organizationId   String
+  pipelineId       String
+  name             String
+  type             String    @default("HTTP_POLLING") // WEBSOCKET, HTTP_POLLING
+  sensorKind       String    @default("iot") // video, iot, power, network, weather, parking
+  mode             String    @default("SIMULATED") // SIMULATED, EXTERNAL
+  status           String    @default("STOPPED") // STOPPED, RUNNING, ERROR
+  endpoint         String?
+  schemaJson       Json      @default("{}")
+  connectionConfig Json      @default("{}")
+  pollIntervalMs   Int       @default(5000)
+  lastSeenAt       DateTime?
+  lastError        String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pipeline     SmartCityPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  events       SensorEvent[]
+
+  @@index([organizationId])
+  @@index([pipelineId])
+  @@index([status])
+  @@index([type])
+}
+
+model SensorEvent {
+  id             String   @id @default(cuid())
+  organizationId String
+  pipelineId     String
+  sourceId       String
+  eventTime      DateTime
+  sensorType     String
+  location       String?
+  payloadJson    Json     @default("{}")
+  createdAt      DateTime @default(now())
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pipeline     SmartCityPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  source       SensorSource      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([pipelineId])
+  @@index([sourceId])
+  @@index([eventTime])
+  @@index([createdAt])
+}
+
+model DataLakeConnection {
+  id                 String    @id @default(cuid())
+  organizationId     String
+  name               String
+  provider           String    @default("CUSTOM_S3") // AWS_S3, MINIO, R2, CUSTOM_S3
+  bucket             String
+  region             String?
+  endpoint           String?
+  basePrefix         String    @default("")
+  accessKeyEncrypted String?
+  secretKeyEncrypted String?
+  isDefault          Boolean   @default(false)
+  status             String    @default("CONNECTED") // CONNECTED, DISCONNECTED, ERROR
+  lastTestedAt       DateTime?
+  lastTestStatus     String?
+  pathRulesJson      Json      @default("{}")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([isDefault])
+}
+
+model ModelTrainingRun {
+  id                String    @id @default(cuid())
+  organizationId    String
+  pipelineId        String?
+  createdByUserId   String
+  name              String
+  datasetPath       String
+  modelType         String    @default("TRAFFIC_BASELINE")
+  status            String    @default("QUEUED") // QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELED
+  localArtifactPath String?
+  datasetProfile    Json      @default("{}")
+  featureSpec       Json      @default("{}")
+  metricsJson       Json      @default("{}")
+  logsJson          Json      @default("[]")
+  errorMessage      String?   @db.Text
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  artifacts    ModelArtifact[]
+
+  @@index([organizationId])
+  @@index([pipelineId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ModelArtifact {
+  id             String   @id @default(cuid())
+  organizationId String
+  trainingRunId  String
+  name           String
+  modelType      String
+  version        String
+  status         String   @default("LOCAL_ONLY") // LOCAL_ONLY, PROMOTED, DEPLOYED, ARCHIVED
+  localPath      String
+  s3Uri          String?
+  featureSpec    Json     @default("{}")
+  metricsJson    Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  trainingRun  ModelTrainingRun @relation(fields: [trainingRunId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([trainingRunId])
+  @@index([status])
   @@index([createdAt])
 }

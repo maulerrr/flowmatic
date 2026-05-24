@@ -1,0 +1,38 @@
+seed: 42
+max_rows:
+  astana: 12000
+  hf_ett: 12000
+  hf_weather: 12000
+  hf_traffic: 6000
+seq_len: 24
+horizon: 1
+epochs: 4
+batch_size: 128
+lr: 0.001
+experiments:
+  - name: astana_tcn_density_forecaster
+    dataset: astana
+    kind: tcn_forecast
+    target: Traffic_Density
+  - name: astana_gru_speed_forecaster
+    dataset: astana
+    kind: gru_forecast
+    target: Speed_kmh
+  - name: hf_weather_transformer_forecaster
+    dataset: hf_weather
+    kind: transformer_forecast
+  - name: hf_ett_tcn_energy_forecaster
+    dataset: hf_ett
+    kind: tcn_forecast
+    target: OT
+  - name: astana_autoencoder_anomaly_repair
+    dataset: astana
+    kind: autoencoder
+  - name: astana_transformer_severity_classifier
+    dataset: astana
+    kind: transformer_classifier
+    label: Severity
+  - name: hf_traffic_stgcn_forecaster
+    dataset: hf_traffic
+    kind: stgcn_forecast
+    max_nodes: 24

@@ -1,0 +1,14 @@
+{
+  "createdAt": "2026-04-09T09:31:58.089876+00:00",
+  "protocols": {
+    "multiSeedRuns": 27,
+    "ablationRuns": 4,
+    "transferRuns": 4,
+    "streamingRows": 108,
+    "seeds": [
+      7,
+      42,
+      2026
+    ]
+  }
+}

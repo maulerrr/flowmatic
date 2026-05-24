@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -93,6 +92,7 @@
 }
 
 .dark {
+	color-scheme: dark;
 	--background: #0d141f; /* Original Dark background */
 	--foreground: #eaf2ff;
 	--card: #131d2b;
@@ -179,11 +179,25 @@
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
-		font-family: 'Montserrat', sans-serif;
+		font-family: 'Sora', system-ui, sans-serif;
 	}
 	body {
 		@apply bg-background text-foreground;
 		background-image: var(--gradient-flow);
+	}
+	select {
+		background-color: var(--surface-2);
+		color: var(--foreground);
+		border-color: var(--border);
+		color-scheme: light;
+	}
+	select option,
+	select optgroup {
+		background-color: var(--surface-2);
+		color: var(--foreground);
+	}
+	.dark select {
+		color-scheme: dark;
 	}
 }
 

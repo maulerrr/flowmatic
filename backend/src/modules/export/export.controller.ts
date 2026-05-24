@@ -6,25 +6,22 @@ import {
 	Body,
 	UseGuards,
 	Req,
-	BadRequestException,
 	Query,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { Request } from 'express'
+import { AuthenticatedRequest } from 'src/common/types/http.types'
 import { ExportService } from './export.service'
 import { AuthGuard } from '../auth/auth.guard'
-import { PrismaService } from 'src/prisma/prisma.service'
-import { ExportAdapterType } from './types/export.types'
+import { ParseCuidPipe } from 'src/common/pipes/parse-cuid.pipe'
 import { PaginationParamsFilter } from 'src/common/utils/pagination.util'
+import { ExportRunDto } from './dto/export-run.dto'
+import { ValidateExportDto } from './dto/validate-export.dto'
 
 @ApiTags('exports')
 @Controller('exports')
 @UseGuards(AuthGuard)
 export class ExportController {
-	constructor(
-		private readonly exportService: ExportService,
-		private readonly prisma: PrismaService,
-	) {}
+	constructor(private readonly exportService: ExportService) {}
 
 	/**
 	 * Get available export adapters and their configuration requirements
@@ -44,23 +41,19 @@ export class ExportController {
 	 */
 	@Get('runs/:runId/preview')
 	async previewRunData(
-		@Req() req: Request,
-		@Param('runId') runId: string,
+		@Req() req: AuthenticatedRequest,
+		@Param('runId', ParseCuidPipe) runId: string,
 		@Query() query: PaginationParamsFilter,
 	) {
-		try {
-			const result = await this.exportService.getPreviewData(
-				runId,
-				req.authContext!.organizationId,
-				query,
-			)
+		const result = await this.exportService.getPreviewData(
+			runId,
+			req.authContext!.organizationId,
+			query,
+		)
 
-			return {
-				success: true,
-				data: result,
-			}
-		} catch (error) {
-			throw new BadRequestException(error instanceof Error ? error.message : 'Unknown error')
+		return {
+			success: true,
+			data: result,
 		}
 	}
 
@@ -71,46 +64,22 @@ export class ExportController {
 	 */
 	@Post('runs/:runId/export')
 	async exportRunData(
-		@Param('runId') runId: string,
-		@Body()
-		body: {
-			adapterType: ExportAdapterType
-			settings: Record<string, any>
-		},
-		@Req() req: Request,
+		@Param('runId', ParseCuidPipe) runId: string,
+		@Body() body: ExportRunDto,
+		@Req() req: AuthenticatedRequest,
 	) {
-		if (!body.adapterType || !body.settings) {
-			throw new BadRequestException('adapterType and settings are required')
-		}
+		const result = await this.exportService.exportPipelineRun(
+			runId,
+			req.authContext!.organizationId,
+			body.adapterType,
+			body.settings,
+			body.saveCredentials,
+		)
 
-		// Verify run exists and user has access
-		const run = await this.prisma.pipelineRun.findUnique({
-			where: { id: runId },
-		})
-
-		if (!run) {
-			throw new BadRequestException('Pipeline run not found')
-		}
-
-		if (run.organizationId !== req.authContext!.organizationId) {
-			throw new BadRequestException('Unauthorized to export this run')
-		}
-
-		try {
-			const result = await this.exportService.exportPipelineRun(
-				runId,
-				req.authContext!.organizationId,
-				body.adapterType,
-				body.settings as Record<string, unknown>,
-			)
-
-			return {
-				success: true,
-				data: result,
-				message: result.message,
-			}
-		} catch (error) {
-			throw new BadRequestException(error instanceof Error ? error.message : 'Export failed')
+		return {
+			success: true,
+			data: result,
+			message: result.message,
 		}
 	}
 
@@ -119,17 +88,7 @@ export class ExportController {
 	 * POST /api/v1/exports/validate
 	 */
 	@Post('validate')
-	async validateExportConfig(
-		@Body()
-		body: {
-			adapterType: ExportAdapterType
-			settings: Record<string, any>
-		},
-	) {
-		if (!body.adapterType) {
-			throw new BadRequestException('adapterType is required')
-		}
-
+	async validateExportConfig(@Body() body: ValidateExportDto) {
 		const validation = await this.exportService.validateExportConfig({
 			adapterType: body.adapterType,
 			organizationId: '',
@@ -140,7 +99,7 @@ export class ExportController {
 
 		return {
 			success: validation.valid,
-			errors: validation.errors || [],
+			data: validation,
 		}
 	}
 
@@ -148,19 +107,10 @@ export class ExportController {
 	 * Get export history for a pipeline run
 	 */
 	@Get('runs/:runId/history')
-	async getExportHistory(@Param('runId') runId: string, @Req() req: Request) {
-		const run = await this.prisma.pipelineRun.findUnique({
-			where: { id: runId },
-		})
-
-		if (!run) {
-			throw new BadRequestException('Pipeline run not found')
-		}
-
-		if (run.organizationId !== req.authContext!.organizationId) {
-			throw new BadRequestException('Unauthorized')
-		}
-
+	async getExportHistory(
+		@Param('runId', ParseCuidPipe) runId: string,
+		@Req() req: AuthenticatedRequest,
+	) {
 		const history = await this.exportService.getExportHistory(
 			runId,
 			req.authContext!.organizationId,
@@ -170,25 +120,5 @@ export class ExportController {
 			success: true,
 			data: history,
 		}
-	}
-
-	/**
-	 * Generate sample data for preview
-	 */
-	private generateSampleData(totalRows: number, sampleSize: number): Record<string, unknown>[] {
-		const data: Record<string, unknown>[] = []
-		const step = Math.max(1, Math.floor(totalRows / sampleSize))
-
-		for (let i = 0; i < sampleSize && i * step < totalRows; i++) {
-			data.push({
-				id: i * step + 1,
-				value: (Math.random() * 100).toFixed(2),
-				status: ['active', 'inactive', 'pending'][Math.floor(Math.random() * 3)],
-				created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-				quality_score: (Math.random() * 100).toFixed(2),
-			})
-		}
-
-		return data
 	}
 }

@@ -7,20 +7,15 @@ import {
 	Query,
 	UseGuards,
 	Req,
-	BadRequestException,
 	NotFoundException,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { Request } from 'express'
+import { AuthenticatedRequest } from 'src/common/types/http.types'
+import { ParseCuidPipe } from 'src/common/pipes/parse-cuid.pipe'
 import { PipelineService } from './pipeline.service'
 import { AuthGuard } from '../auth/auth.guard'
-import { AuthContext } from '../auth/auth-context.service'
-
-declare module 'express' {
-	interface Request {
-		authContext?: AuthContext
-	}
-}
+import { ListRunsQueryDto } from './dto/list-runs-query.dto'
+import { CleanupRunsQueryDto } from './dto/cleanup-runs-query.dto'
 
 @ApiTags('pipelines')
 @Controller('pipelines')
@@ -29,7 +24,7 @@ export class PipelineController {
 	constructor(private readonly pipelineService: PipelineService) {}
 
 	@Get('analytics/summary')
-	async getAnalyticsSummary(@Req() req: Request) {
+	async getAnalyticsSummary(@Req() req: AuthenticatedRequest) {
 		const stats = await this.pipelineService.getAnalyticsSummary(req.authContext!.organizationId)
 		return {
 			success: true,
@@ -38,7 +33,10 @@ export class PipelineController {
 	}
 
 	@Get('analytics/charts')
-	async getAnalyticsCharts(@Req() req: Request, @Query('period') period: string = '7d') {
+	async getAnalyticsCharts(
+		@Req() req: AuthenticatedRequest,
+		@Query('period') period: string = '7d',
+	) {
 		const charts = await this.pipelineService.getAnalyticsCharts(
 			req.authContext!.organizationId,
 			period,
@@ -50,20 +48,12 @@ export class PipelineController {
 	}
 
 	@Get('runs')
-	async listRuns(
-		@Req() req: Request,
-		@Query('limit') limit?: string,
-		@Query('offset') offset?: string,
-		@Query('status') status?: string,
-	) {
-		const limitNum = limit ? Math.min(parseInt(limit, 10), 100) : 50
-		const offsetNum = offset ? parseInt(offset, 10) : 0
-
+	async listRuns(@Req() req: AuthenticatedRequest, @Query() query: ListRunsQueryDto) {
 		const runs = await this.pipelineService.getPipelineRuns(
 			req.authContext!.organizationId,
-			limitNum,
-			offsetNum,
-			status,
+			query.limit,
+			query.offset,
+			query.status,
 		)
 		return {
 			success: true,
@@ -72,11 +62,7 @@ export class PipelineController {
 	}
 
 	@Delete('runs/:id')
-	async deleteRun(@Param('id') id: string, @Req() req: Request) {
-		if (!id || id.length < 5) {
-			throw new BadRequestException('Invalid run ID')
-		}
-
+	async deleteRun(@Param('id', ParseCuidPipe) id: string, @Req() req: AuthenticatedRequest) {
 		const deleted = await this.pipelineService.deleteRun(id, req.authContext!.organizationId)
 		if (!deleted) {
 			throw new NotFoundException('Pipeline run not found')
@@ -89,11 +75,7 @@ export class PipelineController {
 	}
 
 	@Get('runs/:id/preview')
-	async getRunPreview(@Param('id') id: string, @Req() req: Request) {
-		if (!id || id.length < 5) {
-			throw new BadRequestException('Invalid run ID')
-		}
-
+	async getRunPreview(@Param('id', ParseCuidPipe) id: string, @Req() req: AuthenticatedRequest) {
 		const preview = await this.pipelineService.getRunPreview(id, req.authContext!.organizationId)
 		if (!preview) {
 			throw new NotFoundException('Run or preview data not found')
@@ -106,11 +88,7 @@ export class PipelineController {
 	}
 
 	@Get('runs/:id')
-	async getRun(@Param('id') id: string, @Req() req: Request) {
-		if (!id || id.length < 5) {
-			throw new BadRequestException('Invalid run ID')
-		}
-
+	async getRun(@Param('id', ParseCuidPipe) id: string, @Req() req: AuthenticatedRequest) {
 		const run = await this.pipelineService.getPipelineRun(id, req.authContext!.organizationId)
 		if (!run) {
 			throw new NotFoundException('Pipeline run not found')
@@ -123,22 +101,11 @@ export class PipelineController {
 	}
 
 	@Post('cleanup')
-	async cleanupOldRuns(
-		@Req() req: Request,
-		@Query('daysOld') daysOld?: string,
-		@Query('statuses') statuses?: string,
-	) {
-		const daysOldNum = daysOld ? parseInt(daysOld, 10) : 30
-		const statusArray = statuses ? statuses.split(',') : ['failed', 'completed']
-
-		if (daysOldNum < 1) {
-			throw new BadRequestException('daysOld must be at least 1')
-		}
-
+	async cleanupOldRuns(@Req() req: AuthenticatedRequest, @Query() query: CleanupRunsQueryDto) {
 		const deleted = await this.pipelineService.cleanupOldRuns(
 			req.authContext!.organizationId,
-			daysOldNum,
-			statusArray,
+			query.daysOld ?? 30,
+			query.statuses ?? ['failed', 'completed'],
 		)
 
 		return {

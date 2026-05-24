@@ -1,16 +1,30 @@
 // src/common/helpers/file-upload.helper.ts
 
 import { BadRequestException } from '@nestjs/common'
-import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface'
-import { memoryStorage } from 'multer'
-import { Request } from 'express'
+
+interface UploadedFileLike {
+	mimetype: string
+	originalname?: string
+	filename?: string
+}
+
+interface UploadConfig {
+	limits: {
+		fileSize: number
+	}
+	fileFilter: (
+		req: unknown,
+		file: UploadedFileLike,
+		cb: (error: Error | null, acceptFile: boolean) => void,
+	) => void
+}
 
 /**
  * Image file filter for multer
  */
 export const imageFileFilter = (
-	req: Request,
-	file: Express.Multer.File,
+	req: unknown,
+	file: UploadedFileLike,
 	cb: (error: Error | null, acceptFile: boolean) => void,
 ) => {
 	const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
@@ -30,8 +44,7 @@ export const imageFileFilter = (
 /**
  * Standard image upload configuration for assessments
  */
-export const createImageUploadConfig = (maxSizeMB: number = 5): MulterOptions => ({
-	storage: memoryStorage(),
+export const createImageUploadConfig = (maxSizeMB: number = 5): UploadConfig => ({
 	limits: {
 		fileSize: maxSizeMB * 1024 * 1024, // Convert MB to bytes
 	},
@@ -49,11 +62,12 @@ export const FILE_SIZE_LIMITS = {
 
 /** ZIP file filter for multer (used for bulk imports). */
 export const zipFileFilter = (
-	req: Request,
-	file: Express.Multer.File,
+	req: unknown,
+	file: UploadedFileLike,
 	cb: (error: Error | null, acceptFile: boolean) => void,
 ) => {
-	const nameOk = file.originalname.toLowerCase().endsWith('.zip')
+	const name = file.originalname ?? file.filename ?? ''
+	const nameOk = name.toLowerCase().endsWith('.zip')
 	const mimeOk = file.mimetype.toLowerCase().includes('zip')
 
 	if (nameOk || mimeOk) {
@@ -65,8 +79,7 @@ export const zipFileFilter = (
 }
 
 /** Standard zip upload configuration (in-memory). */
-export const createZipUploadConfig = (maxSizeMB: number = 50): MulterOptions => ({
-	storage: memoryStorage(),
+export const createZipUploadConfig = (maxSizeMB: number = 50): UploadConfig => ({
 	limits: {
 		fileSize: maxSizeMB * 1024 * 1024,
 	},

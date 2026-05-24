@@ -1,14 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from 'src/prisma/prisma.service'
 import {
 	S3Client,
 	S3ClientConfig,
+	CreateBucketCommand,
+	HeadBucketCommand,
+	ListObjectsV2Command,
 	PutObjectCommand,
 	GetObjectCommand,
 	DeleteObjectCommand,
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { Readable } from 'stream'
+import { AppConfigService } from 'src/common/config/config.service'
 
 export interface S3UploadOptions {
 	bucket: string
@@ -18,34 +21,49 @@ export interface S3UploadOptions {
 	metadata?: Record<string, string>
 }
 
+export interface S3ConnectionOptions {
+	endpoint?: string | null
+	region?: string | null
+	accessKeyId: string
+	secretAccessKey: string
+	usePathStyle?: boolean
+}
+
+export interface S3ListedObject {
+	key: string
+	size: number
+	lastModified: Date | null
+	etag: string | null
+}
+
 @Injectable()
 export class StorageService {
 	private readonly logger = new Logger(StorageService.name)
 	private s3Client: S3Client
 
-	constructor(private prisma: PrismaService) {
-		// Initialize S3 client only if credentials are provided
-		const accessKey = process.env.S3_ACCESS_KEY || process.env.AWS_ACCESS_KEY_ID
-		const secretKey = process.env.S3_SECRET_KEY || process.env.AWS_SECRET_ACCESS_KEY
-		const endpoint = process.env.S3_ACCESS_ENDPOINT
+	constructor(private readonly config: AppConfigService) {
+		const { accessKeyId, secretAccessKey, accessEndpoint, region, usePathStyle } = this.config.s3
 
-		if (accessKey && secretKey) {
+		if (accessKeyId && secretAccessKey) {
 			const clientConfig: S3ClientConfig = {
-				region: process.env.S3_REGION || 'us-east-1',
+				region,
 				credentials: {
-					accessKeyId: accessKey,
-					secretAccessKey: secretKey,
+					accessKeyId,
+					secretAccessKey,
 				},
 			}
 
-			// Add endpoint if using MinIO or S3-compatible service
-			if (endpoint) {
-				clientConfig.endpoint = endpoint
-				clientConfig.forcePathStyle = process.env.S3_PATH_STYLE === 'true'
+			if (accessEndpoint) {
+				clientConfig.endpoint = accessEndpoint
+				clientConfig.forcePathStyle = usePathStyle
 			}
 
 			this.s3Client = new S3Client(clientConfig)
 		}
+	}
+
+	get defaultBucket(): string {
+		return this.config.s3.bucket
 	}
 
 	async uploadFileToS3(options: S3UploadOptions): Promise<string> {
@@ -119,7 +137,7 @@ export class StorageService {
 			throw new Error('S3 credentials not configured')
 		}
 
-		const s3Bucket = bucket || process.env.S3_BUCKET || 'flowmatic-uploads'
+		const s3Bucket = bucket || this.defaultBucket
 
 		try {
 			const command = new GetObjectCommand({
@@ -160,13 +178,89 @@ export class StorageService {
 		return `${prefix}/${organizationId}/${timestamp}_${random}_${safeFileName}`
 	}
 
-	// Legacy: dataset management
-	createDataset(name: string, description?: string): Promise<any> {
-		this.logger.log(`Creating dataset: ${name}`)
-		return Promise.resolve({ id: '1', name, description })
+	createClient(options?: S3ConnectionOptions): S3Client {
+		if (!options) {
+			if (!this.s3Client) {
+				throw new Error('S3 credentials not configured')
+			}
+			return this.s3Client
+		}
+
+		const clientConfig: S3ClientConfig = {
+			region: options.region || this.config.s3.region,
+			credentials: {
+				accessKeyId: options.accessKeyId,
+				secretAccessKey: options.secretAccessKey,
+			},
+		}
+
+		if (options.endpoint) {
+			clientConfig.endpoint = options.endpoint
+			clientConfig.forcePathStyle = options.usePathStyle ?? this.config.s3.usePathStyle
+		}
+
+		return new S3Client(clientConfig)
 	}
 
-	getDatasets(): Promise<any[]> {
-		return Promise.resolve([])
+	async ensureBucketExists(
+		bucket: string,
+		options?: S3ConnectionOptions,
+	): Promise<void> {
+		const client = this.createClient(options)
+		try {
+			await client.send(new HeadBucketCommand({ Bucket: bucket }))
+			return
+		} catch (error) {
+			this.logger.warn(`Bucket ${bucket} not found or inaccessible, attempting to create it`)
+		}
+
+		await client.send(new CreateBucketCommand({ Bucket: bucket }))
+	}
+
+	async uploadObject(
+		options: S3UploadOptions,
+		connection?: S3ConnectionOptions,
+	): Promise<string> {
+		const client = this.createClient(connection)
+		await this.ensureBucketExists(options.bucket, connection)
+
+		try {
+			const command = new PutObjectCommand({
+				Bucket: options.bucket,
+				Key: options.key,
+				Body: options.body,
+				ContentType: options.contentType || 'application/octet-stream',
+				Metadata: options.metadata,
+			})
+
+			await client.send(command)
+			this.logger.debug(`File uploaded to S3: s3://${options.bucket}/${options.key}`)
+			return options.key
+		} catch (error) {
+			this.logger.error(`Failed to upload file to S3: ${error}`)
+			throw error
+		}
+	}
+
+	async listObjects(
+		bucket: string,
+		options?: S3ConnectionOptions,
+		prefix?: string,
+		maxKeys: number = 100,
+	): Promise<S3ListedObject[]> {
+		const client = this.createClient(options)
+		const response = await client.send(
+			new ListObjectsV2Command({
+				Bucket: bucket,
+				Prefix: prefix || undefined,
+				MaxKeys: maxKeys,
+			}),
+		)
+		return (response.Contents ?? []).map(item => ({
+			key: item.Key ?? '',
+			size: item.Size ?? 0,
+			lastModified: item.LastModified ?? null,
+			etag: item.ETag ?? null,
+		}))
 	}
 }

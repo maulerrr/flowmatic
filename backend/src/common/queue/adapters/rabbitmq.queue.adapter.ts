@@ -38,7 +38,7 @@ export class RabbitMQQueueAdapter implements QueueClient, OnModuleInit, OnModule
 	constructor(private readonly config: AppConfigService) {}
 
 	async onModuleInit(): Promise<void> {
-		const url: string | undefined = this.config.queue.rabbitUrl || process.env.RABBITMQ_URL
+		const url: string | undefined = this.config.queue.rabbitUrl
 		if (!url) {
 			this.logger.warn('RabbitMQ URL not provided; adapter disabled')
 			return

@@ -1,0 +1,253 @@
+.pipeline-workbench {
+	position: relative;
+	min-height: calc(100vh - 4rem);
+	padding: 1.5rem;
+	background:
+		radial-gradient(circle at 12% 18%, rgba(52, 208, 195, 0.12), transparent 34%),
+		radial-gradient(circle at 88% 8%, rgba(124, 140, 255, 0.1), transparent 28%),
+		linear-gradient(180deg, rgba(8, 13, 22, 0.35), transparent 40%);
+}
+
+.pipeline-workbench::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+	background-size: 28px 28px;
+	mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 92%);
+	pointer-events: none;
+}
+
+.pipeline-workbench > * {
+	position: relative;
+	z-index: 1;
+}
+
+.pipeline-hero {
+	border: 1px solid rgba(52, 208, 195, 0.18);
+	border-radius: 1.25rem;
+	background: linear-gradient(145deg, rgba(15, 26, 40, 0.92), rgba(8, 13, 22, 0.88));
+	box-shadow: 0 28px 80px -60px rgba(0, 0, 0, 0.85);
+	padding: 1.5rem;
+}
+
+.pipeline-kicker {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.35rem 0.75rem;
+	border-radius: 999px;
+	border: 1px solid rgba(52, 208, 195, 0.25);
+	background: rgba(52, 208, 195, 0.08);
+	color: var(--primary);
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.pipeline-title {
+	font-size: clamp(1.75rem, 3vw, 2.35rem);
+	font-weight: 700;
+	line-height: 1.1;
+	letter-spacing: -0.03em;
+}
+
+.pipeline-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.25rem 0.65rem;
+	border-radius: 999px;
+	border: 1px solid rgba(148, 163, 184, 0.22);
+	background: rgba(15, 26, 40, 0.65);
+	font-family: 'IBM Plex Mono', ui-monospace, monospace;
+	font-size: 0.68rem;
+	color: rgba(234, 242, 255, 0.72);
+}
+
+.pipeline-chip--live {
+	border-color: rgba(54, 194, 138, 0.35);
+	background: rgba(54, 194, 138, 0.12);
+	color: #36c28a;
+}
+
+.pipeline-chip--warn {
+	border-color: rgba(242, 193, 79, 0.35);
+	background: rgba(242, 193, 79, 0.12);
+	color: #f2c14f;
+}
+
+.pipeline-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.65rem;
+	padding: 0.75rem;
+	border-radius: 1rem;
+	border: 1px solid rgba(148, 163, 184, 0.18);
+	background: rgba(11, 17, 28, 0.72);
+	backdrop-filter: blur(12px);
+}
+
+.pipeline-flow-rail {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.75rem;
+	position: relative;
+}
+
+@media (max-width: 1024px) {
+	.pipeline-flow-rail {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	.pipeline-flow-rail {
+		grid-template-columns: 1fr;
+	}
+}
+
+.pipeline-node {
+	position: relative;
+	border-radius: 1rem;
+	border: 1px solid rgba(148, 163, 184, 0.18);
+	background: linear-gradient(160deg, rgba(14, 23, 38, 0.98), rgba(8, 12, 20, 0.98));
+	padding: 1rem;
+	min-height: 8.5rem;
+	transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pipeline-node::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto 0;
+	height: 3px;
+	border-radius: 1rem 1rem 0 0;
+	background: linear-gradient(90deg, rgba(52, 208, 195, 0.85), rgba(124, 140, 255, 0.75));
+	opacity: 0.55;
+}
+
+.pipeline-node:hover {
+	transform: translateY(-3px);
+	border-color: rgba(52, 208, 195, 0.35);
+	box-shadow: 0 24px 60px -48px rgba(52, 208, 195, 0.45);
+}
+
+.pipeline-node__step {
+	font-size: 0.62rem;
+	font-weight: 700;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: rgba(234, 242, 255, 0.38);
+}
+
+.pipeline-node__title {
+	margin-top: 0.65rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--foreground);
+}
+
+.pipeline-node__meta {
+	margin-top: 0.35rem;
+	font-size: 0.75rem;
+	color: rgba(234, 242, 255, 0.55);
+}
+
+.pipeline-stage-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	padding: 0.35rem;
+	border-radius: 0.95rem;
+	border: 1px solid rgba(148, 163, 184, 0.16);
+	background: rgba(11, 17, 28, 0.65);
+}
+
+.pipeline-stage-tab {
+	padding: 0.55rem 0.95rem;
+	border-radius: 0.75rem;
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: rgba(234, 242, 255, 0.62);
+	transition: all 0.2s ease;
+}
+
+.pipeline-stage-tab--active {
+	background: linear-gradient(135deg, rgba(52, 208, 195, 0.22), rgba(124, 140, 255, 0.18));
+	color: var(--foreground);
+	border: 1px solid rgba(52, 208, 195, 0.35);
+}
+
+.pipeline-panel {
+	border-radius: 1.1rem;
+	border: 1px solid rgba(148, 163, 184, 0.16);
+	background: linear-gradient(180deg, rgba(15, 26, 40, 0.88), rgba(8, 13, 22, 0.92));
+	box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.06);
+}
+
+.pipeline-panel__header {
+	padding: 1rem 1.25rem;
+	border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.pipeline-panel__body {
+	padding: 1.25rem;
+}
+
+.pipeline-live-strip {
+	border-radius: 1rem;
+	border: 1px solid rgba(148, 163, 184, 0.14);
+	background: rgba(7, 11, 18, 0.92);
+	padding: 0.85rem 1rem;
+	font-family: 'IBM Plex Mono', ui-monospace, monospace;
+	font-size: 0.72rem;
+	max-height: 16rem;
+	overflow: auto;
+}
+
+.pipeline-empty {
+	border-radius: 1.25rem;
+	border: 1px dashed rgba(148, 163, 184, 0.28);
+	padding: 2.75rem 1.5rem;
+	text-align: center;
+	background: linear-gradient(145deg, rgba(15, 23, 42, 0.75), rgba(10, 16, 28, 0.9));
+}
+
+.pipeline-workflow {
+	border-radius: 1.25rem;
+	border: 1px solid rgba(148, 163, 184, 0.22);
+	background: linear-gradient(140deg, rgba(8, 12, 20, 0.98), rgba(10, 16, 28, 0.96));
+	box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08), 0 34px 90px -65px rgba(0, 0, 0, 0.8);
+}
+
+.pipeline-log {
+	border-radius: 1rem;
+	border: 1px solid rgba(148, 163, 184, 0.14);
+	background: linear-gradient(180deg, #070b12 0%, #0a111c 100%);
+	padding: 0.85rem 1rem;
+	height: 16rem;
+	overflow: auto;
+	font-family: 'IBM Plex Mono', ui-monospace, monospace;
+	font-size: 0.72rem;
+	color: rgba(148, 163, 184, 0.92);
+}
+
+@keyframes pipeline-rise {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.pipeline-animate-rise {
+	animation: pipeline-rise 0.55s ease both;
+}

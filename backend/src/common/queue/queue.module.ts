@@ -20,11 +20,11 @@ export class QueueModule {
 					provide: QUEUE_CLIENT,
 					inject: [AppConfigService, RabbitMQQueueAdapter, PgBossQueueAdapter],
 					useFactory: (
-						_config: AppConfigService,
+						config: AppConfigService,
 						rabbit: RabbitMQQueueAdapter,
 						pgboss: PgBossQueueAdapter,
 					): QueueClient => {
-						const driver = (process.env.QUEUE_DRIVER || QueueDriver.PG_BOSS) as QueueDriver
+						const driver = config.queue.driver as QueueDriver
 						return driver === QueueDriver.RABBITMQ ? rabbit : pgboss
 					},
 				},
