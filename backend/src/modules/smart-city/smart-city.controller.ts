@@ -19,14 +19,24 @@ import { UpdateExportTargetDto } from './dto/update-export-target.dto'
 import { UpdatePipelineGraphDto } from './dto/update-pipeline-graph.dto'
 import { UpdateSensorSourceDto } from './dto/update-sensor-source.dto'
 import { UpdateSmartCityPipelineDto } from './dto/update-smart-city-pipeline.dto'
+import { StartPipelineDto, UpdatePipelineRuntimeDto } from './dto/update-pipeline-runtime.dto'
 import { TrainModelDto } from './dto/train-model.dto'
+import { DeployHuggingFaceModelDto } from '../integrations/dto/deploy-huggingface-model.dto'
+import { PipelineCopilotChatDto } from './dto/pipeline-copilot-chat.dto'
 import { SmartCityService } from './smart-city.service'
+import { PipelineCopilotService } from './pipeline-copilot.service'
+import { PipelineInsightService } from './pipeline-insight.service'
+import { UpdatePipelineInsightConfigDto } from './dto/update-pipeline-insight-config.dto'
 
 @ApiTags('smart-city')
 @Controller('smart-city')
 @UseGuards(AuthGuard)
 export class SmartCityController {
-	constructor(private readonly smartCity: SmartCityService) {}
+	constructor(
+		private readonly smartCity: SmartCityService,
+		private readonly copilot: PipelineCopilotService,
+		private readonly insights: PipelineInsightService,
+	) {}
 
 	@Get('pipelines')
 	async listPipelines(@Req() req: AuthenticatedRequest) {
@@ -57,6 +67,34 @@ export class SmartCityController {
 		return { success: true, data: await this.smartCity.updatePipeline(req.authContext!, id, body) }
 	}
 
+	@Post('pipelines/:id/start')
+	async startPipeline(
+		@Req() req: AuthenticatedRequest,
+		@Param('id') id: string,
+		@Body() body: StartPipelineDto,
+	) {
+		return { success: true, data: await this.smartCity.startPipeline(req.authContext!, id, body) }
+	}
+
+	@Post('pipelines/:id/stop')
+	async stopPipeline(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+		return { success: true, data: await this.smartCity.stopPipeline(req.authContext!, id) }
+	}
+
+	@Post('pipelines/:id/resume')
+	async resumePipeline(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+		return { success: true, data: await this.smartCity.resumePipeline(req.authContext!, id) }
+	}
+
+	@Patch('pipelines/:id/runtime')
+	async updatePipelineRuntime(
+		@Req() req: AuthenticatedRequest,
+		@Param('id') id: string,
+		@Body() body: UpdatePipelineRuntimeDto,
+	) {
+		return { success: true, data: await this.smartCity.updatePipelineRuntime(req.authContext!, id, body) }
+	}
+
 	@Delete('pipelines/:id')
 	async deletePipeline(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
 		return { success: true, data: await this.smartCity.deletePipeline(req.authContext!, id) }
@@ -79,6 +117,78 @@ export class SmartCityController {
 	@Get('pipelines/:id/observability')
 	async getObservability(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
 		return { success: true, data: await this.smartCity.getObservability(req.authContext!, id) }
+	}
+
+	@Get('pipelines/:id/copilot/history')
+	async getCopilotHistory(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+		return { success: true, data: await this.copilot.getHistory(req.authContext!, id) }
+	}
+
+	@Delete('pipelines/:id/copilot/session')
+	async resetCopilotSession(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+		return { success: true, data: await this.copilot.resetSession(req.authContext!, id) }
+	}
+
+	@Get('pipelines/:id/copilot/context')
+	async getCopilotContext(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+		return { success: true, data: await this.copilot.getContext(req.authContext!, id) }
+	}
+
+	@Post('pipelines/:id/copilot/chat')
+	async copilotChat(
+		@Req() req: AuthenticatedRequest,
+		@Param('id') id: string,
+		@Body() body: PipelineCopilotChatDto,
+	) {
+		return { success: true, data: await this.copilot.chat(req.authContext!, id, body) }
+	}
+
+	@Post('pipelines/:id/copilot/visualize')
+	async copilotVisualize(
+		@Req() req: AuthenticatedRequest,
+		@Param('id') id: string,
+		@Body() body: PipelineCopilotChatDto,
+	) {
+		if (!body.chipId) {
+			return { success: false, message: 'chipId is required' }
+		}
+		return {
+			success: true,
+			data: await this.copilot.visualize(req.authContext!, id, body.chipId),
+		}
+	}
+
+	@Get('pipelines/:id/insights/config')
+	async getInsightConfig(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+		return { success: true, data: await this.insights.getConfig(req.authContext!, id) }
+	}
+
+	@Patch('pipelines/:id/insights/config')
+	async updateInsightConfig(
+		@Req() req: AuthenticatedRequest,
+		@Param('id') id: string,
+		@Body() body: UpdatePipelineInsightConfigDto,
+	) {
+		return { success: true, data: await this.insights.updateConfig(req.authContext!, id, body) }
+	}
+
+	@Get('pipelines/:id/insights/runs')
+	async listInsightRuns(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+		return { success: true, data: await this.insights.listRuns(req.authContext!, id) }
+	}
+
+	@Get('pipelines/:id/insights/runs/:runId')
+	async getInsightRun(
+		@Req() req: AuthenticatedRequest,
+		@Param('id') id: string,
+		@Param('runId') runId: string,
+	) {
+		return { success: true, data: await this.insights.getRun(req.authContext!, id, runId) }
+	}
+
+	@Post('pipelines/:id/insights/run')
+	async triggerInsightRun(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+		return { success: true, data: await this.insights.triggerRun(req.authContext!, id) }
 	}
 
 	@Get('pipelines/:id/n8n-workflow')
@@ -114,6 +224,24 @@ export class SmartCityController {
 		return { success: true, data: await this.smartCity.listExportRuns(req.authContext!, id) }
 	}
 
+	@Get('pipelines/:id/export-preview')
+	async previewExportStage(
+		@Req() req: AuthenticatedRequest,
+		@Param('id') id: string,
+		@Query('stage') stage: 'raw' | 'cleaned' | 'business' = 'cleaned',
+		@Query('limit') limit?: string,
+	) {
+		return {
+			success: true,
+			data: await this.smartCity.previewExportStage(
+				req.authContext!,
+				id,
+				stage,
+				limit ? Number(limit) : 10,
+			),
+		}
+	}
+
 	@Post('pipelines/:id/export-targets')
 	async createExportTarget(
 		@Req() req: AuthenticatedRequest,
@@ -135,6 +263,11 @@ export class SmartCityController {
 	@Post('export-targets/:id/run')
 	async runExportTarget(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
 		return { success: true, data: await this.smartCity.runExportTarget(req.authContext!, id) }
+	}
+
+	@Delete('export-targets/:id')
+	async deleteExportTarget(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+		return { success: true, data: await this.smartCity.deleteExportTarget(req.authContext!, id) }
 	}
 
 	@Post('pipelines/:id/federated/connect')
@@ -363,6 +496,22 @@ export class SmartCityController {
 		}
 	}
 
+	@Post('pipelines/:pipelineId/models/huggingface/deploy')
+	async deployHuggingFaceModel(
+		@Req() req: AuthenticatedRequest,
+		@Param('pipelineId') pipelineId: string,
+		@Body() body: DeployHuggingFaceModelDto,
+	) {
+		return {
+			success: true,
+			data: await this.smartCity.deployHuggingFaceModel(
+				req.authContext!,
+				pipelineId,
+				body.modelId,
+			),
+		}
+	}
+
 	@Post('pipelines/:pipelineId/test-processing')
 	async testProcessing(
 		@Req() req: AuthenticatedRequest,
@@ -372,6 +521,28 @@ export class SmartCityController {
 		return {
 			success: true,
 			data: await this.smartCity.testProcessing(req.authContext!, pipelineId, body.payload),
+		}
+	}
+
+	@Get('pipelines/:pipelineId/core-unit/routing-preview')
+	async previewCoreUnitRouting(
+		@Req() req: AuthenticatedRequest,
+		@Param('pipelineId') pipelineId: string,
+	) {
+		return {
+			success: true,
+			data: await this.smartCity.previewCoreUnitRouting(req.authContext!, pipelineId),
+		}
+	}
+
+	@Post('pipelines/:pipelineId/core-unit/auto-policy')
+	async buildCoreUnitAutoPolicy(
+		@Req() req: AuthenticatedRequest,
+		@Param('pipelineId') pipelineId: string,
+	) {
+		return {
+			success: true,
+			data: await this.smartCity.buildCoreUnitAutoPolicy(req.authContext!, pipelineId),
 		}
 	}
 }

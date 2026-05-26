@@ -1,0 +1,43 @@
+{
+  "version": "20260409085453",
+  "createdAt": "2026-04-09T08:54:53.975889+00:00",
+  "datasets": [
+    {
+      "name": "astana_synthetic",
+      "source": "C:\\Users\\BG\\Desktop\\flowmatic\\data\\astana_synthetic_data.csv",
+      "purpose": "local Astana traffic smart-city telemetry",
+      "rows": 30000
+    },
+    {
+      "name": "hf_ett_h1_energy",
+      "source": "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/ETTh1.csv",
+      "purpose": "energy load and transformer telemetry",
+      "rows": 17420
+    },
+    {
+      "name": "hf_weather",
+      "source": "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/weather.csv",
+      "purpose": "weather telemetry for smart-city context",
+      "rows": 50000
+    },
+    {
+      "name": "hf_traffic",
+      "source": "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/traffic.csv",
+      "purpose": "traffic sensor forecasting benchmark",
+      "rows": 17544
+    }
+  ],
+  "artifacts": [
+    "schema_inference_model.json",
+    "imputation_model.json",
+    "scaling_model.json",
+    "anomaly_detector_model.json",
+    "drift_detector_model.json",
+    "forecasting_model.json",
+    "classification_model.json",
+    "clustering_model.json",
+    "cleaning_policy_model.json",
+    "feature_engineering_model.json"
+  ],
+  "usage": "python models/sample_usage.py"
+}

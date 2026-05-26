@@ -1,0 +1,3621 @@
+{
+  "type": "imputation",
+  "rules": {
+    "astana_synthetic": {
+      "Event_ID": {
+        "strategy": "median",
+        "value": 15000.5
+      },
+      "Timestamp": {
+        "strategy": "mode",
+        "value": "2024-06-30 09:54:53"
+      },
+      "Vehicle_Type": {
+        "strategy": "mode",
+        "value": "Bus"
+      },
+      "Speed_kmh": {
+        "strategy": "median",
+        "value": 59.0
+      },
+      "Latitude": {
+        "strategy": "median",
+        "value": 51.14666
+      },
+      "Longitude": {
+        "strategy": "median",
+        "value": 71.4396665
+      },
+      "Event_Type": {
+        "strategy": "mode",
+        "value": "Normal"
+      },
+      "Severity": {
+        "strategy": "mode",
+        "value": "Low"
+      },
+      "Traffic_Density": {
+        "strategy": "median",
+        "value": 58.75
+      }
+    },
+    "hf_ett_h1_energy": {
+      "date": {
+        "strategy": "mode",
+        "value": "2016-07-01 00:00:00"
+      },
+      "HUFL": {
+        "strategy": "median",
+        "value": 8.77400016784668
+      },
+      "HULL": {
+        "strategy": "median",
+        "value": 2.2100000381469727
+      },
+      "MUFL": {
+        "strategy": "median",
+        "value": 5.96999979019165
+      },
+      "MULL": {
+        "strategy": "median",
+        "value": 0.9589999914169312
+      },
+      "LUFL": {
+        "strategy": "median",
+        "value": 2.8329999446868896
+      },
+      "LULL": {
+        "strategy": "median",
+        "value": 0.975000023841858
+      },
+      "OT": {
+        "strategy": "median",
+        "value": 11.395999908447266
+      }
+    },
+    "hf_weather": {
+      "date": {
+        "strategy": "mode",
+        "value": "2020-05-12 06:00:00"
+      },
+      "p (mbar)": {
+        "strategy": "median",
+        "value": 991.035
+      },
+      "T (degC)": {
+        "strategy": "median",
+        "value": 10.72
+      },
+      "Tpot (K)": {
+        "strategy": "median",
+        "value": 284.78
+      },
+      "Tdew (degC)": {
+        "strategy": "median",
+        "value": 5.59
+      },
+      "rh (%)": {
+        "strategy": "median",
+        "value": 74.2
+      },
+      "VPmax (mbar)": {
+        "strategy": "median",
+        "value": 12.9
+      },
+      "VPact (mbar)": {
+        "strategy": "median",
+        "value": 9.1
+      },
+      "VPdef (mbar)": {
+        "strategy": "median",
+        "value": 2.93
+      },
+      "sh (g/kg)": {
+        "strategy": "median",
+        "value": 5.74
+      },
+      "H2OC (mmol/mol)": {
+        "strategy": "median",
+        "value": 9.2
+      },
+      "rho (g/m**3)": {
+        "strategy": "median",
+        "value": 1208.68
+      },
+      "wv (m/s)": {
+        "strategy": "median",
+        "value": 1.74
+      },
+      "max. wv (m/s)": {
+        "strategy": "median",
+        "value": 2.96
+      },
+      "wd (deg)": {
+        "strategy": "median",
+        "value": 196.3
+      },
+      "rain (mm)": {
+        "strategy": "median",
+        "value": 0.0
+      },
+      "raining (s)": {
+        "strategy": "median",
+        "value": 0.0
+      },
+      "SWDR (W/m\ufffd)": {
+        "strategy": "median",
+        "value": 5.015
+      },
+      "PAR (\ufffdmol/m\ufffd/s)": {
+        "strategy": "median",
+        "value": 14.65
+      },
+      "max. PAR (\ufffdmol/m\ufffd/s)": {
+        "strategy": "median",
+        "value": 18.53
+      },
+      "Tlog (degC)": {
+        "strategy": "median",
+        "value": 20.96
+      },
+      "OT": {
+        "strategy": "median",
+        "value": 422.4
+      }
+    },
+    "hf_traffic": {
+      "date": {
+        "strategy": "mode",
+        "value": "2016-07-01 02:00:00"
+      },
+      "0": {
+        "strategy": "median",
+        "value": 0.0463
+      },
+      "1": {
+        "strategy": "median",
+        "value": 0.0368
+      },
+      "2": {
+        "strategy": "median",
+        "value": 0.081
+      },
+      "3": {
+        "strategy": "median",
+        "value": 0.06
+      },
+      "4": {
+        "strategy": "median",
+        "value": 0.019
+      },
+      "5": {
+        "strategy": "median",
+        "value": 0.0418
+      },
+      "6": {
+        "strategy": "median",
+        "value": 0.0482
+      },
+      "7": {
+        "strategy": "median",
+        "value": 0.055
+      },
+      "8": {
+        "strategy": "median",
+        "value": 0.0595
+      },
+      "9": {
+        "strategy": "median",
+        "value": 0.0555
+      },
+      "10": {
+        "strategy": "median",
+        "value": 0.0409
+      },
+      "11": {
+        "strategy": "median",
+        "value": 0.0482
+      },
+      "12": {
+        "strategy": "median",
+        "value": 0.0623
+      },
+      "13": {
+        "strategy": "median",
+        "value": 0.0382
+      },
+      "14": {
+        "strategy": "median",
+        "value": 0.0922
+      },
+      "15": {
+        "strategy": "median",
+        "value": 0.0892
+      },
+      "16": {
+        "strategy": "median",
+        "value": 0.0421
+      },
+      "17": {
+        "strategy": "median",
+        "value": 0.0622
+      },
+      "18": {
+        "strategy": "median",
+        "value": 0.0416
+      },
+      "19": {
+        "strategy": "median",
+        "value": 0.0451
+      },
+      "20": {
+        "strategy": "median",
+        "value": 0.0493
+      },
+      "21": {
+        "strategy": "median",
+        "value": 0.0593
+      },
+      "22": {
+        "strategy": "median",
+        "value": 0.0375
+      },
+      "23": {
+        "strategy": "median",
+        "value": 0.0813
+      },
+      "24": {
+        "strategy": "median",
+        "value": 0.0361
+      },
+      "25": {
+        "strategy": "median",
+        "value": 0.07235
+      },
+      "26": {
+        "strategy": "median",
+        "value": 0.0551
+      },
+      "27": {
+        "strategy": "median",
+        "value": 0.0516
+      },
+      "28": {
+        "strategy": "median",
+        "value": 0.0797
+      },
+      "29": {
+        "strategy": "median",
+        "value": 0.04995
+      },
+      "30": {
+        "strategy": "median",
+        "value": 0.05615
+      },
+      "31": {
+        "strategy": "median",
+        "value": 0.0601
+      },
+      "32": {
+        "strategy": "median",
+        "value": 0.0623
+      },
+      "33": {
+        "strategy": "median",
+        "value": 0.0681
+      },
+      "34": {
+        "strategy": "median",
+        "value": 0.0342
+      },
+      "35": {
+        "strategy": "median",
+        "value": 0.0569
+      },
+      "36": {
+        "strategy": "median",
+        "value": 0.03
+      },
+      "37": {
+        "strategy": "median",
+        "value": 0.0789
+      },
+      "38": {
+        "strategy": "median",
+        "value": 0.05185
+      },
+      "39": {
+        "strategy": "median",
+        "value": 0.0493
+      },
+      "40": {
+        "strategy": "median",
+        "value": 0.0393
+      },
+      "41": {
+        "strategy": "median",
+        "value": 0.033
+      },
+      "42": {
+        "strategy": "median",
+        "value": 0.03955
+      },
+      "43": {
+        "strategy": "median",
+        "value": 0.0676
+      },
+      "44": {
+        "strategy": "median",
+        "value": 0.0421
+      },
+      "45": {
+        "strategy": "median",
+        "value": 0.0408
+      },
+      "46": {
+        "strategy": "median",
+        "value": 0.0522
+      },
+      "47": {
+        "strategy": "median",
+        "value": 0.0483
+      },
+      "48": {
+        "strategy": "median",
+        "value": 0.0679
+      },
+      "49": {
+        "strategy": "median",
+        "value": 0.071
+      },
+      "50": {
+        "strategy": "median",
+        "value": 0.0456
+      },
+      "51": {
+        "strategy": "median",
+        "value": 0.0414
+      },
+      "52": {
+        "strategy": "median",
+        "value": 0.065
+      },
+      "53": {
+        "strategy": "median",
+        "value": 0.0453
+      },
+      "54": {
+        "strategy": "median",
+        "value": 0.0558
+      },
+      "55": {
+        "strategy": "median",
+        "value": 0.10314999999999999
+      },
+      "56": {
+        "strategy": "median",
+        "value": 0.0653
+      },
+      "57": {
+        "strategy": "median",
+        "value": 0.0464
+      },
+      "58": {
+        "strategy": "median",
+        "value": 0.0608
+      },
+      "59": {
+        "strategy": "median",
+        "value": 0.05625
+      },
+      "60": {
+        "strategy": "median",
+        "value": 0.0677
+      },
+      "61": {
+        "strategy": "median",
+        "value": 0.052
+      },
+      "62": {
+        "strategy": "median",
+        "value": 0.0438
+      },
+      "63": {
+        "strategy": "median",
+        "value": 0.0624
+      },
+      "64": {
+        "strategy": "median",
+        "value": 0.0547
+      },
+      "65": {
+        "strategy": "median",
+        "value": 0.0278
+      },
+      "66": {
+        "strategy": "median",
+        "value": 0.0566
+      },
+      "67": {
+        "strategy": "median",
+        "value": 0.0445
+      },
+      "68": {
+        "strategy": "median",
+        "value": 0.0493
+      },
+      "69": {
+        "strategy": "median",
+        "value": 0.0427
+      },
+      "70": {
+        "strategy": "median",
+        "value": 0.0498
+      },
+      "71": {
+        "strategy": "median",
+        "value": 0.0565
+      },
+      "72": {
+        "strategy": "median",
+        "value": 0.03
+      },
+      "73": {
+        "strategy": "median",
+        "value": 0.03895
+      },
+      "74": {
+        "strategy": "median",
+        "value": 0.0145
+      },
+      "75": {
+        "strategy": "median",
+        "value": 0.0481
+      },
+      "76": {
+        "strategy": "median",
+        "value": 0.0538
+      },
+      "77": {
+        "strategy": "median",
+        "value": 0.0692
+      },
+      "78": {
+        "strategy": "median",
+        "value": 0.0251
+      },
+      "79": {
+        "strategy": "median",
+        "value": 0.098
+      },
+      "80": {
+        "strategy": "median",
+        "value": 0.0344
+      },
+      "81": {
+        "strategy": "median",
+        "value": 0.0482
+      },
+      "82": {
+        "strategy": "median",
+        "value": 0.0642
+      },
+      "83": {
+        "strategy": "median",
+        "value": 0.0313
+      },
+      "84": {
+        "strategy": "median",
+        "value": 0.042749999999999996
+      },
+      "85": {
+        "strategy": "median",
+        "value": 0.0466
+      },
+      "86": {
+        "strategy": "median",
+        "value": 0.0602
+      },
+      "87": {
+        "strategy": "median",
+        "value": 0.0712
+      },
+      "88": {
+        "strategy": "median",
+        "value": 0.0537
+      },
+      "89": {
+        "strategy": "median",
+        "value": 0.0502
+      },
+      "90": {
+        "strategy": "median",
+        "value": 0.0695
+      },
+      "91": {
+        "strategy": "median",
+        "value": 0.0341
+      },
+      "92": {
+        "strategy": "median",
+        "value": 0.0391
+      },
+      "93": {
+        "strategy": "median",
+        "value": 0.1164
+      },
+      "94": {
+        "strategy": "median",
+        "value": 0.0169
+      },
+      "95": {
+        "strategy": "median",
+        "value": 0.0477
+      },
+      "96": {
+        "strategy": "median",
+        "value": 0.0409
+      },
+      "97": {
+        "strategy": "median",
+        "value": 0.0289
+      },
+      "98": {
+        "strategy": "median",
+        "value": 0.0513
+      },
+      "99": {
+        "strategy": "median",
+        "value": 0.0497
+      },
+      "100": {
+        "strategy": "median",
+        "value": 0.0322
+      },
+      "101": {
+        "strategy": "median",
+        "value": 0.0379
+      },
+      "102": {
+        "strategy": "median",
+        "value": 0.0452
+      },
+      "103": {
+        "strategy": "median",
+        "value": 0.0475
+      },
+      "104": {
+        "strategy": "median",
+        "value": 0.0559
+      },
+      "105": {
+        "strategy": "median",
+        "value": 0.0492
+      },
+      "106": {
+        "strategy": "median",
+        "value": 0.04915
+      },
+      "107": {
+        "strategy": "median",
+        "value": 0.0488
+      },
+      "108": {
+        "strategy": "median",
+        "value": 0.06445000000000001
+      },
+      "109": {
+        "strategy": "median",
+        "value": 0.0632
+      },
+      "110": {
+        "strategy": "median",
+        "value": 0.0577
+      },
+      "111": {
+        "strategy": "median",
+        "value": 0.0286
+      },
+      "112": {
+        "strategy": "median",
+        "value": 0.0508
+      },
+      "113": {
+        "strategy": "median",
+        "value": 0.0315
+      },
+      "114": {
+        "strategy": "median",
+        "value": 0.0282
+      },
+      "115": {
+        "strategy": "median",
+        "value": 0.0424
+      },
+      "116": {
+        "strategy": "median",
+        "value": 0.0554
+      },
+      "117": {
+        "strategy": "median",
+        "value": 0.0323
+      },
+      "118": {
+        "strategy": "median",
+        "value": 0.0435
+      },
+      "119": {
+        "strategy": "median",
+        "value": 0.07014999999999999
+      },
+      "120": {
+        "strategy": "median",
+        "value": 0.0374
+      },
+      "121": {
+        "strategy": "median",
+        "value": 0.0629
+      },
+      "122": {
+        "strategy": "median",
+        "value": 0.0651
+      },
+      "123": {
+        "strategy": "median",
+        "value": 0.0781
+      },
+      "124": {
+        "strategy": "median",
+        "value": 0.0762
+      },
+      "125": {
+        "strategy": "median",
+        "value": 0.0754
+      },
+      "126": {
+        "strategy": "median",
+        "value": 0.0361
+      },
+      "127": {
+        "strategy": "median",
+        "value": 0.0372
+      },
+      "128": {
+        "strategy": "median",
+        "value": 0.0342
+      },
+      "129": {
+        "strategy": "median",
+        "value": 0.0397
+      },
+      "130": {
+        "strategy": "median",
+        "value": 0.0749
+      },
+      "131": {
+        "strategy": "median",
+        "value": 0.038
+      },
+      "132": {
+        "strategy": "median",
+        "value": 0.0832
+      },
+      "133": {
+        "strategy": "median",
+        "value": 0.0296
+      },
+      "134": {
+        "strategy": "median",
+        "value": 0.0345
+      },
+      "135": {
+        "strategy": "median",
+        "value": 0.0864
+      },
+      "136": {
+        "strategy": "median",
+        "value": 0.0453
+      },
+      "137": {
+        "strategy": "median",
+        "value": 0.0506
+      },
+      "138": {
+        "strategy": "median",
+        "value": 0.0907
+      },
+      "139": {
+        "strategy": "median",
+        "value": 0.0497
+      },
+      "140": {
+        "strategy": "median",
+        "value": 0.0419
+      },
+      "141": {
+        "strategy": "median",
+        "value": 0.0426
+      },
+      "142": {
+        "strategy": "median",
+        "value": 0.0458
+      },
+      "143": {
+        "strategy": "median",
+        "value": 0.0536
+      },
+      "144": {
+        "strategy": "median",
+        "value": 0.0565
+      },
+      "145": {
+        "strategy": "median",
+        "value": 0.0681
+      },
+      "146": {
+        "strategy": "median",
+        "value": 0.045950000000000005
+      },
+      "147": {
+        "strategy": "median",
+        "value": 0.0515
+      },
+      "148": {
+        "strategy": "median",
+        "value": 0.0516
+      },
+      "149": {
+        "strategy": "median",
+        "value": 0.0575
+      },
+      "150": {
+        "strategy": "median",
+        "value": 0.0731
+      },
+      "151": {
+        "strategy": "median",
+        "value": 0.0615
+      },
+      "152": {
+        "strategy": "median",
+        "value": 0.0469
+      },
+      "153": {
+        "strategy": "median",
+        "value": 0.0695
+      },
+      "154": {
+        "strategy": "median",
+        "value": 0.0241
+      },
+      "155": {
+        "strategy": "median",
+        "value": 0.0507
+      },
+      "156": {
+        "strategy": "median",
+        "value": 0.0244
+      },
+      "157": {
+        "strategy": "median",
+        "value": 0.1046
+      },
+      "158": {
+        "strategy": "median",
+        "value": 0.0488
+      },
+      "159": {
+        "strategy": "median",
+        "value": 0.0434
+      },
+      "160": {
+        "strategy": "median",
+        "value": 0.0588
+      },
+      "161": {
+        "strategy": "median",
+        "value": 0.0641
+      },
+      "162": {
+        "strategy": "median",
+        "value": 0.06
+      },
+      "163": {
+        "strategy": "median",
+        "value": 0.0776
+      },
+      "164": {
+        "strategy": "median",
+        "value": 0.0743
+      },
+      "165": {
+        "strategy": "median",
+        "value": 0.05055
+      },
+      "166": {
+        "strategy": "median",
+        "value": 0.0398
+      },
+      "167": {
+        "strategy": "median",
+        "value": 0.0681
+      },
+      "168": {
+        "strategy": "median",
+        "value": 0.0674
+      },
+      "169": {
+        "strategy": "median",
+        "value": 0.0521
+      },
+      "170": {
+        "strategy": "median",
+        "value": 0.0531
+      },
+      "171": {
+        "strategy": "median",
+        "value": 0.0672
+      },
+      "172": {
+        "strategy": "median",
+        "value": 0.0399
+      },
+      "173": {
+        "strategy": "median",
+        "value": 0.0549
+      },
+      "174": {
+        "strategy": "median",
+        "value": 0.02275
+      },
+      "175": {
+        "strategy": "median",
+        "value": 0.04235
+      },
+      "176": {
+        "strategy": "median",
+        "value": 0.0316
+      },
+      "177": {
+        "strategy": "median",
+        "value": 0.0729
+      },
+      "178": {
+        "strategy": "median",
+        "value": 0.05185
+      },
+      "179": {
+        "strategy": "median",
+        "value": 0.0495
+      },
+      "180": {
+        "strategy": "median",
+        "value": 0.0588
+      },
+      "181": {
+        "strategy": "median",
+        "value": 0.023350000000000003
+      },
+      "182": {
+        "strategy": "median",
+        "value": 0.0521
+      },
+      "183": {
+        "strategy": "median",
+        "value": 0.0456
+      },
+      "184": {
+        "strategy": "median",
+        "value": 0.0495
+      },
+      "185": {
+        "strategy": "median",
+        "value": 0.0591
+      },
+      "186": {
+        "strategy": "median",
+        "value": 0.0624
+      },
+      "187": {
+        "strategy": "median",
+        "value": 0.0387
+      },
+      "188": {
+        "strategy": "median",
+        "value": 0.04615
+      },
+      "189": {
+        "strategy": "median",
+        "value": 0.0511
+      },
+      "190": {
+        "strategy": "median",
+        "value": 0.0568
+      },
+      "191": {
+        "strategy": "median",
+        "value": 0.0684
+      },
+      "192": {
+        "strategy": "median",
+        "value": 0.0434
+      },
+      "193": {
+        "strategy": "median",
+        "value": 0.0346
+      },
+      "194": {
+        "strategy": "median",
+        "value": 0.0668
+      },
+      "195": {
+        "strategy": "median",
+        "value": 0.0477
+      },
+      "196": {
+        "strategy": "median",
+        "value": 0.0732
+      },
+      "197": {
+        "strategy": "median",
+        "value": 0.0208
+      },
+      "198": {
+        "strategy": "median",
+        "value": 0.0502
+      },
+      "199": {
+        "strategy": "median",
+        "value": 0.053
+      },
+      "200": {
+        "strategy": "median",
+        "value": 0.04145
+      },
+      "201": {
+        "strategy": "median",
+        "value": 0.0479
+      },
+      "202": {
+        "strategy": "median",
+        "value": 0.0731
+      },
+      "203": {
+        "strategy": "median",
+        "value": 0.0628
+      },
+      "204": {
+        "strategy": "median",
+        "value": 0.0389
+      },
+      "205": {
+        "strategy": "median",
+        "value": 0.0395
+      },
+      "206": {
+        "strategy": "median",
+        "value": 0.0428
+      },
+      "207": {
+        "strategy": "median",
+        "value": 0.0566
+      },
+      "208": {
+        "strategy": "median",
+        "value": 0.0572
+      },
+      "209": {
+        "strategy": "median",
+        "value": 0.0666
+      },
+      "210": {
+        "strategy": "median",
+        "value": 0.05305
+      },
+      "211": {
+        "strategy": "median",
+        "value": 0.0633
+      },
+      "212": {
+        "strategy": "median",
+        "value": 0.08274999999999999
+      },
+      "213": {
+        "strategy": "median",
+        "value": 0.0451
+      },
+      "214": {
+        "strategy": "median",
+        "value": 0.0482
+      },
+      "215": {
+        "strategy": "median",
+        "value": 0.0246
+      },
+      "216": {
+        "strategy": "median",
+        "value": 0.0621
+      },
+      "217": {
+        "strategy": "median",
+        "value": 0.0689
+      },
+      "218": {
+        "strategy": "median",
+        "value": 0.045
+      },
+      "219": {
+        "strategy": "median",
+        "value": 0.12415000000000001
+      },
+      "220": {
+        "strategy": "median",
+        "value": 0.0392
+      },
+      "221": {
+        "strategy": "median",
+        "value": 0.0708
+      },
+      "222": {
+        "strategy": "median",
+        "value": 0.0642
+      },
+      "223": {
+        "strategy": "median",
+        "value": 0.0459
+      },
+      "224": {
+        "strategy": "median",
+        "value": 0.0395
+      },
+      "225": {
+        "strategy": "median",
+        "value": 0.04665
+      },
+      "226": {
+        "strategy": "median",
+        "value": 0.0432
+      },
+      "227": {
+        "strategy": "median",
+        "value": 0.0511
+      },
+      "228": {
+        "strategy": "median",
+        "value": 0.034
+      },
+      "229": {
+        "strategy": "median",
+        "value": 0.0983
+      },
+      "230": {
+        "strategy": "median",
+        "value": 0.0534
+      },
+      "231": {
+        "strategy": "median",
+        "value": 0.073
+      },
+      "232": {
+        "strategy": "median",
+        "value": 0.0446
+      },
+      "233": {
+        "strategy": "median",
+        "value": 0.0337
+      },
+      "234": {
+        "strategy": "median",
+        "value": 0.0982
+      },
+      "235": {
+        "strategy": "median",
+        "value": 0.0583
+      },
+      "236": {
+        "strategy": "median",
+        "value": 0.0398
+      },
+      "237": {
+        "strategy": "median",
+        "value": 0.0411
+      },
+      "238": {
+        "strategy": "median",
+        "value": 0.0373
+      },
+      "239": {
+        "strategy": "median",
+        "value": 0.0603
+      },
+      "240": {
+        "strategy": "median",
+        "value": 0.0739
+      },
+      "241": {
+        "strategy": "median",
+        "value": 0.0435
+      },
+      "242": {
+        "strategy": "median",
+        "value": 0.066
+      },
+      "243": {
+        "strategy": "median",
+        "value": 0.062
+      },
+      "244": {
+        "strategy": "median",
+        "value": 0.0403
+      },
+      "245": {
+        "strategy": "median",
+        "value": 0.0509
+      },
+      "246": {
+        "strategy": "median",
+        "value": 0.0328
+      },
+      "247": {
+        "strategy": "median",
+        "value": 0.0809
+      },
+      "248": {
+        "strategy": "median",
+        "value": 0.0482
+      },
+      "249": {
+        "strategy": "median",
+        "value": 0.0718
+      },
+      "250": {
+        "strategy": "median",
+        "value": 0.0595
+      },
+      "251": {
+        "strategy": "median",
+        "value": 0.066
+      },
+      "252": {
+        "strategy": "median",
+        "value": 0.0603
+      },
+      "253": {
+        "strategy": "median",
+        "value": 0.0627
+      },
+      "254": {
+        "strategy": "median",
+        "value": 0.0481
+      },
+      "255": {
+        "strategy": "median",
+        "value": 0.0546
+      },
+      "256": {
+        "strategy": "median",
+        "value": 0.0568
+      },
+      "257": {
+        "strategy": "median",
+        "value": 0.0537
+      },
+      "258": {
+        "strategy": "median",
+        "value": 0.0449
+      },
+      "259": {
+        "strategy": "median",
+        "value": 0.0504
+      },
+      "260": {
+        "strategy": "median",
+        "value": 0.0573
+      },
+      "261": {
+        "strategy": "median",
+        "value": 0.0438
+      },
+      "262": {
+        "strategy": "median",
+        "value": 0.0469
+      },
+      "263": {
+        "strategy": "median",
+        "value": 0.0301
+      },
+      "264": {
+        "strategy": "median",
+        "value": 0.06795000000000001
+      },
+      "265": {
+        "strategy": "median",
+        "value": 0.035
+      },
+      "266": {
+        "strategy": "median",
+        "value": 0.0744
+      },
+      "267": {
+        "strategy": "median",
+        "value": 0.0586
+      },
+      "268": {
+        "strategy": "median",
+        "value": 0.0485
+      },
+      "269": {
+        "strategy": "median",
+        "value": 0.045950000000000005
+      },
+      "270": {
+        "strategy": "median",
+        "value": 0.0762
+      },
+      "271": {
+        "strategy": "median",
+        "value": 0.0807
+      },
+      "272": {
+        "strategy": "median",
+        "value": 0.0367
+      },
+      "273": {
+        "strategy": "median",
+        "value": 0.0757
+      },
+      "274": {
+        "strategy": "median",
+        "value": 0.0448
+      },
+      "275": {
+        "strategy": "median",
+        "value": 0.0482
+      },
+      "276": {
+        "strategy": "median",
+        "value": 0.0471
+      },
+      "277": {
+        "strategy": "median",
+        "value": 0.0396
+      },
+      "278": {
+        "strategy": "median",
+        "value": 0.0667
+      },
+      "279": {
+        "strategy": "median",
+        "value": 0.0668
+      },
+      "280": {
+        "strategy": "median",
+        "value": 0.0495
+      },
+      "281": {
+        "strategy": "median",
+        "value": 0.0447
+      },
+      "282": {
+        "strategy": "median",
+        "value": 0.0184
+      },
+      "283": {
+        "strategy": "median",
+        "value": 0.0572
+      },
+      "284": {
+        "strategy": "median",
+        "value": 0.0483
+      },
+      "285": {
+        "strategy": "median",
+        "value": 0.074
+      },
+      "286": {
+        "strategy": "median",
+        "value": 0.0685
+      },
+      "287": {
+        "strategy": "median",
+        "value": 0.0654
+      },
+      "288": {
+        "strategy": "median",
+        "value": 0.0426
+      },
+      "289": {
+        "strategy": "median",
+        "value": 0.10655
+      },
+      "290": {
+        "strategy": "median",
+        "value": 0.078
+      },
+      "291": {
+        "strategy": "median",
+        "value": 0.0352
+      },
+      "292": {
+        "strategy": "median",
+        "value": 0.04765
+      },
+      "293": {
+        "strategy": "median",
+        "value": 0.0842
+      },
+      "294": {
+        "strategy": "median",
+        "value": 0.053
+      },
+      "295": {
+        "strategy": "median",
+        "value": 0.05405
+      },
+      "296": {
+        "strategy": "median",
+        "value": 0.0547
+      },
+      "297": {
+        "strategy": "median",
+        "value": 0.051
+      },
+      "298": {
+        "strategy": "median",
+        "value": 0.0506
+      },
+      "299": {
+        "strategy": "median",
+        "value": 0.1103
+      },
+      "300": {
+        "strategy": "median",
+        "value": 0.0493
+      },
+      "301": {
+        "strategy": "median",
+        "value": 0.0428
+      },
+      "302": {
+        "strategy": "median",
+        "value": 0.0279
+      },
+      "303": {
+        "strategy": "median",
+        "value": 0.0719
+      },
+      "304": {
+        "strategy": "median",
+        "value": 0.0498
+      },
+      "305": {
+        "strategy": "median",
+        "value": 0.063
+      },
+      "306": {
+        "strategy": "median",
+        "value": 0.0274
+      },
+      "307": {
+        "strategy": "median",
+        "value": 0.0409
+      },
+      "308": {
+        "strategy": "median",
+        "value": 0.0597
+      },
+      "309": {
+        "strategy": "median",
+        "value": 0.0463
+      },
+      "310": {
+        "strategy": "median",
+        "value": 0.0664
+      },
+      "311": {
+        "strategy": "median",
+        "value": 0.0571
+      },
+      "312": {
+        "strategy": "median",
+        "value": 0.0916
+      },
+      "313": {
+        "strategy": "median",
+        "value": 0.0642
+      },
+      "314": {
+        "strategy": "median",
+        "value": 0.0527
+      },
+      "315": {
+        "strategy": "median",
+        "value": 0.0425
+      },
+      "316": {
+        "strategy": "median",
+        "value": 0.0901
+      },
+      "317": {
+        "strategy": "median",
+        "value": 0.0771
+      },
+      "318": {
+        "strategy": "median",
+        "value": 0.0976
+      },
+      "319": {
+        "strategy": "median",
+        "value": 0.04795
+      },
+      "320": {
+        "strategy": "median",
+        "value": 0.0756
+      },
+      "321": {
+        "strategy": "median",
+        "value": 0.038849999999999996
+      },
+      "322": {
+        "strategy": "median",
+        "value": 0.0488
+      },
+      "323": {
+        "strategy": "median",
+        "value": 0.0248
+      },
+      "324": {
+        "strategy": "median",
+        "value": 0.0689
+      },
+      "325": {
+        "strategy": "median",
+        "value": 0.0791
+      },
+      "326": {
+        "strategy": "median",
+        "value": 0.1318
+      },
+      "327": {
+        "strategy": "median",
+        "value": 0.061
+      },
+      "328": {
+        "strategy": "median",
+        "value": 0.0452
+      },
+      "329": {
+        "strategy": "median",
+        "value": 0.0917
+      },
+      "330": {
+        "strategy": "median",
+        "value": 0.06465
+      },
+      "331": {
+        "strategy": "median",
+        "value": 0.0408
+      },
+      "332": {
+        "strategy": "median",
+        "value": 0.0383
+      },
+      "333": {
+        "strategy": "median",
+        "value": 0.0436
+      },
+      "334": {
+        "strategy": "median",
+        "value": 0.0875
+      },
+      "335": {
+        "strategy": "median",
+        "value": 0.0455
+      },
+      "336": {
+        "strategy": "median",
+        "value": 0.0465
+      },
+      "337": {
+        "strategy": "median",
+        "value": 0.0501
+      },
+      "338": {
+        "strategy": "median",
+        "value": 0.0741
+      },
+      "339": {
+        "strategy": "median",
+        "value": 0.0465
+      },
+      "340": {
+        "strategy": "median",
+        "value": 0.0499
+      },
+      "341": {
+        "strategy": "median",
+        "value": 0.0407
+      },
+      "342": {
+        "strategy": "median",
+        "value": 0.0529
+      },
+      "343": {
+        "strategy": "median",
+        "value": 0.0629
+      },
+      "344": {
+        "strategy": "median",
+        "value": 0.0638
+      },
+      "345": {
+        "strategy": "median",
+        "value": 0.0306
+      },
+      "346": {
+        "strategy": "median",
+        "value": 0.071
+      },
+      "347": {
+        "strategy": "median",
+        "value": 0.0424
+      },
+      "348": {
+        "strategy": "median",
+        "value": 0.066
+      },
+      "349": {
+        "strategy": "median",
+        "value": 0.0319
+      },
+      "350": {
+        "strategy": "median",
+        "value": 0.07064999999999999
+      },
+      "351": {
+        "strategy": "median",
+        "value": 0.0269
+      },
+      "352": {
+        "strategy": "median",
+        "value": 0.064
+      },
+      "353": {
+        "strategy": "median",
+        "value": 0.0293
+      },
+      "354": {
+        "strategy": "median",
+        "value": 0.0263
+      },
+      "355": {
+        "strategy": "median",
+        "value": 0.0524
+      },
+      "356": {
+        "strategy": "median",
+        "value": 0.0588
+      },
+      "357": {
+        "strategy": "median",
+        "value": 0.0549
+      },
+      "358": {
+        "strategy": "median",
+        "value": 0.0444
+      },
+      "359": {
+        "strategy": "median",
+        "value": 0.0572
+      },
+      "360": {
+        "strategy": "median",
+        "value": 0.0799
+      },
+      "361": {
+        "strategy": "median",
+        "value": 0.0381
+      },
+      "362": {
+        "strategy": "median",
+        "value": 0.0326
+      },
+      "363": {
+        "strategy": "median",
+        "value": 0.0545
+      },
+      "364": {
+        "strategy": "median",
+        "value": 0.0753
+      },
+      "365": {
+        "strategy": "median",
+        "value": 0.0449
+      },
+      "366": {
+        "strategy": "median",
+        "value": 0.0922
+      },
+      "367": {
+        "strategy": "median",
+        "value": 0.0489
+      },
+      "368": {
+        "strategy": "median",
+        "value": 0.0208
+      },
+      "369": {
+        "strategy": "median",
+        "value": 0.0292
+      },
+      "370": {
+        "strategy": "median",
+        "value": 0.0417
+      },
+      "371": {
+        "strategy": "median",
+        "value": 0.0461
+      },
+      "372": {
+        "strategy": "median",
+        "value": 0.0438
+      },
+      "373": {
+        "strategy": "median",
+        "value": 0.027
+      },
+      "374": {
+        "strategy": "median",
+        "value": 0.0446
+      },
+      "375": {
+        "strategy": "median",
+        "value": 0.0441
+      },
+      "376": {
+        "strategy": "median",
+        "value": 0.0663
+      },
+      "377": {
+        "strategy": "median",
+        "value": 0.0682
+      },
+      "378": {
+        "strategy": "median",
+        "value": 0.0499
+      },
+      "379": {
+        "strategy": "median",
+        "value": 0.042
+      },
+      "380": {
+        "strategy": "median",
+        "value": 0.0589
+      },
+      "381": {
+        "strategy": "median",
+        "value": 0.0674
+      },
+      "382": {
+        "strategy": "median",
+        "value": 0.067
+      },
+      "383": {
+        "strategy": "median",
+        "value": 0.0495
+      },
+      "384": {
+        "strategy": "median",
+        "value": 0.0246
+      },
+      "385": {
+        "strategy": "median",
+        "value": 0.0591
+      },
+      "386": {
+        "strategy": "median",
+        "value": 0.0474
+      },
+      "387": {
+        "strategy": "median",
+        "value": 0.0571
+      },
+      "388": {
+        "strategy": "median",
+        "value": 0.0363
+      },
+      "389": {
+        "strategy": "median",
+        "value": 0.0163
+      },
+      "390": {
+        "strategy": "median",
+        "value": 0.0894
+      },
+      "391": {
+        "strategy": "median",
+        "value": 0.0432
+      },
+      "392": {
+        "strategy": "median",
+        "value": 0.0503
+      },
+      "393": {
+        "strategy": "median",
+        "value": 0.0277
+      },
+      "394": {
+        "strategy": "median",
+        "value": 0.0358
+      },
+      "395": {
+        "strategy": "median",
+        "value": 0.036
+      },
+      "396": {
+        "strategy": "median",
+        "value": 0.0545
+      },
+      "397": {
+        "strategy": "median",
+        "value": 0.0617
+      },
+      "398": {
+        "strategy": "median",
+        "value": 0.0531
+      },
+      "399": {
+        "strategy": "median",
+        "value": 0.0774
+      },
+      "400": {
+        "strategy": "median",
+        "value": 0.04235
+      },
+      "401": {
+        "strategy": "median",
+        "value": 0.0779
+      },
+      "402": {
+        "strategy": "median",
+        "value": 0.0444
+      },
+      "403": {
+        "strategy": "median",
+        "value": 0.0408
+      },
+      "404": {
+        "strategy": "median",
+        "value": 0.0603
+      },
+      "405": {
+        "strategy": "median",
+        "value": 0.0432
+      },
+      "406": {
+        "strategy": "median",
+        "value": 0.0947
+      },
+      "407": {
+        "strategy": "median",
+        "value": 0.0232
+      },
+      "408": {
+        "strategy": "median",
+        "value": 0.0363
+      },
+      "409": {
+        "strategy": "median",
+        "value": 0.0565
+      },
+      "410": {
+        "strategy": "median",
+        "value": 0.0501
+      },
+      "411": {
+        "strategy": "median",
+        "value": 0.049049999999999996
+      },
+      "412": {
+        "strategy": "median",
+        "value": 0.0674
+      },
+      "413": {
+        "strategy": "median",
+        "value": 0.0661
+      },
+      "414": {
+        "strategy": "median",
+        "value": 0.0557
+      },
+      "415": {
+        "strategy": "median",
+        "value": 0.0566
+      },
+      "416": {
+        "strategy": "median",
+        "value": 0.0549
+      },
+      "417": {
+        "strategy": "median",
+        "value": 0.0284
+      },
+      "418": {
+        "strategy": "median",
+        "value": 0.0506
+      },
+      "419": {
+        "strategy": "median",
+        "value": 0.09204999999999999
+      },
+      "420": {
+        "strategy": "median",
+        "value": 0.0619
+      },
+      "421": {
+        "strategy": "median",
+        "value": 0.05495
+      },
+      "422": {
+        "strategy": "median",
+        "value": 0.0496
+      },
+      "423": {
+        "strategy": "median",
+        "value": 0.028
+      },
+      "424": {
+        "strategy": "median",
+        "value": 0.0316
+      },
+      "425": {
+        "strategy": "median",
+        "value": 0.0328
+      },
+      "426": {
+        "strategy": "median",
+        "value": 0.0442
+      },
+      "427": {
+        "strategy": "median",
+        "value": 0.0768
+      },
+      "428": {
+        "strategy": "median",
+        "value": 0.054
+      },
+      "429": {
+        "strategy": "median",
+        "value": 0.0637
+      },
+      "430": {
+        "strategy": "median",
+        "value": 0.026
+      },
+      "431": {
+        "strategy": "median",
+        "value": 0.064
+      },
+      "432": {
+        "strategy": "median",
+        "value": 0.0543
+      },
+      "433": {
+        "strategy": "median",
+        "value": 0.076
+      },
+      "434": {
+        "strategy": "median",
+        "value": 0.0597
+      },
+      "435": {
+        "strategy": "median",
+        "value": 0.0568
+      },
+      "436": {
+        "strategy": "median",
+        "value": 0.0409
+      },
+      "437": {
+        "strategy": "median",
+        "value": 0.0648
+      },
+      "438": {
+        "strategy": "median",
+        "value": 0.0446
+      },
+      "439": {
+        "strategy": "median",
+        "value": 0.0494
+      },
+      "440": {
+        "strategy": "median",
+        "value": 0.0481
+      },
+      "441": {
+        "strategy": "median",
+        "value": 0.0351
+      },
+      "442": {
+        "strategy": "median",
+        "value": 0.0441
+      },
+      "443": {
+        "strategy": "median",
+        "value": 0.0485
+      },
+      "444": {
+        "strategy": "median",
+        "value": 0.0206
+      },
+      "445": {
+        "strategy": "median",
+        "value": 0.0828
+      },
+      "446": {
+        "strategy": "median",
+        "value": 0.0642
+      },
+      "447": {
+        "strategy": "median",
+        "value": 0.0411
+      },
+      "448": {
+        "strategy": "median",
+        "value": 0.071
+      },
+      "449": {
+        "strategy": "median",
+        "value": 0.048
+      },
+      "450": {
+        "strategy": "median",
+        "value": 0.0616
+      },
+      "451": {
+        "strategy": "median",
+        "value": 0.0575
+      },
+      "452": {
+        "strategy": "median",
+        "value": 0.0524
+      },
+      "453": {
+        "strategy": "median",
+        "value": 0.0471
+      },
+      "454": {
+        "strategy": "median",
+        "value": 0.0406
+      },
+      "455": {
+        "strategy": "median",
+        "value": 0.0401
+      },
+      "456": {
+        "strategy": "median",
+        "value": 0.0417
+      },
+      "457": {
+        "strategy": "median",
+        "value": 0.0666
+      },
+      "458": {
+        "strategy": "median",
+        "value": 0.052
+      },
+      "459": {
+        "strategy": "median",
+        "value": 0.0641
+      },
+      "460": {
+        "strategy": "median",
+        "value": 0.0328
+      },
+      "461": {
+        "strategy": "median",
+        "value": 0.0597
+      },
+      "462": {
+        "strategy": "median",
+        "value": 0.0332
+      },
+      "463": {
+        "strategy": "median",
+        "value": 0.0556
+      },
+      "464": {
+        "strategy": "median",
+        "value": 0.0533
+      },
+      "465": {
+        "strategy": "median",
+        "value": 0.0475
+      },
+      "466": {
+        "strategy": "median",
+        "value": 0.0835
+      },
+      "467": {
+        "strategy": "median",
+        "value": 0.0618
+      },
+      "468": {
+        "strategy": "median",
+        "value": 0.0546
+      },
+      "469": {
+        "strategy": "median",
+        "value": 0.0483
+      },
+      "470": {
+        "strategy": "median",
+        "value": 0.0421
+      },
+      "471": {
+        "strategy": "median",
+        "value": 0.0775
+      },
+      "472": {
+        "strategy": "median",
+        "value": 0.043
+      },
+      "473": {
+        "strategy": "median",
+        "value": 0.0907
+      },
+      "474": {
+        "strategy": "median",
+        "value": 0.0368
+      },
+      "475": {
+        "strategy": "median",
+        "value": 0.0583
+      },
+      "476": {
+        "strategy": "median",
+        "value": 0.0713
+      },
+      "477": {
+        "strategy": "median",
+        "value": 0.0759
+      },
+      "478": {
+        "strategy": "median",
+        "value": 0.1509
+      },
+      "479": {
+        "strategy": "median",
+        "value": 0.0757
+      },
+      "480": {
+        "strategy": "median",
+        "value": 0.0444
+      },
+      "481": {
+        "strategy": "median",
+        "value": 0.0425
+      },
+      "482": {
+        "strategy": "median",
+        "value": 0.034
+      },
+      "483": {
+        "strategy": "median",
+        "value": 0.0584
+      },
+      "484": {
+        "strategy": "median",
+        "value": 0.0521
+      },
+      "485": {
+        "strategy": "median",
+        "value": 0.0328
+      },
+      "486": {
+        "strategy": "median",
+        "value": 0.0299
+      },
+      "487": {
+        "strategy": "median",
+        "value": 0.048
+      },
+      "488": {
+        "strategy": "median",
+        "value": 0.0433
+      },
+      "489": {
+        "strategy": "median",
+        "value": 0.0482
+      },
+      "490": {
+        "strategy": "median",
+        "value": 0.0491
+      },
+      "491": {
+        "strategy": "median",
+        "value": 0.0447
+      },
+      "492": {
+        "strategy": "median",
+        "value": 0.0336
+      },
+      "493": {
+        "strategy": "median",
+        "value": 0.0567
+      },
+      "494": {
+        "strategy": "median",
+        "value": 0.0511
+      },
+      "495": {
+        "strategy": "median",
+        "value": 0.0321
+      },
+      "496": {
+        "strategy": "median",
+        "value": 0.0354
+      },
+      "497": {
+        "strategy": "median",
+        "value": 0.0576
+      },
+      "498": {
+        "strategy": "median",
+        "value": 0.0471
+      },
+      "499": {
+        "strategy": "median",
+        "value": 0.0534
+      },
+      "500": {
+        "strategy": "median",
+        "value": 0.0424
+      },
+      "501": {
+        "strategy": "median",
+        "value": 0.0299
+      },
+      "502": {
+        "strategy": "median",
+        "value": 0.0884
+      },
+      "503": {
+        "strategy": "median",
+        "value": 0.0369
+      },
+      "504": {
+        "strategy": "median",
+        "value": 0.0426
+      },
+      "505": {
+        "strategy": "median",
+        "value": 0.0458
+      },
+      "506": {
+        "strategy": "median",
+        "value": 0.0357
+      },
+      "507": {
+        "strategy": "median",
+        "value": 0.0348
+      },
+      "508": {
+        "strategy": "median",
+        "value": 0.0454
+      },
+      "509": {
+        "strategy": "median",
+        "value": 0.0438
+      },
+      "510": {
+        "strategy": "median",
+        "value": 0.0316
+      },
+      "511": {
+        "strategy": "median",
+        "value": 0.0481
+      },
+      "512": {
+        "strategy": "median",
+        "value": 0.0306
+      },
+      "513": {
+        "strategy": "median",
+        "value": 0.0476
+      },
+      "514": {
+        "strategy": "median",
+        "value": 0.0392
+      },
+      "515": {
+        "strategy": "median",
+        "value": 0.0378
+      },
+      "516": {
+        "strategy": "median",
+        "value": 0.0574
+      },
+      "517": {
+        "strategy": "median",
+        "value": 0.0755
+      },
+      "518": {
+        "strategy": "median",
+        "value": 0.0539
+      },
+      "519": {
+        "strategy": "median",
+        "value": 0.0668
+      },
+      "520": {
+        "strategy": "median",
+        "value": 0.043
+      },
+      "521": {
+        "strategy": "median",
+        "value": 0.0596
+      },
+      "522": {
+        "strategy": "median",
+        "value": 0.0539
+      },
+      "523": {
+        "strategy": "median",
+        "value": 0.0673
+      },
+      "524": {
+        "strategy": "median",
+        "value": 0.0092
+      },
+      "525": {
+        "strategy": "median",
+        "value": 0.0399
+      },
+      "526": {
+        "strategy": "median",
+        "value": 0.0367
+      },
+      "527": {
+        "strategy": "median",
+        "value": 0.0583
+      },
+      "528": {
+        "strategy": "median",
+        "value": 0.0565
+      },
+      "529": {
+        "strategy": "median",
+        "value": 0.05245
+      },
+      "530": {
+        "strategy": "median",
+        "value": 0.0334
+      },
+      "531": {
+        "strategy": "median",
+        "value": 0.09784999999999999
+      },
+      "532": {
+        "strategy": "median",
+        "value": 0.08854999999999999
+      },
+      "533": {
+        "strategy": "median",
+        "value": 0.0741
+      },
+      "534": {
+        "strategy": "median",
+        "value": 0.074
+      },
+      "535": {
+        "strategy": "median",
+        "value": 0.06475
+      },
+      "536": {
+        "strategy": "median",
+        "value": 0.0384
+      },
+      "537": {
+        "strategy": "median",
+        "value": 0.0687
+      },
+      "538": {
+        "strategy": "median",
+        "value": 0.0542
+      },
+      "539": {
+        "strategy": "median",
+        "value": 0.0469
+      },
+      "540": {
+        "strategy": "median",
+        "value": 0.0553
+      },
+      "541": {
+        "strategy": "median",
+        "value": 0.0825
+      },
+      "542": {
+        "strategy": "median",
+        "value": 0.0371
+      },
+      "543": {
+        "strategy": "median",
+        "value": 0.0635
+      },
+      "544": {
+        "strategy": "median",
+        "value": 0.0375
+      },
+      "545": {
+        "strategy": "median",
+        "value": 0.0268
+      },
+      "546": {
+        "strategy": "median",
+        "value": 0.0525
+      },
+      "547": {
+        "strategy": "median",
+        "value": 0.0523
+      },
+      "548": {
+        "strategy": "median",
+        "value": 0.0389
+      },
+      "549": {
+        "strategy": "median",
+        "value": 0.0532
+      },
+      "550": {
+        "strategy": "median",
+        "value": 0.0564
+      },
+      "551": {
+        "strategy": "median",
+        "value": 0.0165
+      },
+      "552": {
+        "strategy": "median",
+        "value": 0.0336
+      },
+      "553": {
+        "strategy": "median",
+        "value": 0.0384
+      },
+      "554": {
+        "strategy": "median",
+        "value": 0.0527
+      },
+      "555": {
+        "strategy": "median",
+        "value": 0.0334
+      },
+      "556": {
+        "strategy": "median",
+        "value": 0.043
+      },
+      "557": {
+        "strategy": "median",
+        "value": 0.057
+      },
+      "558": {
+        "strategy": "median",
+        "value": 0.0565
+      },
+      "559": {
+        "strategy": "median",
+        "value": 0.0696
+      },
+      "560": {
+        "strategy": "median",
+        "value": 0.04375
+      },
+      "561": {
+        "strategy": "median",
+        "value": 0.0669
+      },
+      "562": {
+        "strategy": "median",
+        "value": 0.0253
+      },
+      "563": {
+        "strategy": "median",
+        "value": 0.0221
+      },
+      "564": {
+        "strategy": "median",
+        "value": 0.0372
+      },
+      "565": {
+        "strategy": "median",
+        "value": 0.0448
+      },
+      "566": {
+        "strategy": "median",
+        "value": 0.0405
+      },
+      "567": {
+        "strategy": "median",
+        "value": 0.0311
+      },
+      "568": {
+        "strategy": "median",
+        "value": 0.052
+      },
+      "569": {
+        "strategy": "median",
+        "value": 0.0321
+      },
+      "570": {
+        "strategy": "median",
+        "value": 0.0276
+      },
+      "571": {
+        "strategy": "median",
+        "value": 0.0458
+      },
+      "572": {
+        "strategy": "median",
+        "value": 0.0623
+      },
+      "573": {
+        "strategy": "median",
+        "value": 0.1058
+      },
+      "574": {
+        "strategy": "median",
+        "value": 0.0802
+      },
+      "575": {
+        "strategy": "median",
+        "value": 0.04265
+      },
+      "576": {
+        "strategy": "median",
+        "value": 0.034
+      },
+      "577": {
+        "strategy": "median",
+        "value": 0.04755
+      },
+      "578": {
+        "strategy": "median",
+        "value": 0.0492
+      },
+      "579": {
+        "strategy": "median",
+        "value": 0.04695
+      },
+      "580": {
+        "strategy": "median",
+        "value": 0.0447
+      },
+      "581": {
+        "strategy": "median",
+        "value": 0.0362
+      },
+      "582": {
+        "strategy": "median",
+        "value": 0.0532
+      },
+      "583": {
+        "strategy": "median",
+        "value": 0.0495
+      },
+      "584": {
+        "strategy": "median",
+        "value": 0.0705
+      },
+      "585": {
+        "strategy": "median",
+        "value": 0.0864
+      },
+      "586": {
+        "strategy": "median",
+        "value": 0.0561
+      },
+      "587": {
+        "strategy": "median",
+        "value": 0.0367
+      },
+      "588": {
+        "strategy": "median",
+        "value": 0.0764
+      },
+      "589": {
+        "strategy": "median",
+        "value": 0.0509
+      },
+      "590": {
+        "strategy": "median",
+        "value": 0.07825
+      },
+      "591": {
+        "strategy": "median",
+        "value": 0.0796
+      },
+      "592": {
+        "strategy": "median",
+        "value": 0.082
+      },
+      "593": {
+        "strategy": "median",
+        "value": 0.0843
+      },
+      "594": {
+        "strategy": "median",
+        "value": 0.0602
+      },
+      "595": {
+        "strategy": "median",
+        "value": 0.0668
+      },
+      "596": {
+        "strategy": "median",
+        "value": 0.0524
+      },
+      "597": {
+        "strategy": "median",
+        "value": 0.0606
+      },
+      "598": {
+        "strategy": "median",
+        "value": 0.0762
+      },
+      "599": {
+        "strategy": "median",
+        "value": 0.0572
+      },
+      "600": {
+        "strategy": "median",
+        "value": 0.0328
+      },
+      "601": {
+        "strategy": "median",
+        "value": 0.0553
+      },
+      "602": {
+        "strategy": "median",
+        "value": 0.0629
+      },
+      "603": {
+        "strategy": "median",
+        "value": 0.0323
+      },
+      "604": {
+        "strategy": "median",
+        "value": 0.065
+      },
+      "605": {
+        "strategy": "median",
+        "value": 0.0512
+      },
+      "606": {
+        "strategy": "median",
+        "value": 0.0333
+      },
+      "607": {
+        "strategy": "median",
+        "value": 0.05525
+      },
+      "608": {
+        "strategy": "median",
+        "value": 0.0812
+      },
+      "609": {
+        "strategy": "median",
+        "value": 0.047
+      },
+      "610": {
+        "strategy": "median",
+        "value": 0.0558
+      },
+      "611": {
+        "strategy": "median",
+        "value": 0.0596
+      },
+      "612": {
+        "strategy": "median",
+        "value": 0.0546
+      },
+      "613": {
+        "strategy": "median",
+        "value": 0.0384
+      },
+      "614": {
+        "strategy": "median",
+        "value": 0.0582
+      },
+      "615": {
+        "strategy": "median",
+        "value": 0.0391
+      },
+      "616": {
+        "strategy": "median",
+        "value": 0.0326
+      },
+      "617": {
+        "strategy": "median",
+        "value": 0.0418
+      },
+      "618": {
+        "strategy": "median",
+        "value": 0.0417
+      },
+      "619": {
+        "strategy": "median",
+        "value": 0.0542
+      },
+      "620": {
+        "strategy": "median",
+        "value": 0.0616
+      },
+      "621": {
+        "strategy": "median",
+        "value": 0.0644
+      },
+      "622": {
+        "strategy": "median",
+        "value": 0.0735
+      },
+      "623": {
+        "strategy": "median",
+        "value": 0.0408
+      },
+      "624": {
+        "strategy": "median",
+        "value": 0.0388
+      },
+      "625": {
+        "strategy": "median",
+        "value": 0.0796
+      },
+      "626": {
+        "strategy": "median",
+        "value": 0.0722
+      },
+      "627": {
+        "strategy": "median",
+        "value": 0.05
+      },
+      "628": {
+        "strategy": "median",
+        "value": 0.0849
+      },
+      "629": {
+        "strategy": "median",
+        "value": 0.0475
+      },
+      "630": {
+        "strategy": "median",
+        "value": 0.061
+      },
+      "631": {
+        "strategy": "median",
+        "value": 0.0508
+      },
+      "632": {
+        "strategy": "median",
+        "value": 0.0411
+      },
+      "633": {
+        "strategy": "median",
+        "value": 0.10375000000000001
+      },
+      "634": {
+        "strategy": "median",
+        "value": 0.0519
+      },
+      "635": {
+        "strategy": "median",
+        "value": 0.0641
+      },
+      "636": {
+        "strategy": "median",
+        "value": 0.0727
+      },
+      "637": {
+        "strategy": "median",
+        "value": 0.053
+      },
+      "638": {
+        "strategy": "median",
+        "value": 0.0585
+      },
+      "639": {
+        "strategy": "median",
+        "value": 0.0554
+      },
+      "640": {
+        "strategy": "median",
+        "value": 0.0758
+      },
+      "641": {
+        "strategy": "median",
+        "value": 0.0593
+      },
+      "642": {
+        "strategy": "median",
+        "value": 0.0311
+      },
+      "643": {
+        "strategy": "median",
+        "value": 0.0418
+      },
+      "644": {
+        "strategy": "median",
+        "value": 0.0475
+      },
+      "645": {
+        "strategy": "median",
+        "value": 0.0675
+      },
+      "646": {
+        "strategy": "median",
+        "value": 0.0283
+      },
+      "647": {
+        "strategy": "median",
+        "value": 0.0515
+      },
+      "648": {
+        "strategy": "median",
+        "value": 0.0559
+      },
+      "649": {
+        "strategy": "median",
+        "value": 0.0442
+      },
+      "650": {
+        "strategy": "median",
+        "value": 0.0486
+      },
+      "651": {
+        "strategy": "median",
+        "value": 0.0472
+      },
+      "652": {
+        "strategy": "median",
+        "value": 0.0469
+      },
+      "653": {
+        "strategy": "median",
+        "value": 0.0559
+      },
+      "654": {
+        "strategy": "median",
+        "value": 0.0509
+      },
+      "655": {
+        "strategy": "median",
+        "value": 0.051
+      },
+      "656": {
+        "strategy": "median",
+        "value": 0.0336
+      },
+      "657": {
+        "strategy": "median",
+        "value": 0.05595
+      },
+      "658": {
+        "strategy": "median",
+        "value": 0.0531
+      },
+      "659": {
+        "strategy": "median",
+        "value": 0.0601
+      },
+      "660": {
+        "strategy": "median",
+        "value": 0.0725
+      },
+      "661": {
+        "strategy": "median",
+        "value": 0.0524
+      },
+      "662": {
+        "strategy": "median",
+        "value": 0.0515
+      },
+      "663": {
+        "strategy": "median",
+        "value": 0.0493
+      },
+      "664": {
+        "strategy": "median",
+        "value": 0.0666
+      },
+      "665": {
+        "strategy": "median",
+        "value": 0.0618
+      },
+      "666": {
+        "strategy": "median",
+        "value": 0.0463
+      },
+      "667": {
+        "strategy": "median",
+        "value": 0.032
+      },
+      "668": {
+        "strategy": "median",
+        "value": 0.0361
+      },
+      "669": {
+        "strategy": "median",
+        "value": 0.0617
+      },
+      "670": {
+        "strategy": "median",
+        "value": 0.033
+      },
+      "671": {
+        "strategy": "median",
+        "value": 0.0334
+      },
+      "672": {
+        "strategy": "median",
+        "value": 0.028
+      },
+      "673": {
+        "strategy": "median",
+        "value": 0.083
+      },
+      "674": {
+        "strategy": "median",
+        "value": 0.0837
+      },
+      "675": {
+        "strategy": "median",
+        "value": 0.0458
+      },
+      "676": {
+        "strategy": "median",
+        "value": 0.0428
+      },
+      "677": {
+        "strategy": "median",
+        "value": 0.0326
+      },
+      "678": {
+        "strategy": "median",
+        "value": 0.0555
+      },
+      "679": {
+        "strategy": "median",
+        "value": 0.0272
+      },
+      "680": {
+        "strategy": "median",
+        "value": 0.0728
+      },
+      "681": {
+        "strategy": "median",
+        "value": 0.09805
+      },
+      "682": {
+        "strategy": "median",
+        "value": 0.07095
+      },
+      "683": {
+        "strategy": "median",
+        "value": 0.0489
+      },
+      "684": {
+        "strategy": "median",
+        "value": 0.0604
+      },
+      "685": {
+        "strategy": "median",
+        "value": 0.0523
+      },
+      "686": {
+        "strategy": "median",
+        "value": 0.0597
+      },
+      "687": {
+        "strategy": "median",
+        "value": 0.05075
+      },
+      "688": {
+        "strategy": "median",
+        "value": 0.0656
+      },
+      "689": {
+        "strategy": "median",
+        "value": 0.0581
+      },
+      "690": {
+        "strategy": "median",
+        "value": 0.0607
+      },
+      "691": {
+        "strategy": "median",
+        "value": 0.0689
+      },
+      "692": {
+        "strategy": "median",
+        "value": 0.0279
+      },
+      "693": {
+        "strategy": "median",
+        "value": 0.0335
+      },
+      "694": {
+        "strategy": "median",
+        "value": 0.0435
+      },
+      "695": {
+        "strategy": "median",
+        "value": 0.083
+      },
+      "696": {
+        "strategy": "median",
+        "value": 0.0463
+      },
+      "697": {
+        "strategy": "median",
+        "value": 0.05335
+      },
+      "698": {
+        "strategy": "median",
+        "value": 0.0331
+      },
+      "699": {
+        "strategy": "median",
+        "value": 0.0443
+      },
+      "700": {
+        "strategy": "median",
+        "value": 0.0418
+      },
+      "701": {
+        "strategy": "median",
+        "value": 0.0625
+      },
+      "702": {
+        "strategy": "median",
+        "value": 0.0341
+      },
+      "703": {
+        "strategy": "median",
+        "value": 0.04555
+      },
+      "704": {
+        "strategy": "median",
+        "value": 0.0332
+      },
+      "705": {
+        "strategy": "median",
+        "value": 0.0585
+      },
+      "706": {
+        "strategy": "median",
+        "value": 0.039
+      },
+      "707": {
+        "strategy": "median",
+        "value": 0.05295
+      },
+      "708": {
+        "strategy": "median",
+        "value": 0.0662
+      },
+      "709": {
+        "strategy": "median",
+        "value": 0.0348
+      },
+      "710": {
+        "strategy": "median",
+        "value": 0.0569
+      },
+      "711": {
+        "strategy": "median",
+        "value": 0.0246
+      },
+      "712": {
+        "strategy": "median",
+        "value": 0.0492
+      },
+      "713": {
+        "strategy": "median",
+        "value": 0.0335
+      },
+      "714": {
+        "strategy": "median",
+        "value": 0.0285
+      },
+      "715": {
+        "strategy": "median",
+        "value": 0.0562
+      },
+      "716": {
+        "strategy": "median",
+        "value": 0.029249999999999998
+      },
+      "717": {
+        "strategy": "median",
+        "value": 0.0473
+      },
+      "718": {
+        "strategy": "median",
+        "value": 0.08324999999999999
+      },
+      "719": {
+        "strategy": "median",
+        "value": 0.0579
+      },
+      "720": {
+        "strategy": "median",
+        "value": 0.0239
+      },
+      "721": {
+        "strategy": "median",
+        "value": 0.06175
+      },
+      "722": {
+        "strategy": "median",
+        "value": 0.0228
+      },
+      "723": {
+        "strategy": "median",
+        "value": 0.0313
+      },
+      "724": {
+        "strategy": "median",
+        "value": 0.0311
+      },
+      "725": {
+        "strategy": "median",
+        "value": 0.0369
+      },
+      "726": {
+        "strategy": "median",
+        "value": 0.0308
+      },
+      "727": {
+        "strategy": "median",
+        "value": 0.036
+      },
+      "728": {
+        "strategy": "median",
+        "value": 0.0214
+      },
+      "729": {
+        "strategy": "median",
+        "value": 0.0975
+      },
+      "730": {
+        "strategy": "median",
+        "value": 0.0352
+      },
+      "731": {
+        "strategy": "median",
+        "value": 0.0474
+      },
+      "732": {
+        "strategy": "median",
+        "value": 0.0502
+      },
+      "733": {
+        "strategy": "median",
+        "value": 0.042
+      },
+      "734": {
+        "strategy": "median",
+        "value": 0.06155
+      },
+      "735": {
+        "strategy": "median",
+        "value": 0.0268
+      },
+      "736": {
+        "strategy": "median",
+        "value": 0.0383
+      },
+      "737": {
+        "strategy": "median",
+        "value": 0.0594
+      },
+      "738": {
+        "strategy": "median",
+        "value": 0.046
+      },
+      "739": {
+        "strategy": "median",
+        "value": 0.0429
+      },
+      "740": {
+        "strategy": "median",
+        "value": 0.0509
+      },
+      "741": {
+        "strategy": "median",
+        "value": 0.0478
+      },
+      "742": {
+        "strategy": "median",
+        "value": 0.0382
+      },
+      "743": {
+        "strategy": "median",
+        "value": 0.0469
+      },
+      "744": {
+        "strategy": "median",
+        "value": 0.058
+      },
+      "745": {
+        "strategy": "median",
+        "value": 0.0669
+      },
+      "746": {
+        "strategy": "median",
+        "value": 0.0619
+      },
+      "747": {
+        "strategy": "median",
+        "value": 0.0496
+      },
+      "748": {
+        "strategy": "median",
+        "value": 0.03375
+      },
+      "749": {
+        "strategy": "median",
+        "value": 0.04395
+      },
+      "750": {
+        "strategy": "median",
+        "value": 0.02
+      },
+      "751": {
+        "strategy": "median",
+        "value": 0.014
+      },
+      "752": {
+        "strategy": "median",
+        "value": 0.0172
+      },
+      "753": {
+        "strategy": "median",
+        "value": 0.0176
+      },
+      "754": {
+        "strategy": "median",
+        "value": 0.0255
+      },
+      "755": {
+        "strategy": "median",
+        "value": 0.0533
+      },
+      "756": {
+        "strategy": "median",
+        "value": 0.0637
+      },
+      "757": {
+        "strategy": "median",
+        "value": 0.0698
+      },
+      "758": {
+        "strategy": "median",
+        "value": 0.0665
+      },
+      "759": {
+        "strategy": "median",
+        "value": 0.0585
+      },
+      "760": {
+        "strategy": "median",
+        "value": 0.0291
+      },
+      "761": {
+        "strategy": "median",
+        "value": 0.03
+      },
+      "762": {
+        "strategy": "median",
+        "value": 0.05545
+      },
+      "763": {
+        "strategy": "median",
+        "value": 0.0459
+      },
+      "764": {
+        "strategy": "median",
+        "value": 0.044
+      },
+      "765": {
+        "strategy": "median",
+        "value": 0.0327
+      },
+      "766": {
+        "strategy": "median",
+        "value": 0.0405
+      },
+      "767": {
+        "strategy": "median",
+        "value": 0.0696
+      },
+      "768": {
+        "strategy": "median",
+        "value": 0.0744
+      },
+      "769": {
+        "strategy": "median",
+        "value": 0.07385
+      },
+      "770": {
+        "strategy": "median",
+        "value": 0.0675
+      },
+      "771": {
+        "strategy": "median",
+        "value": 0.0658
+      },
+      "772": {
+        "strategy": "median",
+        "value": 0.0568
+      },
+      "773": {
+        "strategy": "median",
+        "value": 0.0468
+      },
+      "774": {
+        "strategy": "median",
+        "value": 0.0227
+      },
+      "775": {
+        "strategy": "median",
+        "value": 0.05675
+      },
+      "776": {
+        "strategy": "median",
+        "value": 0.0426
+      },
+      "777": {
+        "strategy": "median",
+        "value": 0.0554
+      },
+      "778": {
+        "strategy": "median",
+        "value": 0.0491
+      },
+      "779": {
+        "strategy": "median",
+        "value": 0.0536
+      },
+      "780": {
+        "strategy": "median",
+        "value": 0.0573
+      },
+      "781": {
+        "strategy": "median",
+        "value": 0.0633
+      },
+      "782": {
+        "strategy": "median",
+        "value": 0.06434999999999999
+      },
+      "783": {
+        "strategy": "median",
+        "value": 0.0772
+      },
+      "784": {
+        "strategy": "median",
+        "value": 0.0643
+      },
+      "785": {
+        "strategy": "median",
+        "value": 0.0607
+      },
+      "786": {
+        "strategy": "median",
+        "value": 0.072
+      },
+      "787": {
+        "strategy": "median",
+        "value": 0.0664
+      },
+      "788": {
+        "strategy": "median",
+        "value": 0.0626
+      },
+      "789": {
+        "strategy": "median",
+        "value": 0.0413
+      },
+      "790": {
+        "strategy": "median",
+        "value": 0.0231
+      },
+      "791": {
+        "strategy": "median",
+        "value": 0.0771
+      },
+      "792": {
+        "strategy": "median",
+        "value": 0.0651
+      },
+      "793": {
+        "strategy": "median",
+        "value": 0.0659
+      },
+      "794": {
+        "strategy": "median",
+        "value": 0.0437
+      },
+      "795": {
+        "strategy": "median",
+        "value": 0.0415
+      },
+      "796": {
+        "strategy": "median",
+        "value": 0.0454
+      },
+      "797": {
+        "strategy": "median",
+        "value": 0.0508
+      },
+      "798": {
+        "strategy": "median",
+        "value": 0.0519
+      },
+      "799": {
+        "strategy": "median",
+        "value": 0.0594
+      },
+      "800": {
+        "strategy": "median",
+        "value": 0.0354
+      },
+      "801": {
+        "strategy": "median",
+        "value": 0.0816
+      },
+      "802": {
+        "strategy": "median",
+        "value": 0.0337
+      },
+      "803": {
+        "strategy": "median",
+        "value": 0.0595
+      },
+      "804": {
+        "strategy": "median",
+        "value": 0.0907
+      },
+      "805": {
+        "strategy": "median",
+        "value": 0.0553
+      },
+      "806": {
+        "strategy": "median",
+        "value": 0.06384999999999999
+      },
+      "807": {
+        "strategy": "median",
+        "value": 0.0678
+      },
+      "808": {
+        "strategy": "median",
+        "value": 0.0496
+      },
+      "809": {
+        "strategy": "median",
+        "value": 0.0706
+      },
+      "810": {
+        "strategy": "median",
+        "value": 0.0485
+      },
+      "811": {
+        "strategy": "median",
+        "value": 0.0558
+      },
+      "812": {
+        "strategy": "median",
+        "value": 0.0476
+      },
+      "813": {
+        "strategy": "median",
+        "value": 0.0581
+      },
+      "814": {
+        "strategy": "median",
+        "value": 0.0695
+      },
+      "815": {
+        "strategy": "median",
+        "value": 0.08095
+      },
+      "816": {
+        "strategy": "median",
+        "value": 0.0485
+      },
+      "817": {
+        "strategy": "median",
+        "value": 0.0393
+      },
+      "818": {
+        "strategy": "median",
+        "value": 0.0536
+      },
+      "819": {
+        "strategy": "median",
+        "value": 0.052
+      },
+      "820": {
+        "strategy": "median",
+        "value": 0.0455
+      },
+      "821": {
+        "strategy": "median",
+        "value": 0.0471
+      },
+      "822": {
+        "strategy": "median",
+        "value": 0.0411
+      },
+      "823": {
+        "strategy": "median",
+        "value": 0.0366
+      },
+      "824": {
+        "strategy": "median",
+        "value": 0.0502
+      },
+      "825": {
+        "strategy": "median",
+        "value": 0.0342
+      },
+      "826": {
+        "strategy": "median",
+        "value": 0.044
+      },
+      "827": {
+        "strategy": "median",
+        "value": 0.0541
+      },
+      "828": {
+        "strategy": "median",
+        "value": 0.0481
+      },
+      "829": {
+        "strategy": "median",
+        "value": 0.0535
+      },
+      "830": {
+        "strategy": "median",
+        "value": 0.0531
+      },
+      "831": {
+        "strategy": "median",
+        "value": 0.0425
+      },
+      "832": {
+        "strategy": "median",
+        "value": 0.0482
+      },
+      "833": {
+        "strategy": "median",
+        "value": 0.0328
+      },
+      "834": {
+        "strategy": "median",
+        "value": 0.0631
+      },
+      "835": {
+        "strategy": "median",
+        "value": 0.0553
+      },
+      "836": {
+        "strategy": "median",
+        "value": 0.0374
+      },
+      "837": {
+        "strategy": "median",
+        "value": 0.0493
+      },
+      "838": {
+        "strategy": "median",
+        "value": 0.03
+      },
+      "839": {
+        "strategy": "median",
+        "value": 0.0773
+      },
+      "840": {
+        "strategy": "median",
+        "value": 0.0316
+      },
+      "841": {
+        "strategy": "median",
+        "value": 0.05525
+      },
+      "842": {
+        "strategy": "median",
+        "value": 0.0623
+      },
+      "843": {
+        "strategy": "median",
+        "value": 0.0441
+      },
+      "844": {
+        "strategy": "median",
+        "value": 0.0328
+      },
+      "845": {
+        "strategy": "median",
+        "value": 0.0252
+      },
+      "846": {
+        "strategy": "median",
+        "value": 0.0484
+      },
+      "847": {
+        "strategy": "median",
+        "value": 0.0509
+      },
+      "848": {
+        "strategy": "median",
+        "value": 0.0501
+      },
+      "849": {
+        "strategy": "median",
+        "value": 0.0495
+      },
+      "850": {
+        "strategy": "median",
+        "value": 0.0414
+      },
+      "851": {
+        "strategy": "median",
+        "value": 0.0365
+      },
+      "852": {
+        "strategy": "median",
+        "value": 0.0139
+      },
+      "853": {
+        "strategy": "median",
+        "value": 0.0219
+      },
+      "854": {
+        "strategy": "median",
+        "value": 0.0265
+      },
+      "855": {
+        "strategy": "median",
+        "value": 0.0355
+      },
+      "856": {
+        "strategy": "median",
+        "value": 0.0259
+      },
+      "857": {
+        "strategy": "median",
+        "value": 0.0287
+      },
+      "858": {
+        "strategy": "median",
+        "value": 0.0421
+      },
+      "859": {
+        "strategy": "median",
+        "value": 0.0412
+      },
+      "860": {
+        "strategy": "median",
+        "value": 0.0318
+      },
+      "OT": {
+        "strategy": "median",
+        "value": 0.0341
+      }
+    }
+  }
+}

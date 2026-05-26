@@ -9,6 +9,7 @@ const PipelinesPage = () => import('@/modules/auth/pages/pipelines-page.vue')
 const AnalyticsPage = () => import('@/pages/analytics-page.vue')
 const SettingsPage = () => import('@/pages/settings-page.vue')
 const ConnectorsPage = () => import('@/pages/connectors-page.vue')
+const PipelineInsightsPage = () => import('@/pages/pipeline-insights-page.vue')
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -42,6 +43,12 @@ const router = createRouter({
 			path: '/connectors',
 			name: 'CONNECTORS',
 			component: ConnectorsPage,
+			meta: { requiresAuth: true },
+		},
+		{
+			path: '/insights',
+			name: 'PIPELINE_INSIGHTS',
+			component: PipelineInsightsPage,
 			meta: { requiresAuth: true },
 		},
 		{

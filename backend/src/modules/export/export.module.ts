@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { ExportController } from './export.controller'
 import { ExportService } from './export.service'
 import { ExportAdapterRegistry } from './adapters/registry'
@@ -8,7 +8,7 @@ import { PrismaModule } from 'src/prisma/prisma.module'
 import { AppConfigModule } from 'src/common/config/config.module'
 
 @Module({
-	imports: [StorageModule, AuthModule, PrismaModule, AppConfigModule],
+	imports: [StorageModule, forwardRef(() => AuthModule), PrismaModule, AppConfigModule],
 	controllers: [ExportController],
 	providers: [ExportAdapterRegistry, ExportService],
 	exports: [ExportService, ExportAdapterRegistry],

@@ -1,0 +1,102 @@
+% Flowmatic thesis figure blocks — paste into memoir LaTeX source
+% Requires: \usepackage{graphicx} \usepackage{subcaption} \usepackage{float}
+
+% ---------------------------------------------------------------------------
+% Chapter 4 — Updated architecture (replaces Figures 4.1 and 4.2)
+% ---------------------------------------------------------------------------
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{figures/architecture/01-batch-upload-pipeline.png}
+  \caption{Batch upload pipeline implemented in Flowmatic (NestJS + Vue). Authenticated clients upload CSV/JSON; objects persist in S3-compatible storage; asynchronous workers execute quality assessment, cleaning, and optional LLM summarisation before export.}
+  \label{fig:batch-upload-pipeline}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{figures/architecture/02-smart-city-streaming.png}
+  \caption{Smart-city streaming pipeline. Simulated or external sensor feeds enter organisation-scoped pipelines; the core unit validates and enriches events; medallion layers and export adapters persist outcomes; optional federated coordination supports distributed training demos.}
+  \label{fig:smart-city-streaming}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{figures/architecture/03-microservices-topology.png}
+  \caption{Docker Compose deployment topology: PostgreSQL, MinIO, RabbitMQ, sensor simulator, model-inference service, federated coordinator demo, NestJS backend, and Nginx-served Vue frontend.}
+  \label{fig:microservices-topology}
+\end{figure}
+
+% ---------------------------------------------------------------------------
+% Chapter 4 — Platform UI (new figures 4.3–4.10)
+% ---------------------------------------------------------------------------
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.55\textwidth]{figures/screenshots/00-login.png}
+  \caption{Flowmatic login interface with organisation-scoped session authentication.}
+  \label{fig:ui-login}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{figures/screenshots/02-upload.png}
+    \caption{Batch upload}
+    \label{fig:ui-upload}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{figures/screenshots/04-pipelines-runs.png}
+    \caption{Pipeline runs}
+    \label{fig:ui-pipelines}
+  \end{subfigure}
+  \caption{Tabular data preparation workflow: ingestion and run monitoring for the Astana semi-synthetic dataset.}
+  \label{fig:ui-batch-workflow}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{figures/screenshots/08-smart-city-live-workbench.png}
+  \caption{Live smart-city workbench with two simulated sources (IoT traffic and weather), WebSocket-connected event stream, and four-stage flow rail (Sources $\rightarrow$ Core $\rightarrow$ Lake \& Export $\rightarrow$ Federated).}
+  \label{fig:ui-smart-city-live}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{figures/screenshots/09-core-unit-huggingface-modal.png}
+    \caption{Core unit configuration}
+    \label{fig:ui-core-unit}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{figures/screenshots/10-workflow-graph.png}
+    \caption{Workflow graph view}
+    \label{fig:ui-workflow-graph}
+  \end{subfigure}
+  \caption{Production configuration surfaces for model deployment (Hugging Face integration) and pipeline topology visualisation.}
+  \label{fig:ui-config-graph}
+\end{figure}
+
+% ---------------------------------------------------------------------------
+% Chapter 5 — Neural evaluation figures
+% ---------------------------------------------------------------------------
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/results/forecast_rmse_leaderboard.png}
+  \caption{Neural forecasting and reconstruction leaderboard (test RMSE) across Astana and Hugging Face benchmark bundles.}
+  \label{fig:neural-forecast-rmse}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/results/classification_macro_f1.png}
+  \caption{Transformer severity classifier macro-F1 compared with classical baselines on Astana traffic events.}
+  \label{fig:neural-classification-f1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/results/multi_seed_rmse_boxplot.png}
+  \caption{Multi-seed robustness (RMSE boxplots) for Q1 core suite checkpoints.}
+  \label{fig:neural-multiseed}
+\end{figure}

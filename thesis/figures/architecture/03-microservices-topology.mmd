@@ -1,0 +1,20 @@
+%% docker-compose topology — app_network. Render: mmdc -i 03-microservices-topology.mmd -o 03-microservices-topology.png
+flowchart TB
+  subgraph user["Operators & analysts"]
+    BROWSER["Web browser"]
+  end
+
+  subgraph docker["Docker Compose — app_network"]
+    FE["frontend\nNginx + Vite build\n:80"]
+    BE["backend\nNestJS API\n:8080"]
+    PG[("postgres:15-alpine")]
+    MINIO["minio\nAPI :9100,\nconsole :9101"]
+    RMQ["rabbitmq:3.13-management\n5672 / 15672"]
+    SIM["sensor-simulator\n:8091"]
+    MI["model-inference\n(Bun) :8093"]
+    FCD["federated-coordinator-demo\n:8092"]
+  end
+
+  BROWSER -->|"HTTP"| FE
+  FE -->|"/api/v1 proxy"| BE
+  BE --> PG & MINIO & RMQ & SIM & MI & FCD

@@ -6,8 +6,10 @@ import {
 	SENSOR_KINDS,
 	type SensorKind,
 } from './payload-generator'
+import { getAstanaDatasetStats, loadAstanaDataset } from './astana-traffic-dataset'
 
 const config = loadConfig()
+const astanaRowsLoaded = loadAstanaDataset(config.astanaDatasetPath)
 
 function corsHeaders(origin: string | null): Record<string, string> {
 	const allowed =
@@ -88,6 +90,9 @@ const server = Bun.serve<{ sensorKind: SensorKind; intervalMs: number; timer: Re
 					status: 'ok',
 					service: 'flowmatic-sensor-simulator',
 					sensorKinds: SENSOR_KINDS,
+					astanaTrafficRows: astanaRowsLoaded,
+					astanaDatasetPath: config.astanaDatasetPath,
+					astanaStats: getAstanaDatasetStats(),
 					timestamp: new Date().toISOString(),
 				},
 				{},
@@ -103,6 +108,14 @@ const server = Bun.serve<{ sensorKind: SensorKind; intervalMs: number; timer: Re
 					defaultLocation: config.defaultLocation,
 					sensorKinds: SENSOR_KINDS,
 					presets: buildPresets(baseUrl),
+					astanaTraffic: {
+						description:
+							'Semi-synthetic Astana traffic stream derived from astana_synthetic_data.csv with geospatial coordinates.',
+						websocketUrl: `${baseUrl.replace(/^http/i, 'ws')}/ws?sensorKind=traffic&intervalMs=2000`,
+						httpPollUrl: `${baseUrl}/api/v1/poll?sensorKind=traffic&limit=1`,
+						datasetPath: config.astanaDatasetPath,
+						rowsLoaded: astanaRowsLoaded,
+					},
 				},
 				{},
 				origin,

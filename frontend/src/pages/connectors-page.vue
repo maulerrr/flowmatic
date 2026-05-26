@@ -10,6 +10,8 @@ import PipelineModals from '@/modules/smart-city/components/pipeline-modals.vue'
 import PipelineObservabilityPanel from '@/modules/smart-city/components/pipeline-observability-panel.vue'
 import PipelineProcessingStage from '@/modules/smart-city/components/pipeline-processing-stage.vue'
 import PipelineSourcesStage from '@/modules/smart-city/components/pipeline-sources-stage.vue'
+import PipelineStageGuide from '@/modules/smart-city/components/pipeline-stage-guide.vue'
+import PipelineStatusStrip from '@/modules/smart-city/components/pipeline-status-strip.vue'
 import PipelineSystemLog from '@/modules/smart-city/components/pipeline-system-log.vue'
 import PipelineViewToolbar from '@/modules/smart-city/components/pipeline-view-toolbar.vue'
 import PipelineWorkbenchHeader from '@/modules/smart-city/components/pipeline-workbench-header.vue'
@@ -23,62 +25,24 @@ provide(PipelineWorkbenchKey, pipeline)
 </script>
 
 <template>
-	<div class="pipeline-workbench space-y-6">
+	<div class="pipeline-workbench space-y-5" :class="{ 'pipeline-workbench--live': pipeline.isPipelineLive }">
 		<PipelineWorkbenchHeader />
+		<PipelineStatusStrip />
 		<PipelineViewToolbar />
 		<PipelineFlowRail />
+		<PipelineStageGuide />
 
 		<PipelineEmptyState v-if="!pipeline.selectedPipelineId && !pipeline.loading" />
 		<PipelineWorkflowView v-else-if="pipeline.viewMode === 'workflow'" />
-		<section v-else class="space-y-6 pipeline-animate-rise">
-			<div class="pipeline-stage-tabs">
-				<button
-					type="button"
-					:class="['pipeline-stage-tab', pipeline.activeStage === 'sources' ? 'pipeline-stage-tab--active' : '']"
-					@click="pipeline.activeStage = 'sources'"
-				>
-					Sources
-				</button>
-				<button
-					type="button"
-					:class="['pipeline-stage-tab', pipeline.activeStage === 'processing' ? 'pipeline-stage-tab--active' : '']"
-					@click="pipeline.activeStage = 'processing'"
-				>
-					Processing
-				</button>
-				<button
-					type="button"
-					:class="['pipeline-stage-tab', pipeline.activeStage === 'lake' ? 'pipeline-stage-tab--active' : '']"
-					@click="pipeline.activeStage = 'lake'"
-				>
-					Lake & export
-				</button>
-				<button
-					type="button"
-					:class="['pipeline-stage-tab', pipeline.activeStage === 'federated' ? 'pipeline-stage-tab--active' : '']"
-					@click="pipeline.activeStage = 'federated'"
-				>
-					Federated
-				</button>
-			</div>
-
-			<div class="pipeline-panel">
-				<div class="pipeline-panel__header">
-					<p class="text-sm text-foreground/70">
-						Operate one continuous pipeline: ingest through the sensor simulator or external feeds, preprocess in the runtime unit, persist medallion tiers to the lake,
-						export through adapters, and coordinate federated rounds.
-					</p>
-				</div>
-			</div>
-
-			<PipelineObservabilityPanel />
+		<section v-else class="space-y-5 pipeline-animate-rise">
+			<PipelineObservabilityPanel v-if="pipeline.showObservability" />
 			<PipelineSourcesStage />
 			<PipelineProcessingStage />
 			<PipelineLakeExportStage />
 			<PipelineFederatedStage />
 		</section>
 
-		<PipelineSystemLog />
+		<PipelineSystemLog v-if="pipeline.showSystemLog" />
 		<PipelineModals />
 	</div>
 </template>

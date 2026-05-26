@@ -1,0 +1,97 @@
+% Flowmatic thesis table blocks — paste into memoir LaTeX source
+% Requires: \usepackage{booktabs} \usepackage{multirow}
+
+% ---------------------------------------------------------------------------
+% Table: Upload pipeline experiment (Astana CSV, production API)
+% ---------------------------------------------------------------------------
+
+\begin{table}[H]
+  \centering
+  \caption{End-to-end batch upload experiment on \texttt{astana\_synthetic\_data.csv} via Flowmatic production API (May 2026).}
+  \label{tab:upload-pipeline-experiment}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Records ingested / cleaned & 30\,000 / 30\,000 \\
+    Source size & 2.21\,MB \\
+    Processing time & 406\,ms \\
+    Quality score (initial $\rightarrow$ final) & 100 / 100 \\
+    Schema insight & 5 numeric, 4 categorical columns \\
+    Anomalies detected & None (proceed to analytics) \\
+    Total wall-clock (auth + upload + poll) & 2.3\,s \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------------------
+% Table: Classical thesis baselines vs neural Q1 suite (Astana)
+% ---------------------------------------------------------------------------
+
+\begin{table}[H]
+  \centering
+  \caption{Comparison of manuscript-reported classical models and Flowmatic Q1 neural checkpoints on Astana traffic data.}
+  \label{tab:classical-vs-neural}
+  \small
+  \begin{tabular}{@{}llcc@{}}
+    \toprule
+    \textbf{Task} & \textbf{Model family} & \textbf{Metric} & \textbf{Score} \\
+    \midrule
+    Event classification & Random Forest (thesis abstract) & Accuracy & 96.62\% \\
+    Event classification & XGBoost (thesis Ch.\,5) & Accuracy & 96.62\% \\
+    Event classification & Transformer severity (Q1, seed 7) & Accuracy & 99.09\% \\
+    Event classification & Transformer severity (Q1, seed 7) & Macro-F1 & 0.925 \\
+    Anomaly / reconstruction & Ensemble IF/LOF/OCSVM (thesis) & Anomaly rate & 3.92\% \\
+    Anomaly / reconstruction & TranAD (Q1, seed 42) & Test RMSE & 0.0308 \\
+    Forecasting & PatchTST density (Q1, seed 2026) & Test RMSE & 0.5593 \\
+    Imputation & SAITS (Q1, seed 2026) & Masked MSE & 0.6307 \\
+    Data quality index & Six-dimension DQI (thesis) & Composite & 0.957 \\
+    Upload QC (platform) & Automated pipeline summary & Score & 100/100 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------------------
+% Table: Smart-city live demo observability
+% ---------------------------------------------------------------------------
+
+\begin{table}[H]
+  \centering
+  \caption{Smart-city live demo pipeline (\emph{Astana Live Demo}) with simulated sensor sources.}
+  \label{tab:smart-city-live-demo}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Parameter} & \textbf{Observed value} \\
+    \midrule
+    Running sources & 2 / 2 (IoT + weather, HTTP polling) \\
+    Simulator endpoint & \texttt{sensor-simulator:8091} \\
+    WebSocket status & Connected \\
+    Recent events (UI buffer) & 25+ \\
+    Throughput (UI estimate) & 1.88\,GB/s \\
+    Federated coordinator & Disconnected (demo optional) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------------------
+% Table: Gap summary (condensed from GAP_ANALYSIS.md)
+% ---------------------------------------------------------------------------
+
+\begin{table}[H]
+  \centering
+  \caption{Manuscript versus implementation coverage (selected dimensions).}
+  \label{tab:gap-analysis}
+  \small
+  \begin{tabular}{@{}p{3.2cm}p{4.8cm}p{4.8cm}@{}}
+    \toprule
+    \textbf{Topic} & \textbf{Thesis PDF} & \textbf{Flowmatic codebase} \\
+    \midrule
+    Runtime & Python + scikit-learn & NestJS, Vue, Prisma, Docker \\
+    Streaming Fig.\,4.2 & Kafka topic graph & HTTP simulator + WebSocket + queues \\
+    Classifier & RF/XGBoost tabular & + Transformer Q1 checkpoints \\
+    Anomaly & IF/LOF/OCSVM ensemble & + TranAD neural reconstruction \\
+    Explainability & SHAP & LLM narrative summaries \\
+    Export & Conceptual & PostgreSQL, MongoDB, HF, files \\
+    \bottomrule
+  \end{tabular}
+\end{table}

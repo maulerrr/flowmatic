@@ -1,0 +1,487 @@
+{
+  "experiment": "upload_pipeline",
+  "apiBase": "http://127.0.0.1:8080/api/v1",
+  "startedAt": "2026-05-25T17:07:57.407755+00:00",
+  "timingsSeconds": {
+    "auth": 0.112,
+    "upload": 0.225,
+    "polling": 1.885,
+    "total": 2.3
+  },
+  "auth": {
+    "register_status": 400,
+    "register_body_preview": "{\"message\":\"An account with this email already exists\",\"error\":\"Bad Request\",\"statusCode\":400}",
+    "login_status": 200,
+    "login_body_preview": "{\"success\":true,\"data\":{\"user\":{\"id\":\"cmplgi33e0002ms3cpn95hwzi\",\"email\":\"thesis.demo@flowmatic.local\",\"displayName\":\"Thesis Demo\",\"organizationId\":\"cmplgi33b0000ms3cbxp9dcda\",\"role\":\"admin\"}}}",
+    "session_cookie_present": true
+  },
+  "upload": {
+    "status": 201,
+    "elapsedSeconds": 0.225,
+    "body": {
+      "success": true,
+      "message": "File uploaded and queued for processing",
+      "data": {
+        "runId": "cmplgmeu80004p93c606kl1if",
+        "jobId": "e9c6c359-2375-4435-b918-1967a9c87edf",
+        "fileId": "cmplgmeu00002p93cmmcctc5a",
+        "fileName": "astana_synthetic_data.csv",
+        "fileSize": 2209059,
+        "preview": {
+          "columns": [
+            "Event_ID",
+            "Timestamp",
+            "Vehicle_Type",
+            "Speed_kmh",
+            "Latitude",
+            "Longitude",
+            "Event_Type",
+            "Severity",
+            "Traffic_Density"
+          ],
+          "rowCount": 30000,
+          "sampleRows": [
+            {
+              "Event_ID": "1",
+              "Timestamp": "2024-06-22 00:35:01",
+              "Vehicle_Type": "Car",
+              "Speed_kmh": "116",
+              "Latitude": "51.122808",
+              "Longitude": "71.511946",
+              "Event_Type": "Normal",
+              "Severity": "Low",
+              "Traffic_Density": "74.4"
+            },
+            {
+              "Event_ID": "2",
+              "Timestamp": "2024-06-22 00:40:31",
+              "Vehicle_Type": "Truck",
+              "Speed_kmh": "37",
+              "Latitude": "51.161741",
+              "Longitude": "71.485211",
+              "Event_Type": "Normal",
+              "Severity": "Low",
+              "Traffic_Density": "77.13"
+            },
+            {
+              "Event_ID": "3",
+              "Timestamp": "2024-06-22 00:54:39",
+              "Vehicle_Type": "Bicycle",
+              "Speed_kmh": "62",
+              "Latitude": "51.135479",
+              "Longitude": "71.467854",
+              "Event_Type": "Normal",
+              "Severity": "Low",
+              "Traffic_Density": "79.19"
+            }
+          ]
+        }
+      }
+    },
+    "runId": "cmplgmeu80004p93c606kl1if",
+    "uploadPreviewRowCount": 30000
+  },
+  "polling": {
+    "polls": [
+      {
+        "elapsedSincePollStart": 0.0,
+        "status_code": 200,
+        "payload": {
+          "success": true,
+          "data": {
+            "id": "cmplgmeu80004p93c606kl1if",
+            "organizationId": "cmplgi33b0000ms3cbxp9dcda",
+            "status": "processing",
+            "sourceFileName": "astana_synthetic_data.csv",
+            "sourceFileId": "cmplgmeu00002p93cmmcctc5a",
+            "rowsIngested": 0,
+            "rowsCleaned": 0,
+            "rowsErrors": 0,
+            "processingTimeMs": 0,
+            "jobId": "e9c6c359-2375-4435-b918-1967a9c87edf",
+            "errorMessage": null,
+            "summary": null,
+            "resultFileId": null,
+            "resultFileSize": null,
+            "createdAt": "2026-05-25T17:07:57.728Z",
+            "updatedAt": "2026-05-25T17:07:57.746Z",
+            "sourceFile": {
+              "id": "cmplgmeu00002p93cmmcctc5a",
+              "organizationId": "cmplgi33b0000ms3cbxp9dcda",
+              "fileName": "astana_synthetic_data.csv",
+              "fileSize": 2209059,
+              "mimeType": "text/csv",
+              "s3Key": "source/cmplgi33b0000ms3cbxp9dcda/1779728877650_iriv7fa_astana_synthetic_data.csv",
+              "createdAt": "2026-05-25T17:07:57.721Z",
+              "updatedAt": "2026-05-25T17:07:57.721Z"
+            },
+            "resultFile": null
+          }
+        },
+        "run_status": "processing"
+      },
+      {
+        "elapsedSincePollStart": 1.877,
+        "status_code": 200,
+        "payload": {
+          "success": true,
+          "data": {
+            "id": "cmplgmeu80004p93c606kl1if",
+            "organizationId": "cmplgi33b0000ms3cbxp9dcda",
+            "status": "completed",
+            "sourceFileName": "astana_synthetic_data.csv",
+            "sourceFileId": "cmplgmeu00002p93cmmcctc5a",
+            "rowsIngested": 30000,
+            "rowsCleaned": 30000,
+            "rowsErrors": 0,
+            "processingTimeMs": 406,
+            "jobId": "e9c6c359-2375-4435-b918-1967a9c87edf",
+            "errorMessage": null,
+            "summary": "{\"overview\":\"Analysis of the 30,000 records from astana_synthetic_data.csv. The dataset is highly clean, with 30,000 records successfully processed. \",\"scores\":{\"initial\":100,\"final\":100},\"insights\":[\"Identified 5 numeric fields and 4 categorical fields.\",\"No significant schema violations or anomalies were detected.\"],\"recommendation\":\"Proceed with downstream analytics.\"}",
+            "resultFileId": "cmplgmf5u0006p93cn2mz08a7",
+            "resultFileSize": null,
+            "createdAt": "2026-05-25T17:07:57.728Z",
+            "updatedAt": "2026-05-25T17:07:58.151Z",
+            "sourceFile": {
+              "id": "cmplgmeu00002p93cmmcctc5a",
+              "organizationId": "cmplgi33b0000ms3cbxp9dcda",
+              "fileName": "astana_synthetic_data.csv",
+              "fileSize": 2209059,
+              "mimeType": "text/csv",
+              "s3Key": "source/cmplgi33b0000ms3cbxp9dcda/1779728877650_iriv7fa_astana_synthetic_data.csv",
+              "createdAt": "2026-05-25T17:07:57.721Z",
+              "updatedAt": "2026-05-25T17:07:57.721Z"
+            },
+            "resultFile": {
+              "id": "cmplgmf5u0006p93cn2mz08a7",
+              "organizationId": "cmplgi33b0000ms3cbxp9dcda",
+              "fileName": "astana_synthetic_data.csv_cleaned",
+              "fileSize": 2182436,
+              "mimeType": "text/csv",
+              "s3Key": "results/cmplgi33b0000ms3cbxp9dcda/1779728878114_pt8inl8_astana_synthetic_data.csv_cleaned",
+              "createdAt": "2026-05-25T17:07:58.147Z",
+              "updatedAt": "2026-05-25T17:07:58.147Z"
+            }
+          }
+        },
+        "run_status": "completed"
+      }
+    ],
+    "elapsedSeconds": 1.885,
+    "finalStatus": "completed"
+  },
+  "finalRun": {
+    "id": "cmplgmeu80004p93c606kl1if",
+    "organizationId": "cmplgi33b0000ms3cbxp9dcda",
+    "status": "completed",
+    "sourceFileName": "astana_synthetic_data.csv",
+    "sourceFileId": "cmplgmeu00002p93cmmcctc5a",
+    "rowsIngested": 30000,
+    "rowsCleaned": 30000,
+    "rowsErrors": 0,
+    "processingTimeMs": 406,
+    "jobId": "e9c6c359-2375-4435-b918-1967a9c87edf",
+    "errorMessage": null,
+    "summary": "{\"overview\":\"Analysis of the 30,000 records from astana_synthetic_data.csv. The dataset is highly clean, with 30,000 records successfully processed. \",\"scores\":{\"initial\":100,\"final\":100},\"insights\":[\"Identified 5 numeric fields and 4 categorical fields.\",\"No significant schema violations or anomalies were detected.\"],\"recommendation\":\"Proceed with downstream analytics.\"}",
+    "resultFileId": "cmplgmf5u0006p93cn2mz08a7",
+    "resultFileSize": null,
+    "createdAt": "2026-05-25T17:07:57.728Z",
+    "updatedAt": "2026-05-25T17:07:58.151Z",
+    "sourceFile": {
+      "id": "cmplgmeu00002p93cmmcctc5a",
+      "organizationId": "cmplgi33b0000ms3cbxp9dcda",
+      "fileName": "astana_synthetic_data.csv",
+      "fileSize": 2209059,
+      "mimeType": "text/csv",
+      "s3Key": "source/cmplgi33b0000ms3cbxp9dcda/1779728877650_iriv7fa_astana_synthetic_data.csv",
+      "createdAt": "2026-05-25T17:07:57.721Z",
+      "updatedAt": "2026-05-25T17:07:57.721Z"
+    },
+    "resultFile": {
+      "id": "cmplgmf5u0006p93cn2mz08a7",
+      "organizationId": "cmplgi33b0000ms3cbxp9dcda",
+      "fileName": "astana_synthetic_data.csv_cleaned",
+      "fileSize": 2182436,
+      "mimeType": "text/csv",
+      "s3Key": "results/cmplgi33b0000ms3cbxp9dcda/1779728878114_pt8inl8_astana_synthetic_data.csv_cleaned",
+      "createdAt": "2026-05-25T17:07:58.147Z",
+      "updatedAt": "2026-05-25T17:07:58.147Z"
+    }
+  },
+  "preview": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "data": {
+        "runId": "cmplgmeu80004p93c606kl1if",
+        "fileName": "astana_synthetic_data.csv",
+        "fileSize": 2209059,
+        "status": "completed",
+        "columns": [
+          "Event_ID",
+          "Timestamp",
+          "Vehicle_Type",
+          "Speed_kmh",
+          "Latitude",
+          "Longitude",
+          "Event_Type",
+          "Severity",
+          "Traffic_Density"
+        ],
+        "preview": [
+          {
+            "Event_ID": "1",
+            "Timestamp": "2024-06-22 00:35:01",
+            "Vehicle_Type": "Car",
+            "Speed_kmh": "116",
+            "Latitude": "51.122808",
+            "Longitude": "71.511946",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "74.4"
+          },
+          {
+            "Event_ID": "2",
+            "Timestamp": "2024-06-22 00:40:31",
+            "Vehicle_Type": "Truck",
+            "Speed_kmh": "37",
+            "Latitude": "51.161741",
+            "Longitude": "71.485211",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "77.13"
+          },
+          {
+            "Event_ID": "3",
+            "Timestamp": "2024-06-22 00:54:39",
+            "Vehicle_Type": "Bicycle",
+            "Speed_kmh": "62",
+            "Latitude": "51.135479",
+            "Longitude": "71.467854",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "79.19"
+          },
+          {
+            "Event_ID": "4",
+            "Timestamp": "2024-06-22 01:03:20",
+            "Vehicle_Type": "Bicycle",
+            "Speed_kmh": "74",
+            "Latitude": "51.144303",
+            "Longitude": "71.383216",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "76.53"
+          },
+          {
+            "Event_ID": "5",
+            "Timestamp": "2024-06-22 02:17:19",
+            "Vehicle_Type": "Truck",
+            "Speed_kmh": "41",
+            "Latitude": "51.193332",
+            "Longitude": "71.401543",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "85.74"
+          },
+          {
+            "Event_ID": "6",
+            "Timestamp": "2024-06-22 02:26:31",
+            "Vehicle_Type": "Car",
+            "Speed_kmh": "88",
+            "Latitude": "51.150693",
+            "Longitude": "71.532198",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "87.19"
+          },
+          {
+            "Event_ID": "7",
+            "Timestamp": "2024-06-22 02:29:28",
+            "Vehicle_Type": "Car",
+            "Speed_kmh": "113",
+            "Latitude": "51.145764",
+            "Longitude": "71.477012",
+            "Event_Type": "Sudden De-celeration",
+            "Severity": "High",
+            "Traffic_Density": "111.31"
+          },
+          {
+            "Event_ID": "8",
+            "Timestamp": "2024-06-22 02:48:01",
+            "Vehicle_Type": "Bus",
+            "Speed_kmh": "88",
+            "Latitude": "51.092912",
+            "Longitude": "71.413405",
+            "Event_Type": "Accident",
+            "Severity": "High",
+            "Traffic_Density": "103.42"
+          },
+          {
+            "Event_ID": "9",
+            "Timestamp": "2024-06-22 02:53:51",
+            "Vehicle_Type": "Truck",
+            "Speed_kmh": "12",
+            "Latitude": "51.126861",
+            "Longitude": "71.463967",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "84.12"
+          },
+          {
+            "Event_ID": "10",
+            "Timestamp": "2024-06-22 03:14:06",
+            "Vehicle_Type": "Car",
+            "Speed_kmh": "99",
+            "Latitude": "51.105896",
+            "Longitude": "71.423858",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "84.57"
+          },
+          {
+            "Event_ID": "11",
+            "Timestamp": "2024-06-22 03:56:48",
+            "Vehicle_Type": "Bus",
+            "Speed_kmh": "25",
+            "Latitude": "51.135587",
+            "Longitude": "71.565126",
+            "Event_Type": "Congestion",
+            "Severity": "High",
+            "Traffic_Density": "139.89"
+          },
+          {
+            "Event_ID": "12",
+            "Timestamp": "2024-06-22 04:16:03",
+            "Vehicle_Type": "Bicycle",
+            "Speed_kmh": "70",
+            "Latitude": "51.138815",
+            "Longitude": "71.384111",
+            "Event_Type": "Accident",
+            "Severity": "High",
+            "Traffic_Density": "119.07"
+          },
+          {
+            "Event_ID": "13",
+            "Timestamp": "2024-06-22 04:48:38",
+            "Vehicle_Type": "Bus",
+            "Speed_kmh": "69",
+            "Latitude": "51.136032",
+            "Longitude": "71.550839",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "66.93"
+          },
+          {
+            "Event_ID": "14",
+            "Timestamp": "2024-06-22 05:15:11",
+            "Vehicle_Type": "Motorcycle",
+            "Speed_kmh": "48",
+            "Latitude": "51.162148",
+            "Longitude": "71.441338",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "64.25"
+          },
+          {
+            "Event_ID": "15",
+            "Timestamp": "2024-06-22 05:47:12",
+            "Vehicle_Type": "Bicycle",
+            "Speed_kmh": "43",
+            "Latitude": "51.191112",
+            "Longitude": "71.440675",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "62.35"
+          },
+          {
+            "Event_ID": "16",
+            "Timestamp": "2024-06-22 05:47:14",
+            "Vehicle_Type": "Truck",
+            "Speed_kmh": "0",
+            "Latitude": "51.153976",
+            "Longitude": "71.3461",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "66.07"
+          },
+          {
+            "Event_ID": "17",
+            "Timestamp": "2024-06-22 06:28:26",
+            "Vehicle_Type": "Car",
+            "Speed_kmh": "102",
+            "Latitude": "51.170194",
+            "Longitude": "71.420198",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "65.34"
+          },
+          {
+            "Event_ID": "18",
+            "Timestamp": "2024-06-22 07:26:43",
+            "Vehicle_Type": "Bicycle",
+            "Speed_kmh": "103",
+            "Latitude": "51.142078",
+            "Longitude": "71.450219",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "60.82"
+          },
+          {
+            "Event_ID": "19",
+            "Timestamp": "2024-06-22 08:01:11",
+            "Vehicle_Type": "Car",
+            "Speed_kmh": "94",
+            "Latitude": "51.18771",
+            "Longitude": "71.403456",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "60.91"
+          },
+          {
+            "Event_ID": "20",
+            "Timestamp": "2024-06-22 08:04:41",
+            "Vehicle_Type": "Bicycle",
+            "Speed_kmh": "107",
+            "Latitude": "51.165286",
+            "Longitude": "71.431691",
+            "Event_Type": "Normal",
+            "Severity": "Low",
+            "Traffic_Density": "63.23"
+          }
+        ],
+        "stats": {
+          "rowsIngested": 30000,
+          "rowsCleaned": 30000,
+          "rowsErrors": 0,
+          "processingTimeMs": 406
+        },
+        "createdAt": "2026-05-25T17:07:57.728Z",
+        "updatedAt": "2026-05-25T17:07:58.151Z"
+      }
+    }
+  },
+  "exportHistory": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "data": []
+    }
+  },
+  "parsedSummary": {
+    "overview": "Analysis of the 30,000 records from astana_synthetic_data.csv. The dataset is highly clean, with 30,000 records successfully processed. ",
+    "scores": {
+      "initial": 100,
+      "final": 100
+    },
+    "insights": [
+      "Identified 5 numeric fields and 4 categorical fields.",
+      "No significant schema violations or anomalies were detected."
+    ],
+    "recommendation": "Proceed with downstream analytics."
+  },
+  "errors": [],
+  "completedAt": "2026-05-25T17:07:59.707716+00:00",
+  "uploadHttpSuccess": true,
+  "experimentNotes": "Upload returns HTTP 201 on success."
+}

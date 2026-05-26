@@ -1,0 +1,30 @@
+%% Flowmatic Smart City workbench — streaming-ish path vs thesis Kafka diagram. Render: mmdc -i 02-smart-city-streaming.mmd -o 02-smart-city-streaming.png
+flowchart LR
+  subgraph edge["Edge / demo services"]
+    SIM["sensor-simulator\n(HTTP ingest)"]
+  end
+
+  subgraph core["NestJS Smart City domain"]
+    API["smart-city controller / service"]
+    EV["Persisted sensor events\n& pipeline runs"]
+    Q2["Queues: boss + smart-city-stage-export"]
+    INF["MODEL_INFERENCE_URL\n(for Hub / deployed models)"]
+  end
+
+  subgraph federated_demo["Optional coordination"]
+    FED["federated-coordinator-demo\n(HTTP/WebSocket protocols)"]
+  end
+
+  subgraph lake["Medallion data lake targets"]
+    S3LAK["S3-compatible lake\nbronze → silver → gold prefixes"]
+    ADP["Export adapters\n(HF / Postgres / Mongo / files)"]
+  end
+
+  SIM -->|poll / push events| API
+  API --> EV
+  API --> Q2
+  API --> INF
+  API <-->|training metadata| FED
+  Q2 --> S3LAK
+  Q2 --> ADP
+  API -->|"lake browse / backfill"| S3LAK

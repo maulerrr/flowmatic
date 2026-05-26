@@ -14,6 +14,7 @@ const email = ref('')
 const password = ref('')
 const displayName = ref('')
 const organizationName = ref('')
+const huggingFaceToken = ref('')
 const isLoading = ref(false)
 const error = ref('')
 
@@ -39,6 +40,7 @@ async function handleSubmit() {
 				password: password.value,
 				displayName: displayName.value,
 				organizationName: organizationName.value || undefined,
+				huggingFaceToken: huggingFaceToken.value.trim() || undefined,
 			})
 		}
 
@@ -185,6 +187,23 @@ function toggleMode() {
 								:disabled="isLoading"
 								class="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-foreground/40 transition-all duration-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
 							/>
+						</div>
+
+						<div v-if="mode === 'register'" class="space-y-2.5">
+							<label for="huggingFaceToken" class="text-sm font-medium text-foreground/80">
+								Hugging Face token <span class="text-foreground/40 font-normal">(optional)</span>
+							</label>
+							<input
+								id="huggingFaceToken"
+								v-model="huggingFaceToken"
+								type="password"
+								placeholder="hf_... — reused for exports and core unit models"
+								:disabled="isLoading"
+								class="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder:text-foreground/40 transition-all duration-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+							/>
+							<p class="text-xs text-foreground/50">
+								Saved securely for your organization. You can change it later in Settings.
+							</p>
 						</div>
 
 						<!-- Error Message -->

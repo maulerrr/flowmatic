@@ -21,4 +21,5 @@ data/
 backend/model-artifacts/
 models/datasets/
 models/checkpoints/
-models/artifacts/
+thesis/experiments/*_report.json
+thesis/experiments/continuous_export_test_report.json

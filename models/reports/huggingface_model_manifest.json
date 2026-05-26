@@ -1,0 +1,118 @@
+{
+  "uploadedAt": "2026-05-26T07:16:02.937486+00:00",
+  "username": "pushthetempo",
+  "models": [
+    {
+      "repoId": "pushthetempo/flowmatic-astana-autoencoder-anomaly-repair",
+      "slug": "flowmatic-astana-autoencoder-anomaly-repair",
+      "sourceRun": "astana_autoencoder_anomaly_repair",
+      "kind": "autoencoder",
+      "dataset": "astana",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-astana-autoencoder-anomaly-repair"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-ett-dlinear-energy-forecaster",
+      "slug": "flowmatic-ett-dlinear-energy-forecaster",
+      "sourceRun": "q1_hf_ett_dlinear_energy_forecaster_seed2026",
+      "kind": "dlinear_forecast",
+      "dataset": "hf_ett",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-ett-dlinear-energy-forecaster"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-astana-gru-speed-forecaster",
+      "slug": "flowmatic-astana-gru-speed-forecaster",
+      "sourceRun": "astana_gru_speed_forecaster",
+      "kind": "gru_forecast",
+      "dataset": "astana",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-astana-gru-speed-forecaster"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-astana-itransformer-speed-forecaster",
+      "slug": "flowmatic-astana-itransformer-speed-forecaster",
+      "sourceRun": "q1_astana_itransformer_speed_forecaster_seed42",
+      "kind": "itransformer_forecast",
+      "dataset": "astana",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-astana-itransformer-speed-forecaster"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-ett-nlinear-energy-forecaster",
+      "slug": "flowmatic-ett-nlinear-energy-forecaster",
+      "sourceRun": "q1_hf_ett_nlinear_energy_forecaster_seed7",
+      "kind": "nlinear_forecast",
+      "dataset": "hf_ett",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-ett-nlinear-energy-forecaster"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-astana-patchtst-density-forecaster",
+      "slug": "flowmatic-astana-patchtst-density-forecaster",
+      "sourceRun": "q1_astana_patchtst_density_forecaster_seed7",
+      "kind": "patchtst_forecast",
+      "dataset": "astana",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-astana-patchtst-density-forecaster"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-astana-saits-imputer",
+      "slug": "flowmatic-astana-saits-imputer",
+      "sourceRun": "q1_astana_saits_imputer_seed2026",
+      "kind": "saits_imputer",
+      "dataset": "astana",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-astana-saits-imputer"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-traffic-stgcn-traffic-forecaster",
+      "slug": "flowmatic-traffic-stgcn-traffic-forecaster",
+      "sourceRun": "hf_traffic_stgcn_forecaster",
+      "kind": "stgcn_forecast",
+      "dataset": "hf_traffic",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-traffic-stgcn-traffic-forecaster"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-astana-tcn-density-forecaster",
+      "slug": "flowmatic-astana-tcn-density-forecaster",
+      "sourceRun": "astana_tcn_density_forecaster",
+      "kind": "tcn_forecast",
+      "dataset": "astana",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-astana-tcn-density-forecaster"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-ett-tcn-density-forecaster",
+      "slug": "flowmatic-ett-tcn-density-forecaster",
+      "sourceRun": "hf_ett_tcn_energy_forecaster",
+      "kind": "tcn_forecast",
+      "dataset": "hf_ett",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-ett-tcn-density-forecaster"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-weather-timesblock-weather-forecaster",
+      "slug": "flowmatic-weather-timesblock-weather-forecaster",
+      "sourceRun": "q1_hf_weather_timesblock_forecaster_seed2026",
+      "kind": "timesblock_forecast",
+      "dataset": "hf_weather",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-weather-timesblock-weather-forecaster"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-astana-tranad-anomaly-detector",
+      "slug": "flowmatic-astana-tranad-anomaly-detector",
+      "sourceRun": "q1_astana_tranad_anomaly_detector_seed42",
+      "kind": "tranad_anomaly",
+      "dataset": "astana",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-astana-tranad-anomaly-detector"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-astana-transformer-severity-classifier",
+      "slug": "flowmatic-astana-transformer-severity-classifier",
+      "sourceRun": "q1_astana_transformer_severity_classifier_seed7",
+      "kind": "transformer_classifier",
+      "dataset": "astana",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-astana-transformer-severity-classifier"
+    },
+    {
+      "repoId": "pushthetempo/flowmatic-weather-transformer-forecast",
+      "slug": "flowmatic-weather-transformer-forecast",
+      "sourceRun": "hf_weather_transformer_forecaster",
+      "kind": "transformer_forecast",
+      "dataset": "hf_weather",
+      "hubUrl": "https://huggingface.co/pushthetempo/flowmatic-weather-transformer-forecast"
+    }
+  ]
+}

@@ -18,6 +18,45 @@ export interface User {
 	role: 'admin' | 'member' | 'viewer'
 	createdAt: string
 	organizations?: OrganizationMembership[]
+	huggingFaceIntegration?: HuggingFaceIntegrationStatus
+}
+
+export interface HuggingFaceIntegrationStatus {
+	configured: boolean
+	username?: string
+	tokenPreview?: string
+}
+
+export interface HuggingFaceModelResources {
+	recommendedDevice: 'cpu' | 'gpu'
+	estimatedRamGb: number
+	estimatedVramGb: number | null
+	estimatedStorageGb: number
+	inferenceProvider: 'flowmatic-local' | 'dedicated-gpu-recommended'
+	notes: string[]
+}
+
+export interface HuggingFaceModelSummary {
+	id: string
+	author: string
+	modelId: string
+	private: boolean
+	downloads: number
+	likes: number
+	tags: string[]
+	pipelineTag?: string
+	library?: string
+	lastModified?: string
+	resources: HuggingFaceModelResources
+}
+
+export interface HuggingFaceModelCatalogPage {
+	username: string
+	items: HuggingFaceModelSummary[]
+	page: number
+	limit: number
+	total: number
+	hasMore: boolean
 }
 
 export interface Organization {
@@ -294,6 +333,13 @@ export interface SmartCityExportRun {
 	updatedAt: string
 }
 
+export interface SmartCityExportPreview {
+	stage: 'raw' | 'cleaned' | 'business'
+	rowCount: number
+	columns: string[]
+	rows: Record<string, unknown>[]
+}
+
 export interface DataLakeObject {
 	key: string
 	size: number
@@ -374,6 +420,207 @@ export interface SmartCityObservability {
 	lastEventAt: string | null
 	lastExportAt: string | null
 	lastTrainingAt: string | null
+}
+
+export type CopilotVizType =
+	| 'area'
+	| 'bar'
+	| 'donut'
+	| 'table'
+	| 'kpi'
+	| 'funnel'
+	| 'scatter'
+	| 'map'
+	| 'heatmap'
+	| 'timeline'
+
+export interface CopilotVizSpec {
+	id: string
+	title: string
+	subtitle?: string
+	type: CopilotVizType
+	labels: string[]
+	series: Array<{ name: string; values: number[]; color?: string }>
+	rows?: Array<Record<string, string | number | null>>
+	kpis?: Array<{ label: string; value: string | number; hint?: string }>
+	meta?: Record<string, unknown>
+}
+
+export interface CopilotChip {
+	id: string
+	label: string
+	category: 'overview' | 'sources' | 'core' | 'exports' | 'data'
+	priority: number
+}
+
+export interface CopilotVizCommand {
+	id: string
+	slash: string
+	label: string
+	description: string
+	category: CopilotChip['category']
+}
+
+export interface PipelineCopilotContext {
+	generatedAt: string
+	windowHours: number
+	pipeline: {
+		id: string
+		name: string
+		status: string
+		description: string | null
+		isLive: boolean
+	}
+	runtime: {
+		wsConnected: boolean
+		runningSources: number
+		recentEventsBuffered: number
+		exportCadenceSeconds: number | null
+	}
+	sources: {
+		total: number
+		running: number
+		errors: number
+		items: Array<{
+			id: string
+			name: string
+			type: string
+			sensorKind: string
+			mode: string
+			status: string
+			lastSeenAt: string | null
+			lastError: string | null
+		}>
+	}
+	coreUnit: {
+		activeModelId: string | null
+		activeModelLabel: string
+		coreUnitMode?: 'manual' | 'auto'
+		autoRoutingSummary?: string | null
+		lastAutoResolution?: {
+			modelId: string
+			label: string
+			reason: string
+			sensorKind: string
+			at: string
+		} | null
+		autoCleaning: boolean
+		anomalyDetection: boolean
+		schemaValidation: boolean
+	}
+	exports: {
+		targetCount: number
+		continuousCount: number
+		errorTargetCount: number
+		successRuns24h: number
+		failedRuns24h: number
+		totalRowsExported24h: number
+		targets: Array<Record<string, unknown>>
+		recentRuns: Array<Record<string, unknown>>
+	}
+	dataFlow: {
+		totalEvents: number
+		eventsLast24h: number
+		lastEventAt: string | null
+		stageCounts: { raw: number; cleaned: number; business: number }
+		hourlyEvents: Array<{ hour: string; count: number }>
+		hourlyExportRows: Array<{ hour: string; rows: number }>
+		qualitySample?: { missingPct: number; duplicatePct: number; outlierPct: number }
+	}
+	summaryText: string
+	llmEnabled: boolean
+	chips: CopilotChip[]
+	vizCommands: CopilotVizCommand[]
+	primaryVisualizations: CopilotVizSpec[]
+}
+
+export interface PipelineCopilotChatTurn {
+	id: string
+	role: 'assistant' | 'user'
+	text: string
+	chipId?: string
+	answerSource?: 'llm' | 'rules' | 'system'
+	visualization?: CopilotVizSpec
+}
+
+export interface PipelineCopilotChatResponse {
+	context: PipelineCopilotContext
+	turn: PipelineCopilotChatTurn
+}
+
+export type InsightDepth = 'quick' | 'standard' | 'deep'
+export type InsightFocus = 'all' | 'ops' | 'quality' | 'geo' | 'exports'
+
+export interface PipelineInsightConfig {
+	intervalMinutes: number
+	depth: InsightDepth
+	focus: InsightFocus
+	enabled: boolean
+	lastRunAt: string | null
+	nextRunAt: string | null
+}
+
+export interface InsightFinding {
+	id: string
+	category: 'pattern' | 'correlation' | 'anomaly' | 'quality' | 'ops' | 'geo'
+	severity: 'info' | 'warning' | 'critical'
+	title: string
+	summary: string
+	evidence?: Record<string, unknown>
+	recommendedViz?: string
+}
+
+export interface InsightAction {
+	id: string
+	label: string
+	description: string
+	priority: 'low' | 'medium' | 'high'
+	kind: 'ops' | 'quality' | 'export' | 'source' | 'model'
+}
+
+export interface PipelineDataProfile {
+	generatedAt: string
+	sampleSize: number
+	rowCount: number
+	fields: Array<{
+		name: string
+		kind: string
+		sampleValues: Array<string | number | null>
+		nonNullPct: number
+		uniqueCount: number
+	}>
+	domains: string[]
+	hasGeospatial: boolean
+	hasTimeseries: boolean
+	geoBounds?: {
+		minLat: number
+		maxLat: number
+		minLng: number
+		maxLng: number
+		pointCount: number
+	}
+	latField?: string
+	lngField?: string
+}
+
+export interface PipelineInsightRun {
+	id: string
+	pipelineId: string
+	trigger: 'scheduled' | 'manual'
+	status: string
+	depth: InsightDepth
+	focus: InsightFocus
+	headline: string
+	narrative: string
+	profile: PipelineDataProfile
+	findings: InsightFinding[]
+	actions: InsightAction[]
+	visualizations: CopilotVizSpec[]
+	plannerSource: 'llm' | 'rules'
+	startedAt: string
+	finishedAt: string | null
+	createdAt: string
+	errorMessage?: string | null
 }
 
 export interface SmartCityHttpPollResult {
@@ -514,11 +761,20 @@ export interface FileUploadResponse extends ApiResponse {
 	}
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-const API_VERSION = '/api/v1'
+function resolveApiBaseUrl(): string {
+	const configured = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace(/\/$/, '')
+	if (configured.startsWith('http')) {
+		return configured.includes('/api/v1') ? configured : `${configured}/api/v1`
+	}
+	if (typeof window !== 'undefined') {
+		const originRelative = configured.startsWith('/') ? configured : `/${configured}`
+		return `${window.location.origin}${originRelative}`
+	}
+	return configured.startsWith('/') ? configured : `/${configured}`
+}
 
 export class ApiClient {
-	private baseUrl = `${API_BASE_URL}${API_VERSION}`
+	private baseUrl = resolveApiBaseUrl()
 
 	private async request<T>(
 		method: string,
@@ -589,6 +845,7 @@ export class ApiClient {
 		password: string
 		displayName: string
 		organizationName?: string
+		huggingFaceToken?: string
 	}): Promise<ApiResponse<{ user: User }>> {
 		return this.request('POST', '/auth/register', { body: input })
 	}
@@ -746,6 +1003,32 @@ export class ApiClient {
 		return this.request('PATCH', `/smart-city/pipelines/${id}`, { body: input })
 	}
 
+	async startSmartCityPipeline(
+		id: string,
+		input?: { sourcePollIntervalMs?: number },
+	): Promise<ApiResponse<SmartCityPipeline>> {
+		return this.request('POST', `/smart-city/pipelines/${id}/start`, { body: input ?? {} })
+	}
+
+	async stopSmartCityPipeline(id: string): Promise<ApiResponse<SmartCityPipeline>> {
+		return this.request('POST', `/smart-city/pipelines/${id}/stop`)
+	}
+
+	async resumeSmartCityPipeline(id: string): Promise<ApiResponse<SmartCityPipeline>> {
+		return this.request('POST', `/smart-city/pipelines/${id}/resume`)
+	}
+
+	async updateSmartCityPipelineRuntime(
+		id: string,
+		input: {
+			sourcePollIntervalMs?: number
+			lakeWriteMode?: 'append' | 'object'
+			exportCadenceSeconds?: number
+		},
+	): Promise<ApiResponse<SmartCityPipeline>> {
+		return this.request('PATCH', `/smart-city/pipelines/${id}/runtime`, { body: input })
+	}
+
 	async deleteSmartCityPipeline(id: string): Promise<ApiResponse<{ deleted: boolean }>> {
 		return this.request('DELETE', `/smart-city/pipelines/${id}`)
 	}
@@ -808,6 +1091,76 @@ export class ApiClient {
 		pipelineId: string,
 	): Promise<ApiResponse<SmartCityObservability>> {
 		return this.request('GET', '/smart-city/pipelines/' + pipelineId + '/observability')
+	}
+
+	async getPipelineCopilotContext(
+		pipelineId: string,
+	): Promise<ApiResponse<PipelineCopilotContext>> {
+		return this.request('GET', '/smart-city/pipelines/' + pipelineId + '/copilot/context')
+	}
+
+	async getPipelineCopilotHistory(
+		pipelineId: string,
+	): Promise<ApiResponse<PipelineCopilotChatTurn[]>> {
+		return this.request('GET', '/smart-city/pipelines/' + pipelineId + '/copilot/history')
+	}
+
+	async resetPipelineCopilotSession(
+		pipelineId: string,
+	): Promise<ApiResponse<{ reset: boolean }>> {
+		return this.request('DELETE', '/smart-city/pipelines/' + pipelineId + '/copilot/session')
+	}
+
+	async postPipelineCopilotChat(
+		pipelineId: string,
+		input: { chipId?: string; message?: string },
+	): Promise<ApiResponse<PipelineCopilotChatResponse>> {
+		return this.request('POST', '/smart-city/pipelines/' + pipelineId + '/copilot/chat', {
+			body: input,
+		})
+	}
+
+	async postPipelineCopilotVisualize(
+		pipelineId: string,
+		chipId: string,
+	): Promise<ApiResponse<{ visualization: CopilotVizSpec; text: string }>> {
+		return this.request('POST', '/smart-city/pipelines/' + pipelineId + '/copilot/visualize', {
+			body: { chipId },
+		})
+	}
+
+	async getPipelineInsightConfig(
+		pipelineId: string,
+	): Promise<ApiResponse<PipelineInsightConfig>> {
+		return this.request('GET', '/smart-city/pipelines/' + pipelineId + '/insights/config')
+	}
+
+	async updatePipelineInsightConfig(
+		pipelineId: string,
+		input: Partial<Pick<PipelineInsightConfig, 'intervalMinutes' | 'depth' | 'focus'>>,
+	): Promise<ApiResponse<PipelineInsightConfig>> {
+		return this.request('PATCH', '/smart-city/pipelines/' + pipelineId + '/insights/config', {
+			body: input,
+		})
+	}
+
+	async listPipelineInsightRuns(
+		pipelineId: string,
+	): Promise<ApiResponse<PipelineInsightRun[]>> {
+		return this.request('GET', '/smart-city/pipelines/' + pipelineId + '/insights/runs')
+	}
+
+	async getPipelineInsightRun(
+		pipelineId: string,
+		runId: string,
+	): Promise<ApiResponse<PipelineInsightRun>> {
+		return this.request('GET', '/smart-city/pipelines/' + pipelineId + '/insights/runs/' + runId)
+	}
+
+	async triggerPipelineInsightRun(
+		pipelineId: string,
+	): Promise<ApiResponse<PipelineInsightRun>> {
+		return this.request('POST', '/smart-city/pipelines/' + pipelineId + '/insights/run')
 	}
 
 	async startFederatedRound(
@@ -952,6 +1305,44 @@ export class ApiClient {
 		return this.request('POST', '/smart-city/pipelines/' + pipelineId + '/research-models/' + run + '/deploy')
 	}
 
+	async getHuggingFaceStatus(): Promise<ApiResponse<HuggingFaceIntegrationStatus>> {
+		return this.request('GET', '/integrations/huggingface/status')
+	}
+
+	async saveHuggingFaceToken(token: string): Promise<ApiResponse<HuggingFaceIntegrationStatus>> {
+		return this.request('PUT', '/integrations/huggingface/token', { body: { token } })
+	}
+
+	async removeHuggingFaceToken(): Promise<ApiResponse<HuggingFaceIntegrationStatus>> {
+		return this.request('DELETE', '/integrations/huggingface/token')
+	}
+
+	async listHuggingFaceModels(input?: {
+		search?: string
+		page?: number
+		limit?: number
+	}): Promise<ApiResponse<HuggingFaceModelCatalogPage>> {
+		const params = new URLSearchParams()
+		if (input?.search) params.set('search', input.search)
+		if (input?.page) params.set('page', String(input.page))
+		if (input?.limit) params.set('limit', String(input.limit))
+		const query = params.toString()
+		return this.request('GET', `/integrations/huggingface/models${query ? `?${query}` : ''}`)
+	}
+
+	async getHuggingFaceModel(modelId: string): Promise<ApiResponse<HuggingFaceModelSummary>> {
+		return this.request('GET', `/integrations/huggingface/models/${encodeURIComponent(modelId)}`)
+	}
+
+	async deployHuggingFaceModel(
+		pipelineId: string,
+		modelId: string,
+	): Promise<ApiResponse<SmartCityPipeline>> {
+		return this.request('POST', `/smart-city/pipelines/${pipelineId}/models/huggingface/deploy`, {
+			body: { modelId },
+		})
+	}
+
 	async testProcessing(
 		pipelineId: string,
 		payload: Record<string, unknown> = {},
@@ -959,6 +1350,23 @@ export class ApiClient {
 		return this.request('POST', '/smart-city/pipelines/' + pipelineId + '/test-processing', {
 			body: { payload },
 		})
+	}
+
+	async previewCoreUnitRouting(pipelineId: string): Promise<
+		ApiResponse<{
+			coreUnitMode: 'manual' | 'auto'
+			sensorKinds: string[]
+			activeModelId: string | null
+			autoRoutingPolicy: Record<string, unknown> | null
+			rulePolicy: Record<string, unknown>
+			lastAutoResolution: Record<string, unknown> | null
+		}>
+	> {
+		return this.request('GET', `/smart-city/pipelines/${pipelineId}/core-unit/routing-preview`)
+	}
+
+	async buildCoreUnitAutoPolicy(pipelineId: string): Promise<ApiResponse<SmartCityPipeline>> {
+		return this.request('POST', `/smart-city/pipelines/${pipelineId}/core-unit/auto-policy`)
 	}
 
 	async exportSmartCityPipelineStage(
@@ -1000,6 +1408,15 @@ export class ApiClient {
 		return this.request('GET', '/smart-city/pipelines/' + pipelineId + '/export-runs')
 	}
 
+	async getSmartCityExportPreview(
+		pipelineId: string,
+		stage: 'raw' | 'cleaned' | 'business' = 'cleaned',
+		limit = 10,
+	): Promise<ApiResponse<SmartCityExportPreview>> {
+		const params = new URLSearchParams({ stage, limit: String(limit) })
+		return this.request('GET', `/smart-city/pipelines/${pipelineId}/export-preview?${params}`)
+	}
+
 	async createSmartCityExportTarget(
 		pipelineId: string,
 		input: {
@@ -1038,6 +1455,12 @@ export class ApiClient {
 		targetId: string,
 	): Promise<ApiResponse<{ queued: boolean; targetId: string }>> {
 		return this.request('POST', '/smart-city/export-targets/' + targetId + '/run')
+	}
+
+	async deleteSmartCityExportTarget(
+		targetId: string,
+	): Promise<ApiResponse<{ deleted: boolean; id: string }>> {
+		return this.request('DELETE', '/smart-city/export-targets/' + targetId)
 	}
 
 	async listSmartCityDataLakeObjects(

@@ -1,12 +1,13 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { PrismaModule } from 'src/prisma/prisma.module'
 import { AppConfigModule } from 'src/common/config/config.module'
+import { ExportModule } from '../export/export.module'
 import { AuthController } from './auth.controller'
 import { AuthContextService } from './auth-context.service'
 import { AuthGuard } from './auth.guard'
 
 @Module({
-	imports: [PrismaModule, AppConfigModule],
+	imports: [PrismaModule, AppConfigModule, forwardRef(() => ExportModule)],
 	controllers: [AuthController],
 	providers: [AuthContextService, AuthGuard],
 	exports: [AuthContextService, AuthGuard],

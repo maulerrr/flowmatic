@@ -1,0 +1,39 @@
+%% Flowmatic: tabular batch upload pipeline (NestJS). Render: mmdc -i 01-batch-upload-pipeline.mmd -o 01-batch-upload-pipeline.png
+flowchart TB
+  subgraph client["Client tier"]
+    FE["Vue SPA / browser"]
+  end
+
+  subgraph api["API tier — NestJS"]
+    AUTH["Auth & session"]
+    ING["Ingestion: upload CSV/JSON"]
+    PIPE_API["Pipelines & analytics REST"]
+    EXP["Export orchestration"]
+    INT["Integrations (e.g. Hugging Face token)"]
+  end
+
+  subgraph async["Async execution"]
+    Q["Queue: RabbitMQ or PgBoss"]
+    WORK["Pipeline worker: download → parse → quality → clean → result upload"]
+    LLM["LLM summary (optional)"]
+  end
+
+  subgraph data["Persistence & object store"]
+    PG[("PostgreSQL\n(Prisma: runs, orgs, files)")]
+    S3[("S3-compatible\nMinIO in dev")]
+  end
+
+  FE --> AUTH
+  FE --> ING
+  FE --> PIPE_API
+  FE --> EXP
+  ING --> S3
+  ING --> PG
+  ING --> Q
+  Q --> WORK
+  WORK --> S3
+  WORK --> PG
+  WORK --> LLM
+  EXP --> S3
+  EXP --> PG
+  INT --> EXP

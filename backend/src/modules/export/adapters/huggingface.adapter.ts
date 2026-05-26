@@ -5,17 +5,31 @@ import {
 	ExportResult,
 	HuggingFaceConfig,
 } from '../types/export.types'
-import { whoAmI, createRepo, uploadFile } from '@huggingface/hub'
-import { rowsToCsv } from 'src/common/utils/csv-parser.util'
+import { whoAmI, createRepo, uploadFile, downloadFile } from '@huggingface/hub'
+import { parseCsvBuffer, rowsToCsv } from 'src/common/utils/csv-parser.util'
+import {
+	HOURLY_MANIFEST_PATH,
+	HourlyCsvManifest,
+	HourlyPartUploadSummary,
+	buildDatasetDescription,
+	buildHourlyReadme,
+	createEmptyHourlyManifest,
+	groupRowsByHour,
+	hourlyPartPath,
+	mergeRowsByEventId,
+	updateManifestPart,
+} from '../utils/hourly-csv-partition.util'
+
+type DatasetRepo = { type: 'dataset'; name: string }
 
 /**
  * Hugging Face Export Adapter
- * Uploads cleaned data to Hugging Face Datasets
+ * Uploads cleaned data to Hugging Face Datasets as hourly UTC CSV parts.
  */
 export class HuggingFaceExportAdapter extends BaseExportAdapter {
 	type = ExportAdapterType.HUGGINGFACE
 	name = 'Hugging Face Datasets'
-	description = 'Export data to Hugging Face Datasets hub'
+	description = 'Export data to Hugging Face Datasets hub as hourly UTC CSV parts'
 	requiredSettings = ['token', 'repoName']
 
 	async validate(
@@ -35,7 +49,6 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 			errors.push('Repository name cannot be empty')
 		}
 
-		// Validate repo name format
 		if (config.repoName && !/^[a-zA-Z0-9_-]+$/.test(config.repoName)) {
 			errors.push(
 				'Repository name can only contain alphanumeric characters, hyphens, and underscores',
@@ -55,100 +68,110 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 
 		try {
 			const convertedData = this.convertData(data)
+			const user = await whoAmI({ accessToken: hfConfig.token })
+			const fullRepoId = `${user.name}/${hfConfig.repoName.trim()}`
+			const repo = this.datasetRepo(fullRepoId)
 
 			if (convertedData.length === 0) {
 				return {
 					success: true,
 					adapterType: this.type,
-					fileName: config.fileName,
-					destination: `huggingface.co/datasets/${hfConfig.repoName}`,
+					fileName: HOURLY_MANIFEST_PATH,
+					destination: `https://huggingface.co/datasets/${fullRepoId}`,
 					recordsExported: 0,
-					message: 'No data to export',
+					message: 'No new rows to export',
 				}
 			}
 
-			// Get user info to construct full repo ID
-			const user = await whoAmI({
-				accessToken: hfConfig.token,
-			})
+			await this.ensureDatasetRepo(repo, hfConfig, fullRepoId)
 
-			const fullRepoId = `${user.name}/${hfConfig.repoName}`
-			const datasetRepoId = `datasets/${fullRepoId}` // Dataset repos use datasets/ prefix
+			const hourlyGroups = groupRowsByHour(convertedData)
+			let manifest = (await this.loadManifest(repo, hfConfig.token)) ?? createEmptyHourlyManifest()
+			const uploadedParts: HourlyPartUploadSummary[] = []
+			const previewRows: Record<string, unknown>[] = []
 
-			// Try to create the dataset repo (will fail silently if it already exists)
-			try {
-				await createRepo({
-					repo: datasetRepoId,
-					private: hfConfig.private || false,
+			for (const [hourKey, hourRows] of hourlyGroups.entries()) {
+				const partPath = hourlyPartPath(hourKey)
+				let exportRows = hourRows
+
+				if ((hfConfig.ifExists ?? 'append') === 'append') {
+					const existing = await this.loadExistingCsv(repo, partPath, hfConfig.token)
+					exportRows = mergeRowsByEventId(existing, hourRows)
+				}
+
+				const csvContent = rowsToCsv(exportRows)
+				await uploadFile({
+					repo,
+					file: {
+						path: partPath,
+						content: new Blob([csvContent], { type: 'text/csv' }),
+					},
+					commitTitle:
+						hfConfig.commitMessage ||
+						`Append ${hourRows.length} rows to ${hourKey} (${exportRows.length} in hour file)`,
 					accessToken: hfConfig.token,
 				})
-			} catch {
-				// Repo likely already exists, continue
+
+				const summary: HourlyPartUploadSummary = {
+					hourKey,
+					path: partPath,
+					newRows: hourRows.length,
+					totalRows: exportRows.length,
+				}
+				uploadedParts.push(summary)
+				manifest = updateManifestPart(manifest, summary)
+				previewRows.push(...exportRows.slice(-5))
 			}
 
-			// Convert data to CSV format
-			const fileName = hfConfig.fileName || 'cleaned_data.csv'
-			const csvContent = this.dataToCSV(convertedData)
-
-			// Upload CSV file
 			await uploadFile({
-				repo: datasetRepoId,
+				repo,
 				file: {
-					path: fileName,
-					content: new Blob([csvContent], { type: 'text/csv' }),
+					path: HOURLY_MANIFEST_PATH,
+					content: new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' }),
 				},
-				commitTitle:
-					hfConfig.commitMessage ||
-					`Upload cleaned data from flowmatic pipeline run ${config.pipelineRunId}`,
+				commitTitle: `Update hourly manifest (${manifest.totalRows} total rows)`,
 				accessToken: hfConfig.token,
 			})
 
-			// Generate and upload README.md
-			const readmeContent = this.generateReadme(
-				convertedData,
-				fileName,
-				config.pipelineRunId,
+			const readmeContent = buildHourlyReadme({
+				manifest,
+				pipelineRunId: config.pipelineRunId,
 				fullRepoId,
-			)
+				previewRows,
+			})
 			await uploadFile({
-				repo: datasetRepoId,
+				repo,
 				file: {
 					path: 'README.md',
 					content: new Blob([readmeContent], { type: 'text/markdown' }),
 				},
-				commitTitle: 'Add dataset README with metadata',
+				commitTitle: `Update dataset README (${manifest.totalRows} rows across hourly parts)`,
 				accessToken: hfConfig.token,
 			})
 
-			// Generate and upload datasets.yml for Hub preview
-			const datasetsYamlContent = this.generateDatasetsYaml(convertedData, fileName)
-			await uploadFile({
-				repo: datasetRepoId,
-				file: {
-					path: 'datasets.yml',
-					content: new Blob([datasetsYamlContent], { type: 'text/yaml' }),
-				},
-				commitTitle: 'Add datasets.yml for Hugging Face Hub preview',
-				accessToken: hfConfig.token,
-			})
-
+			const destination = uploadedParts[0]?.path ?? HOURLY_MANIFEST_PATH
 			this.logExport(
 				config,
 				convertedData.length,
-				`huggingface.co/datasets/${fullRepoId}`,
+				`https://huggingface.co/datasets/${fullRepoId}`,
 				'success',
 			)
 
 			return {
 				success: true,
 				adapterType: this.type,
-				fileName: config.fileName,
-				destination: `huggingface.co/datasets/${fullRepoId}/${fileName}`,
+				fileName: destination,
+				destination: `https://huggingface.co/datasets/${fullRepoId}/tree/main/data/hourly`,
 				recordsExported: convertedData.length,
-				message: `Successfully exported ${convertedData.length} records to Hugging Face Datasets`,
+				message: `Exported ${convertedData.length} new rows across ${uploadedParts.length} hourly file(s) (${manifest.totalRows} total rows in dataset)`,
 				metadata: {
 					repoId: fullRepoId,
-					filePath: fileName,
+					partitionScheme: manifest.partitionScheme,
+					manifestPath: HOURLY_MANIFEST_PATH,
+					hourlyParts: uploadedParts,
+					totalRowsInDataset: manifest.totalRows,
+					datasetDescription: buildDatasetDescription(manifest),
+					hubUrl: `https://huggingface.co/datasets/${fullRepoId}`,
 				},
 			}
 		} catch (error) {
@@ -158,152 +181,62 @@ export class HuggingFaceExportAdapter extends BaseExportAdapter {
 		}
 	}
 
-	/**
-	 * Convert data array to CSV string
-	 */
-	private dataToCSV(data: Record<string, unknown>[]): string {
-		return rowsToCsv(data)
+	private datasetRepo(fullRepoId: string): DatasetRepo {
+		return { type: 'dataset', name: fullRepoId }
 	}
 
-	/**
-	 * Generate README.md for the dataset with metadata and column descriptions
-	 */
-	private generateReadme(
-		data: Record<string, unknown>[],
-		fileName: string,
-		pipelineRunId: string,
-		fullRepoId: string,
-	): string {
-		const headers = data.length > 0 ? Object.keys(data[0]) : []
-		const timestamp = new Date().toISOString()
-
-		// Calculate basic statistics
-		const stats = {
-			totalRecords: data.length,
-			totalColumns: headers.length,
-			generatedAt: timestamp,
+	private async ensureDatasetRepo(repo: DatasetRepo, hfConfig: HuggingFaceConfig, fullRepoId: string) {
+		const description = buildDatasetDescription(createEmptyHourlyManifest())
+		try {
+			await createRepo({
+				repo,
+				private: hfConfig.private || false,
+				accessToken: hfConfig.token,
+				description,
+			})
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error)
+			if (this.isExistingRepoError(message)) return
+			throw new Error(`Failed to create Hugging Face dataset repo: ${message}`)
 		}
-
-		// Infer column types and get sample values
-		const columnInfo = headers.map(col => {
-			const values = data.map(row => row[col]).filter(v => v !== null && v !== undefined)
-			const sample = values.slice(0, 3)
-			let type = 'text'
-
-			if (values.every(v => typeof v === 'boolean')) type = 'boolean'
-			else if (values.every(v => Number.isInteger(v))) type = 'integer'
-			else if (values.every(v => typeof v === 'number')) type = 'float'
-			else if (values.every(v => !isNaN(new Date(v as string | number | Date).getTime())))
-				type = 'timestamp'
-
-			return {
-				name: col,
-				type,
-				nonNull: values.length,
-				nullCount: data.length - values.length,
-				sampleValues: sample,
-			}
-		})
-
-		return `---
-dataset_info:
-  features:
-  ${columnInfo.map(col => `- name: ${col.name}\n    dtype: ${col.type}`).join('\n  ')}
-  splits:
-  - name: default
-    num_bytes: ${Math.round(this.dataToCSV(data).length / 1024)}KB
-    num_examples: ${data.length}
----
-
-# Flowmatic Cleaned Dataset
-
-## Overview
-This dataset was cleaned and exported by **Flowmatic**, an intelligent data preparation platform. 
-
-**Pipeline Run ID**: \`${pipelineRunId}\`
-**Generated**: ${timestamp}
-
-## Dataset Statistics
-
-- **Total Records**: ${stats.totalRecords.toLocaleString()}
-- **Total Columns**: ${stats.totalColumns}
-- **File**: \`${fileName}\`
-
-## Column Information
-
-| Column | Type | Non-Null | Null | Sample Values |
-|--------|------|----------|------|---------------|
-${columnInfo.map(col => `| ${col.name} | ${col.type} | ${col.nonNull} | ${col.nullCount} | ${col.sampleValues.map(v => JSON.stringify(v)).join(', ')} |`).join('\n')}
-
-## Data Quality
-
-This dataset has been processed through Flowmatic's cleaning pipeline:
-
-- ✅ Duplicates removed
-- ✅ Missing values handled (interpolation/forward-fill)
-- ✅ Outliers processed (winsorization)
-- ✅ Type consistency validated
-- ✅ Records exported
-
-## Usage
-
-Load the dataset using Hugging Face \`datasets\` library:
-
-\`\`\`python
-from datasets import load_dataset
-
-dataset = load_dataset('${fullRepoId}')
-df = dataset['train'].to_pandas()
-\`\`\`
-
-Or load directly as CSV:
-
-\`\`\`python
-import pandas as pd
-
-df = pd.read_csv('https://huggingface.co/datasets/${fullRepoId}/raw/main/${fileName}')
-\`\`\`
-
-## License
-
-This dataset is released under the CC BY 4.0 license.
-
----
-
-*Processed with [Flowmatic](https://github.com/flowmatic/flowmatic)*
-`
 	}
 
-	/**
-	 * Generate and upload datasets.yml for Hub preview
-	 */
+	private isExistingRepoError(message: string): boolean {
+		return /already exists|already created|repo.*exist|duplicate|409/i.test(message)
+	}
 
-	private generateDatasetsYaml(data: Record<string, unknown>[], fileName: string): string {
-		const headers = data.length > 0 ? Object.keys(data[0]) : []
+	private async loadExistingCsv(
+		repo: DatasetRepo,
+		fileName: string,
+		token: string,
+	): Promise<Record<string, unknown>[]> {
+		try {
+			const file = await downloadFile({
+				repo,
+				path: fileName,
+				accessToken: token,
+			})
+			if (!file) return []
+			const buffer = Buffer.from(await file.arrayBuffer())
+			return parseCsvBuffer(buffer).rows
+		} catch {
+			return []
+		}
+	}
 
-		return `# Datasets Configuration for Hugging Face Hub
-# This configuration enables interactive preview on the Hub
-
-configs:
-  - config_name: default
-    data_files:
-      - path: ${fileName}
-        type: csv
-    description: "Cleaned dataset exported by Flowmatic"
-
-dataset_info:
-  features:
-${headers.map(col => `    - name: ${col}\n      dtype: string\n      description: "Column ${col}"`).join('\n')}
-  splits:
-    - name: train
-      num_bytes: ${Math.round(this.dataToCSV(data).length / 1024)}
-      num_examples: ${data.length}
-  homepage: "https://huggingface.co/spaces/flowmatic/preview"
-  license: cc-by-4.0
-  tags:
-    - cleaned
-    - flowmatic
-    - tabular
-`
+	private async loadManifest(repo: DatasetRepo, token: string): Promise<HourlyCsvManifest | null> {
+		try {
+			const file = await downloadFile({
+				repo,
+				path: HOURLY_MANIFEST_PATH,
+				accessToken: token,
+			})
+			if (!file) return null
+			const parsed = JSON.parse(await file.text()) as HourlyCsvManifest
+			if (!parsed || typeof parsed !== 'object') return null
+			return parsed
+		} catch {
+			return null
+		}
 	}
 }

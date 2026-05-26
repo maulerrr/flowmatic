@@ -32,6 +32,8 @@ model Organization {
   modelTrainingRuns   ModelTrainingRun[]
   modelArtifacts      ModelArtifact[]
   storageFiles        StorageFile[]
+  pipelineCopilotSessions PipelineCopilotSession[]
+  pipelineInsightRuns   PipelineInsightRun[]
 
   @@index([slug])
 }
@@ -214,6 +216,10 @@ model SmartCityPipeline {
   streamConfig         Json     @default("{}")
   activeModelId        String?
   dataLakeConnectionId String?
+  insightIntervalMinutes Int      @default(0)
+  insightDepth           String   @default("standard")
+  insightFocus           String   @default("all")
+  lastInsightRunAt       DateTime?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -222,6 +228,8 @@ model SmartCityPipeline {
   sensorEvents  SensorEvent[]
   exportTargets SmartCityExportTarget[]
   exportRuns    SmartCityExportRun[]
+  copilotSessions PipelineCopilotSession[]
+  insightRuns   PipelineInsightRun[]
 
   @@index([organizationId])
   @@index([status])
@@ -242,6 +250,7 @@ model SmartCityExportTarget {
   status         String   @default("ACTIVE") // ACTIVE, PAUSED, ERROR, ARCHIVED
   cadenceSeconds Int      @default(60)
   lastCursorAt   DateTime?
+  lastCursorEventId String?
   lastRunAt      DateTime?
   lastRunId      String?
   lastError      String?  @db.Text
@@ -415,4 +424,71 @@ model ModelArtifact {
   @@index([trainingRunId])
   @@index([status])
   @@index([createdAt])
+}
+
+// ============================================================================
+// PIPELINE INSIGHTS CHAT (server-side only — persisted per user + pipeline)
+// ============================================================================
+
+model PipelineCopilotSession {
+  id             String   @id @default(cuid())
+  organizationId String
+  pipelineId     String
+  userId         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pipeline     SmartCityPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  messages     PipelineCopilotMessage[]
+
+  @@unique([organizationId, pipelineId, userId])
+  @@index([pipelineId])
+  @@index([userId])
+}
+
+model PipelineCopilotMessage {
+  id                String   @id @default(cuid())
+  sessionId         String
+  role              String
+  text              String   @db.Text
+  chipId            String?
+  answerSource      String   @default("rules") // rules | llm | system
+  visualizationJson Json?
+  createdAt         DateTime @default(now())
+
+  session PipelineCopilotSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+// ============================================================================
+// SCHEDULED PIPELINE AI INSIGHTS (profiler → analysis → planner → viz)
+// ============================================================================
+
+model PipelineInsightRun {
+  id                 String    @id @default(cuid())
+  organizationId     String
+  pipelineId         String
+  trigger            String    @default("scheduled")
+  status             String    @default("RUNNING")
+  intervalMinutes    Int?
+  depth              String    @default("standard")
+  focus              String    @default("all")
+  profileJson        Json      @default("{}")
+  findingsJson       Json      @default("{}")
+  planJson           Json      @default("{}")
+  visualizationsJson Json      @default("[]")
+  narrative          String?   @db.Text
+  errorMessage       String?   @db.Text
+  startedAt          DateTime  @default(now())
+  finishedAt         DateTime?
+  createdAt          DateTime  @default(now())
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pipeline     SmartCityPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([pipelineId, createdAt])
+  @@index([status])
 }

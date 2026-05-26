@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type OrganizationInvitation, type OrganizationMember, type OrganizationMembership, type User, apiClient } from '@/api/client';
+import { type OrganizationInvitation, type OrganizationMember, type OrganizationMembership, type User, type HuggingFaceIntegrationStatus, apiClient } from '@/api/client';
 import { Bell, Building2, Database, Lock, Palette, Send, Users, X } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
@@ -65,6 +65,9 @@ const passwordLoading = ref(false)
 // Delete Account State
 const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
+const huggingFaceIntegration = ref<HuggingFaceIntegrationStatus>({ configured: false })
+const huggingFaceTokenInput = ref('')
+const huggingFaceSaving = ref(false)
 
 onMounted(async () => {
 	loading.value = true
@@ -73,7 +76,9 @@ onMounted(async () => {
 		if (response.success && response.data) {
 			user.value = response.data
 			profileName.value = response.data.displayName || ''
+			huggingFaceIntegration.value = response.data.huggingFaceIntegration ?? { configured: false }
 		}
+		await loadHuggingFaceStatus()
 		await loadOrganizations()
 		await loadInvitations()
 	} catch (error) {
@@ -100,6 +105,46 @@ const loadInvitations = async () => {
 const loadMembers = async (organizationId: string) => {
 	const response = await apiClient.listOrganizationMembers(organizationId)
 	members.value = response.data || []
+}
+
+const loadHuggingFaceStatus = async () => {
+	try {
+		const response = await apiClient.getHuggingFaceStatus()
+		huggingFaceIntegration.value = response.data ?? { configured: false }
+	} catch {
+		huggingFaceIntegration.value = { configured: false }
+	}
+}
+
+const handleSaveHuggingFaceToken = async () => {
+	if (!huggingFaceTokenInput.value.trim()) {
+		toast.error('Enter a Hugging Face token')
+		return
+	}
+	huggingFaceSaving.value = true
+	try {
+		const response = await apiClient.saveHuggingFaceToken(huggingFaceTokenInput.value.trim())
+		huggingFaceIntegration.value = response.data ?? { configured: true }
+		huggingFaceTokenInput.value = ''
+		toast.success('Hugging Face token saved')
+	} catch (error) {
+		toast.error(error instanceof Error ? error.message : 'Could not save token')
+	} finally {
+		huggingFaceSaving.value = false
+	}
+}
+
+const handleRemoveHuggingFaceToken = async () => {
+	huggingFaceSaving.value = true
+	try {
+		await apiClient.removeHuggingFaceToken()
+		huggingFaceIntegration.value = { configured: false }
+		toast.success('Hugging Face token removed')
+	} catch (error) {
+		toast.error(error instanceof Error ? error.message : 'Could not remove token')
+	} finally {
+		huggingFaceSaving.value = false
+	}
 }
 
 const handleUpdateProfile = async () => {
@@ -357,6 +402,43 @@ const formatDate = (dateString?: string) => {
 							class="px-4 py-2 rounded-lg border border-border hover:border-primary/40 text-foreground/80 hover:text-foreground font-medium text-sm transition"
 						>
 							Change Password
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="rounded-xl border border-border bg-card/70 backdrop-blur-md p-6 mb-8">
+				<h3 class="text-lg font-bold text-foreground mb-2">Hugging Face integration</h3>
+				<p class="text-sm text-foreground/60 mb-4">
+					One organization token powers core unit model selection, dataset exports, and other Hub integrations.
+				</p>
+				<div v-if="huggingFaceIntegration.configured" class="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm mb-4">
+					Connected
+					<span v-if="huggingFaceIntegration.username"> as <strong>@{{ huggingFaceIntegration.username }}</strong></span>
+					<span v-if="huggingFaceIntegration.tokenPreview"> · {{ huggingFaceIntegration.tokenPreview }}</span>
+				</div>
+				<div class="space-y-3">
+					<input
+						v-model="huggingFaceTokenInput"
+						type="password"
+						placeholder="hf_..."
+						class="w-full px-4 py-2 rounded-lg border border-border bg-input text-foreground"
+					/>
+					<div class="flex flex-wrap gap-2">
+						<button
+							@click="handleSaveHuggingFaceToken"
+							:disabled="huggingFaceSaving"
+							class="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm disabled:opacity-50"
+						>
+							{{ huggingFaceIntegration.configured ? 'Update token' : 'Save token' }}
+						</button>
+						<button
+							v-if="huggingFaceIntegration.configured"
+							@click="handleRemoveHuggingFaceToken"
+							:disabled="huggingFaceSaving"
+							class="px-4 py-2 rounded-lg border border-border text-foreground/70 text-sm disabled:opacity-50"
+						>
+							Remove token
 						</button>
 					</div>
 				</div>

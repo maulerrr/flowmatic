@@ -9,12 +9,10 @@ import {
 } from '@nestjs/common'
 import { Interval } from '@nestjs/schedule'
 import { Prisma, SensorSource, SmartCityPipeline } from '@prisma/client'
-import { execFile } from 'child_process'
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto'
-import { existsSync, readFileSync } from 'fs'
+import { existsSync, readFileSync, readdirSync } from 'fs'
 import { mkdir, readdir, writeFile } from 'fs/promises'
 import { basename, resolve } from 'path'
-import { promisify } from 'util'
 import { AppConfigService } from 'src/common/config/config.service'
 import { BossService } from 'src/common/queue/boss.service'
 import { parseCsvBuffer } from 'src/common/utils/csv-parser.util'
@@ -37,7 +35,12 @@ import { UpdateDataLakeDto } from './dto/update-data-lake.dto'
 import { UpdateExportTargetDto } from './dto/update-export-target.dto'
 import { UpdateSensorSourceDto } from './dto/update-sensor-source.dto'
 import { UpdateSmartCityPipelineDto } from './dto/update-smart-city-pipeline.dto'
+import { StartPipelineDto, UpdatePipelineRuntimeDto } from './dto/update-pipeline-runtime.dto'
 import { TrainModelDto } from './dto/train-model.dto'
+import { HuggingFaceIntegrationService } from '../integrations/huggingface.integration.service'
+import { PipelineAutoRoutingService } from './pipeline-auto-routing.service'
+import { PipelineModelRouterService } from './pipeline-model-router.service'
+import { CoreUnitStreamConfig, ModelRoutingDecision } from './pipeline-model-router.types'
 
 type AuthScope = {
 	userId: string
@@ -63,6 +66,15 @@ type ExternalSocketState = {
 	intentionalClose: boolean
 	reconnectTimer?: NodeJS.Timeout
 }
+type PipelineRuntimeConfig = {
+	lakeWriteMode: 'append' | 'object'
+	sourcePollIntervalMs: number
+	exportCadenceSeconds: number
+	startedAt: string | null
+	pausedAt: string | null
+	lastRunningSourceIds: string[]
+}
+
 type FederatedConfig = {
 	enabled: boolean
 	protocol: 'HTTP' | 'WEBSOCKET'
@@ -114,23 +126,27 @@ type FederatedRound = {
 
 const json = (value: unknown | undefined): Prisma.InputJsonValue | undefined =>
 	value as Prisma.InputJsonValue | undefined
-const execFileAsync = promisify(execFile)
 const SMART_CITY_EXPORT_QUEUE = 'smart-city-stage-export'
 
 @Injectable()
 export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 	private readonly logger = new Logger(SmartCityService.name)
 	private reportedMissingExportTargetTable = false
+	private readonly exportTargetLocks = new Set<string>()
 	private readonly streamListeners = new Map<string, Set<StreamListener>>()
 	private readonly externalSourceSockets = new Map<string, ExternalSocketState>()
 	private readonly federatedSockets = new Map<string, ExternalSocketState>()
+	private readonly lastProcessingErrorByPipeline = new Map<string, { message: string; at: number }>()
 
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly config: AppConfigService,
 		private readonly storageService: StorageService,
 		private readonly exportService: ExportService,
+		private readonly huggingFaceIntegration: HuggingFaceIntegrationService,
 		private readonly boss: BossService,
+		private readonly modelRouter: PipelineModelRouterService,
+		private readonly autoRouting: PipelineAutoRoutingService,
 	) {}
 
 	async onModuleInit() {
@@ -141,8 +157,9 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 					? ((job as { data?: unknown }).data as Record<string, unknown> | undefined)
 					: undefined
 			const targetId = typeof data?.targetId === 'string' ? data.targetId : null
+			const force = data?.force === true
 			if (!targetId) return
-			await this.executeExportTargetById(targetId)
+			await this.executeExportTargetById(targetId, force)
 		})
 	}
 
@@ -226,6 +243,121 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 			data: { status: 'ARCHIVED' },
 		})
 		return { deleted: true }
+	}
+
+	async startPipeline(scope: AuthScope, pipelineId: string, input: StartPipelineDto = {}) {
+		this.requireWriter(scope)
+		const pipeline = await this.requirePipeline(scope.organizationId, pipelineId)
+		const runtime = this.getRuntimeConfig(pipeline.streamConfig)
+		const sourcePollIntervalMs = input.sourcePollIntervalMs ?? runtime.sourcePollIntervalMs
+		const resumeSourceIds = runtime.lastRunningSourceIds.length > 0 ? runtime.lastRunningSourceIds : []
+		const sources = await this.prisma.sensorSource.findMany({
+			where: { organizationId: scope.organizationId, pipelineId },
+			orderBy: { createdAt: 'asc' },
+		})
+		const targetSources =
+			resumeSourceIds.length > 0
+				? sources.filter(source => resumeSourceIds.includes(source.id))
+				: sources
+		if (sourcePollIntervalMs !== runtime.sourcePollIntervalMs) {
+			await this.prisma.sensorSource.updateMany({
+				where: { organizationId: scope.organizationId, pipelineId },
+				data: { pollIntervalMs: sourcePollIntervalMs },
+			})
+		}
+		const updated = await this.prisma.smartCityPipeline.update({
+			where: { id: pipelineId },
+			data: {
+				status: 'ACTIVE',
+				streamConfig: json(
+					this.mergeStreamConfig(pipeline.streamConfig, {
+						runtime: {
+							...runtime,
+							sourcePollIntervalMs,
+							startedAt: new Date().toISOString(),
+							pausedAt: null,
+							lastRunningSourceIds: targetSources.map(source => source.id),
+						},
+					}),
+				),
+			},
+			include: { sensorSources: true },
+		})
+		for (const source of targetSources) {
+			await this.startSource(scope, source.id)
+		}
+		return this.presentPipeline(updated)
+	}
+
+	async stopPipeline(scope: AuthScope, pipelineId: string) {
+		this.requireWriter(scope)
+		const pipeline = await this.requirePipeline(scope.organizationId, pipelineId)
+		const runningSources = await this.prisma.sensorSource.findMany({
+			where: { organizationId: scope.organizationId, pipelineId, status: 'RUNNING' },
+			select: { id: true },
+		})
+		for (const source of runningSources) {
+			await this.stopSource(scope, source.id)
+		}
+		const runtime = this.getRuntimeConfig(pipeline.streamConfig)
+		const updated = await this.prisma.smartCityPipeline.update({
+			where: { id: pipelineId },
+			data: {
+				status: 'PAUSED',
+				streamConfig: json(
+					this.mergeStreamConfig(pipeline.streamConfig, {
+						runtime: {
+							...runtime,
+							pausedAt: new Date().toISOString(),
+							lastRunningSourceIds: runningSources.map(source => source.id),
+						},
+					}),
+				),
+			},
+			include: { sensorSources: true },
+		})
+		return this.presentPipeline(updated)
+	}
+
+	async resumePipeline(scope: AuthScope, pipelineId: string) {
+		return this.startPipeline(scope, pipelineId)
+	}
+
+	async updatePipelineRuntime(scope: AuthScope, pipelineId: string, input: UpdatePipelineRuntimeDto) {
+		this.requireWriter(scope)
+		const pipeline = await this.requirePipeline(scope.organizationId, pipelineId)
+		const runtime = this.getRuntimeConfig(pipeline.streamConfig)
+		const nextRuntime: Partial<PipelineRuntimeConfig> = {}
+		if (input.lakeWriteMode) nextRuntime.lakeWriteMode = input.lakeWriteMode
+		if (input.sourcePollIntervalMs) nextRuntime.sourcePollIntervalMs = input.sourcePollIntervalMs
+		if (input.exportCadenceSeconds) nextRuntime.exportCadenceSeconds = input.exportCadenceSeconds
+		if (input.sourcePollIntervalMs && pipeline.status === 'ACTIVE') {
+			await this.prisma.sensorSource.updateMany({
+				where: { organizationId: scope.organizationId, pipelineId },
+				data: { pollIntervalMs: input.sourcePollIntervalMs },
+			})
+		}
+		if (input.exportCadenceSeconds) {
+			await this.prisma.smartCityExportTarget.updateMany({
+				where: { organizationId: scope.organizationId, pipelineId, isContinuous: true },
+				data: { cadenceSeconds: input.exportCadenceSeconds },
+			})
+		}
+		const updated = await this.prisma.smartCityPipeline.update({
+			where: { id: pipelineId },
+			data: {
+				streamConfig: json(
+					this.mergeStreamConfig(pipeline.streamConfig, {
+						runtime: {
+							...runtime,
+							...nextRuntime,
+						},
+					}),
+				),
+			},
+			include: { sensorSources: true },
+		})
+		return this.presentPipeline(updated)
 	}
 
 	async updateGraph(scope: AuthScope, pipelineId: string, graph: Record<string, unknown>) {
@@ -333,20 +465,43 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		const pipeline = await this.requirePipeline(scope.organizationId, pipelineId)
 		const limit = Math.min(Math.max(input.limit ?? 100, 1), 500)
 		const rows = await this.loadPipelineStageRows(scope.organizationId, pipeline.id, input.stage, limit)
+		const settings = input.settings ?? {}
 		const result = await this.executeExportRun({
 			organizationId: scope.organizationId,
 			pipelineId: pipeline.id,
 			stage: input.stage,
 			adapterType: input.adapterType,
 			rows,
-			settings: input.settings ?? {},
+			settings,
 			saveCredentials: input.saveCredentials ?? false,
-			fileName: `${pipeline.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${input.stage}.json`,
+			fileName: this.resolveExportFileName(
+				input.adapterType,
+				settings,
+				pipeline.name,
+				input.stage,
+			),
 		})
 		return {
 			...result,
 			stage: input.stage,
 			rowCount: rows.length,
+		}
+	}
+
+	async previewExportStage(
+		scope: AuthScope,
+		pipelineId: string,
+		stage: 'raw' | 'cleaned' | 'business',
+		limit = 10,
+	) {
+		await this.requirePipeline(scope.organizationId, pipelineId)
+		const capped = Math.min(Math.max(limit, 1), 50)
+		const rows = await this.loadPipelineStageRows(scope.organizationId, pipelineId, stage, capped)
+		return {
+			stage,
+			rowCount: rows.length,
+			columns: rows.length > 0 ? Object.keys(rows[0]) : [],
+			rows,
 		}
 	}
 
@@ -393,7 +548,11 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 			}
 
 			if (stage === 'business' || stage === 'all') {
-				const result = await this.runProcessingInference(pipeline.activeModelId, cleanedPayload)
+				const result = await this.runProcessingInference(
+					pipeline.organizationId,
+					pipeline.activeModelId,
+					cleanedPayload,
+				)
 				await this.backfillBusinessRecordToDataLake(
 					dataLake,
 					pipeline,
@@ -448,6 +607,14 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 	async createExportTarget(scope: AuthScope, pipelineId: string, input: CreateExportTargetDto) {
 		this.requireWriter(scope)
 		await this.requirePipeline(scope.organizationId, pipelineId)
+		const settings = input.settings ?? {}
+		if (input.saveCredentials) {
+			await this.exportService.persistAdapterCredentials(
+				scope.organizationId,
+				input.adapterType as ExportAdapterType,
+				settings,
+			)
+		}
 		return this.prisma.smartCityExportTarget.create({
 			data: {
 				organizationId: scope.organizationId,
@@ -456,7 +623,7 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 				name: input.name.trim(),
 				stage: input.stage,
 				adapterType: input.adapterType,
-				settingsJson: json(input.settings ?? {}),
+				settingsJson: json(settings),
 				saveCredentials: input.saveCredentials ?? false,
 				isContinuous: input.isContinuous ?? false,
 				cadenceSeconds: input.cadenceSeconds ?? 60,
@@ -467,17 +634,34 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 	async updateExportTarget(scope: AuthScope, targetId: string, input: UpdateExportTargetDto) {
 		this.requireWriter(scope)
 		const target = await this.requireExportTarget(scope.organizationId, targetId)
+		const existingSettings =
+			target.settingsJson && typeof target.settingsJson === 'object' && !Array.isArray(target.settingsJson)
+				? (target.settingsJson as Record<string, unknown>)
+				: {}
+		const mergedSettings = input.settings
+			? this.mergeExportTargetSettings(existingSettings, input.settings, target.adapterType as ExportAdapterType)
+			: existingSettings
+		const adapterType = (input.adapterType ?? target.adapterType) as ExportAdapterType
+		if (input.saveCredentials ?? target.saveCredentials) {
+			await this.exportService.persistAdapterCredentials(scope.organizationId, adapterType, mergedSettings)
+		}
 		return this.prisma.smartCityExportTarget.update({
 			where: { id: target.id },
 			data: {
 				name: input.name?.trim(),
 				stage: input.stage,
 				adapterType: input.adapterType,
-				settingsJson: input.settings ? json(input.settings) : undefined,
+				settingsJson: input.settings ? json(mergedSettings) : undefined,
 				saveCredentials: input.saveCredentials,
 				isContinuous: input.isContinuous,
 				cadenceSeconds: input.cadenceSeconds,
-				status: input.isContinuous === false && target.status === 'ERROR' ? 'PAUSED' : undefined,
+				status:
+					input.isContinuous === false && target.status === 'ERROR'
+						? 'PAUSED'
+						: input.settings || input.adapterType
+							? 'ACTIVE'
+							: undefined,
+				lastError: input.settings || input.adapterType ? null : undefined,
 			},
 		})
 	}
@@ -485,8 +669,21 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 	async runExportTarget(scope: AuthScope, targetId: string) {
 		this.requireWriter(scope)
 		const target = await this.requireExportTarget(scope.organizationId, targetId)
-		await this.enqueueExportTarget(target.id)
-		return { queued: true, targetId: target.id }
+		await this.executeExportTargetById(target.id, true)
+		return { completed: true, targetId: target.id }
+	}
+
+	async deleteExportTarget(scope: AuthScope, targetId: string) {
+		this.requireWriter(scope)
+		const target = await this.requireExportTarget(scope.organizationId, targetId)
+		await this.prisma.smartCityExportTarget.update({
+			where: { id: target.id },
+			data: {
+				status: 'ARCHIVED',
+				isContinuous: false,
+			},
+		})
+		return { deleted: true, id: target.id }
 	}
 
 	async connectFederated(scope: AuthScope, pipelineId: string, input: ConnectFederatedDto) {
@@ -942,12 +1139,20 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		return {
 			baseUrl,
 			defaultLocation: 'Astana',
-			sensorKinds: ['iot', 'video', 'power', 'network', 'weather', 'parking'],
+			sensorKinds: ['iot', 'video', 'power', 'network', 'weather', 'parking', 'traffic'],
 			presets: {
 				iot: {
 					httpPollUrl: `${baseUrl}/api/v1/poll?sensorKind=iot&limit=1`,
 					websocketUrl: `${baseUrl.replace(/^http/i, 'ws')}/ws?sensorKind=iot`,
 				},
+				traffic: {
+					httpPollUrl: `${baseUrl}/api/v1/poll?sensorKind=traffic&limit=1`,
+					websocketUrl: `${baseUrl.replace(/^http/i, 'ws')}/ws?sensorKind=traffic&intervalMs=2000`,
+				},
+			},
+			astanaTraffic: {
+				description: 'Semi-synthetic Astana traffic WebSocket stream with latitude/longitude.',
+				websocketUrl: `${baseUrl.replace(/^http/i, 'ws')}/ws?sensorKind=traffic&intervalMs=2000`,
 			},
 		}
 	}
@@ -1084,7 +1289,7 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 				: (['raw', 'cleaned', 'business'] as const)
 		const groups = await Promise.all(
 			stages.map(async currentStage => {
-				const prefix = this.buildDataLakePrefix(
+				const prefix = this.buildDataLakeBrowsePrefix(
 					dataLake,
 					currentStage,
 					{
@@ -1384,9 +1589,24 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		const models = await this.listResearchModels()
 		const model = models.find(item => item.run === run)
 		if (!model) throw new NotFoundException('Research model checkpoint not found')
+		await this.huggingFaceIntegration.prefetchModel(scope.organizationId, { localRun: run })
 		const pipeline = await this.prisma.smartCityPipeline.update({
 			where: { id: pipelineId },
 			data: { activeModelId: model.id },
+			include: { sensorSources: true },
+		})
+		return this.presentPipeline(pipeline)
+	}
+
+	async deployHuggingFaceModel(scope: AuthScope, pipelineId: string, modelId: string) {
+		this.requireWriter(scope)
+		await this.requirePipeline(scope.organizationId, pipelineId)
+		const normalized = modelId.trim()
+		await this.huggingFaceIntegration.getModelDetails(scope.organizationId, normalized)
+		await this.huggingFaceIntegration.prefetchModel(scope.organizationId, { modelId: normalized })
+		const pipeline = await this.prisma.smartCityPipeline.update({
+			where: { id: pipelineId },
+			data: { activeModelId: `hf:${normalized}` },
 			include: { sensorSources: true },
 		})
 		return this.presentPipeline(pipeline)
@@ -1404,13 +1624,75 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 						Longitude: 71.45,
 						Traffic_Density: 74,
 					}
-		return this.runProcessingInference(pipeline.activeModelId, samplePayload)
+		const streamConfig = this.getCoreUnitStreamConfig(pipeline.streamConfig)
+		const decision = this.modelRouter.resolveModel({
+			mode: streamConfig.coreUnitMode ?? 'manual',
+			manualModelId: pipeline.activeModelId,
+			sensorKind: 'traffic',
+			payload: samplePayload,
+			policy: streamConfig.autoRoutingPolicy,
+			anomalyDetection: streamConfig.anomalyDetection !== false,
+		})
+		if (!decision.modelId) {
+			return { ...decision, skipped: true }
+		}
+		const result = await this.runProcessingInference(
+			scope.organizationId,
+			decision.modelId,
+			samplePayload,
+		)
+		return { ...result, routing: decision }
+	}
+
+	async previewCoreUnitRouting(scope: AuthScope, pipelineId: string) {
+		const pipeline = await this.requirePipeline(scope.organizationId, pipelineId)
+		const streamConfig = this.getCoreUnitStreamConfig(pipeline.streamConfig)
+		const sensorKinds = [...new Set((pipeline.sensorSources ?? []).map(source => source.sensorKind))]
+		const rulePolicy = this.modelRouter.buildDefaultPolicy(sensorKinds)
+		return {
+			coreUnitMode: streamConfig.coreUnitMode ?? 'manual',
+			sensorKinds,
+			registryModelCount: this.modelRouter.getRegistryModelCount(),
+			activeModelId: pipeline.activeModelId,
+			autoRoutingPolicy: streamConfig.autoRoutingPolicy ?? null,
+			rulePolicy,
+			lastAutoResolution: streamConfig.lastAutoResolution ?? null,
+		}
+	}
+
+	async buildCoreUnitAutoPolicy(scope: AuthScope, pipelineId: string) {
+		this.requireWriter(scope)
+		const pipeline = await this.requirePipeline(scope.organizationId, pipelineId)
+		const sensorKinds = [...new Set((pipeline.sensorSources ?? []).map(source => source.sensorKind))]
+		const policy = await this.autoRouting.buildPolicy(sensorKinds)
+		for (const binding of policy.bindings) {
+			if (!binding.modelId.startsWith('research:')) continue
+			const localRun = binding.modelId.replace(/^research:/, '')
+			try {
+				await this.huggingFaceIntegration.prefetchModel(scope.organizationId, { localRun })
+			} catch (error) {
+				this.logger.warn(`Prefetch failed for ${binding.modelId}: ${error instanceof Error ? error.message : error}`)
+			}
+		}
+		const nextStreamConfig = this.mergeStreamConfig(pipeline.streamConfig, {
+			coreUnitMode: 'auto',
+			autoRoutingPolicy: policy,
+		})
+		const updated = await this.prisma.smartCityPipeline.update({
+			where: { id: pipelineId },
+			data: {
+				streamConfig: json(nextStreamConfig),
+				activeModelId: policy.bindings[0]?.modelId ?? pipeline.activeModelId,
+			},
+			include: { sensorSources: true },
+		})
+		return this.presentPipeline(updated)
 	}
 
 	@Interval(1000)
 	async generateRunningSourceEvents() {
 		const sources = await this.prisma.sensorSource.findMany({
-			where: { status: 'RUNNING' },
+			where: { status: 'RUNNING', pipeline: { status: 'ACTIVE' } },
 			take: 100,
 		})
 		const now = Date.now()
@@ -1430,9 +1712,8 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		)
 	}
 
-	@Interval(15000)
+	@Interval(5000)
 	async scheduleContinuousExports() {
-		if (!this.boss.instance) return
 		const now = Date.now()
 		let targets: Array<{ id: string; lastRunAt: Date | null; cadenceSeconds: number }> = []
 		try {
@@ -1463,7 +1744,13 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		for (const target of targets) {
 			const lastRunAt = target.lastRunAt?.getTime() ?? 0
 			if (now - lastRunAt < target.cadenceSeconds * 1000) continue
-			await this.enqueueExportTarget(target.id)
+			try {
+				await this.executeExportTargetById(target.id, false)
+			} catch (error) {
+				this.logger.warn(
+					`Continuous export failed for target ${target.id}: ${error instanceof Error ? error.message : error}`,
+				)
+			}
 		}
 	}
 
@@ -1497,74 +1784,168 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 			where: { id: source.id },
 			data: { lastSeenAt: event.eventTime, lastError: null, status: 'RUNNING' },
 		})
-		void this.exportRawEventToDataLake(source, event).catch(() => {})
+		const pipeline = await this.prisma.smartCityPipeline.findUnique({
+			where: { id: source.pipelineId },
+			select: { status: true, streamConfig: true },
+		})
+		const pipelineActive = pipeline?.status === 'ACTIVE'
+		if (pipelineActive) {
+			void this.exportRawEventToDataLake(source, event, pipeline.streamConfig).catch(() => {})
+			void this.runProcessingForEvent(source.pipelineId, event).catch(() => {})
+		}
 		await this.trimRecentEvents(source.organizationId, source.pipelineId)
 		this.publishPipelineEvent(source.pipelineId, { type: 'sensor_event', data: event })
-		void this.runProcessingForEvent(source.pipelineId, event).catch(() => {})
 		return event
 	}
 
-	private async runProcessingForEvent(pipelineId: string, event: { payloadJson: unknown }) {
+	private async runProcessingForEvent(
+		pipelineId: string,
+		event: { payloadJson: unknown; sensorType?: string | null },
+	) {
 		const pipeline = await this.prisma.smartCityPipeline.findUnique({ where: { id: pipelineId } })
-		if (!pipeline) return
+		if (!pipeline || pipeline.status !== 'ACTIVE') return
 		const cleanedPayload = this.createCleanedPayload(event.payloadJson as Record<string, unknown>)
+		const streamConfig = this.getCoreUnitStreamConfig(pipeline.streamConfig)
+		const decision = this.modelRouter.resolveModel({
+			mode: streamConfig.coreUnitMode ?? 'manual',
+			manualModelId: pipeline.activeModelId,
+			sensorKind: event.sensorType ?? 'generic',
+			payload: cleanedPayload,
+			policy: streamConfig.autoRoutingPolicy,
+			anomalyDetection: streamConfig.anomalyDetection !== false,
+		})
+
 		await this.exportCleanedRecordToDataLake(
 			{
 				id: pipeline.id,
 				organizationId: pipeline.organizationId,
 				dataLakeConnectionId: pipeline.dataLakeConnectionId,
-				activeModelId: pipeline.activeModelId,
+				activeModelId: decision.modelId ?? pipeline.activeModelId,
 			},
 			cleanedPayload,
+			pipeline.streamConfig,
 		)
-		if (!pipeline.activeModelId) return
+		if (!decision.modelId) {
+			this.publishProcessingOutcome(pipelineId, {
+				skipped: true,
+				reason: decision.reason,
+				routing: decision,
+			})
+			return
+		}
+
 		const result = await this.runProcessingInference(
-			pipeline.activeModelId,
+			pipeline.organizationId,
+			decision.modelId,
 			cleanedPayload,
 		)
-		this.publishPipelineEvent(pipelineId, { type: 'processing_result', data: result })
+		const enriched = { ...result, routing: decision }
+		this.publishProcessingOutcome(pipelineId, enriched)
+		if (result.error) return
+
+		if (streamConfig.coreUnitMode === 'auto') {
+			void this.recordAutoResolution(pipelineId, pipeline.streamConfig, decision)
+		}
+
 		await this.exportProcessingResultToDataLake(
 			{
 				id: pipeline.id,
 				organizationId: pipeline.organizationId,
 				dataLakeConnectionId: pipeline.dataLakeConnectionId,
-				activeModelId: pipeline.activeModelId,
+				activeModelId: decision.modelId,
 			},
 			cleanedPayload,
-			result,
+			enriched,
+			pipeline.streamConfig,
 		)
-		await this.forwardFederatedPayload(pipeline, 'processing_result', result)
+		await this.forwardFederatedPayload(pipeline, 'processing_result', enriched)
 	}
 
-	private async runProcessingInference(activeModelId: string | null, payload: Record<string, unknown>) {
+	private getCoreUnitStreamConfig(value: unknown) {
+		return this.normalizeStreamConfig(value) as CoreUnitStreamConfig & Record<string, unknown>
+	}
+
+	private async recordAutoResolution(
+		pipelineId: string,
+		currentStreamConfig: unknown,
+		decision: ModelRoutingDecision,
+	) {
+		if (!decision.modelId) return
+		const nextStreamConfig = this.mergeStreamConfig(currentStreamConfig, {
+			lastAutoResolution: {
+				modelId: decision.modelId,
+				label: decision.label,
+				reason: decision.reason,
+				sensorKind: decision.profile.sensorKind,
+				at: new Date().toISOString(),
+			},
+		})
+		await this.prisma.smartCityPipeline.update({
+			where: { id: pipelineId },
+			data: { streamConfig: json(nextStreamConfig) },
+		})
+	}
+
+	private async runProcessingInference(
+		organizationId: string,
+		activeModelId: string | null,
+		payload: Record<string, unknown>,
+	) {
 		if (!activeModelId) {
 			return { activeModelId: null, skipped: true, reason: 'No model selected for processing unit' }
+		}
+		if (activeModelId.startsWith('hf:')) {
+			const modelId = activeModelId.replace(/^hf:/, '')
+			try {
+				const output = await this.huggingFaceIntegration.runInference(organizationId, modelId, payload)
+				return { activeModelId, provider: 'flowmatic-local', modelId, output }
+			} catch (error) {
+				return {
+					activeModelId,
+					provider: 'flowmatic-local',
+					modelId,
+					error: error instanceof Error ? error.message : 'Local model inference failed',
+				}
+			}
 		}
 		if (!activeModelId.startsWith('research:')) {
 			return {
 				activeModelId,
 				skipped: true,
-				reason: 'Only research checkpoints are wired to runtime inference right now',
+				reason: 'Select a Hugging Face model in the core unit configuration',
 			}
 		}
 		const run = activeModelId.replace(/^research:/, '')
-		const script = this.resolveWorkspacePath('models', 'predict_event.py')
-		if (!existsSync(script)) throw new NotFoundException('Research inference script not found')
-		const payloadB64 = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64')
-		const { stdout, stderr } = await execFileAsync('python', [script, '--run', run, '--payload-b64', payloadB64], {
-			timeout: 30000,
-			maxBuffer: 1024 * 1024,
-		})
-		if (stderr.trim()) {
-			return { activeModelId, warning: stderr.trim(), output: JSON.parse(stdout) }
+		try {
+			const output = await this.huggingFaceIntegration.runLocalInference(organizationId, run, payload)
+			return { activeModelId, provider: 'flowmatic-local', localRun: run, output }
+		} catch (error) {
+			return {
+				activeModelId,
+				provider: 'flowmatic-local',
+				localRun: run,
+				error: error instanceof Error ? error.message : 'Local model inference failed',
+			}
 		}
-		return { activeModelId, output: JSON.parse(stdout) }
 	}
 
 	private publishPipelineEvent(pipelineId: string, payload: unknown) {
 		const listeners = this.streamListeners.get(pipelineId)
 		if (!listeners) return
 		for (const listener of listeners) listener(payload)
+	}
+
+	private publishProcessingOutcome(pipelineId: string, result: Record<string, unknown>) {
+		if (result.error) {
+			const message = String(result.error)
+			const previous = this.lastProcessingErrorByPipeline.get(pipelineId)
+			if (previous?.message === message && Date.now() - previous.at < 60_000) return
+			this.lastProcessingErrorByPipeline.set(pipelineId, { message, at: Date.now() })
+			this.publishPipelineEvent(pipelineId, { type: 'processing_error', data: result })
+			return
+		}
+		this.lastProcessingErrorByPipeline.delete(pipelineId)
+		this.publishPipelineEvent(pipelineId, { type: 'processing_result', data: result })
 	}
 
 	private async trimRecentEvents(organizationId: string, pipelineId: string) {
@@ -1822,6 +2203,31 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		return target
 	}
 
+	private mergeExportTargetSettings(
+		existing: Record<string, unknown>,
+		incoming: Record<string, unknown>,
+		adapterType: ExportAdapterType,
+	) {
+		const cleanedIncoming = Object.fromEntries(
+			Object.entries(incoming).filter(
+				([, value]) => value !== undefined && value !== null && String(value).trim().length > 0,
+			),
+		)
+		const merged = { ...existing, ...cleanedIncoming }
+		const sensitiveKeys =
+			adapterType === ExportAdapterType.HUGGINGFACE
+				? ['token']
+				: adapterType === ExportAdapterType.POSTGRES
+					? ['password']
+					: adapterType === ExportAdapterType.MONGODB
+						? ['uri']
+						: []
+		for (const key of sensitiveKeys) {
+			if (!cleanedIncoming[key] && existing[key]) merged[key] = existing[key]
+		}
+		return merged
+	}
+
 	private async requireDataLake(organizationId: string, id: string) {
 		const dataLake = await this.prisma.dataLakeConnection.findFirst({
 			where: { id, organizationId },
@@ -1914,12 +2320,50 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 
 	private defaultStreamConfig() {
 		return {
+			coreUnitMode: 'manual',
 			anomalyDetection: true,
 			schemaValidation: true,
 			autoCleaning: true,
 			throughputLimit: 5,
 			encryptionLevel: 'Standard',
+			runtime: this.defaultRuntimeConfig(),
 			federated: this.defaultFederatedConfig(),
+		}
+	}
+
+	private defaultRuntimeConfig(): PipelineRuntimeConfig {
+		return {
+			lakeWriteMode: 'append',
+			sourcePollIntervalMs: 3000,
+			exportCadenceSeconds: 60,
+			startedAt: null,
+			pausedAt: null,
+			lastRunningSourceIds: [],
+		}
+	}
+
+	private getRuntimeConfig(value: unknown): PipelineRuntimeConfig {
+		const config = this.normalizeStreamConfig(value)
+		const runtime =
+			config.runtime && typeof config.runtime === 'object' && !Array.isArray(config.runtime)
+				? (config.runtime as Record<string, unknown>)
+				: {}
+		return {
+			...this.defaultRuntimeConfig(),
+			lakeWriteMode: runtime.lakeWriteMode === 'object' ? 'object' : 'append',
+			sourcePollIntervalMs:
+				typeof runtime.sourcePollIntervalMs === 'number' && runtime.sourcePollIntervalMs >= 1000
+					? runtime.sourcePollIntervalMs
+					: 3000,
+			exportCadenceSeconds:
+				typeof runtime.exportCadenceSeconds === 'number' && runtime.exportCadenceSeconds >= 15
+					? runtime.exportCadenceSeconds
+					: 60,
+			startedAt: typeof runtime.startedAt === 'string' ? runtime.startedAt : null,
+			pausedAt: typeof runtime.pausedAt === 'string' ? runtime.pausedAt : null,
+			lastRunningSourceIds: Array.isArray(runtime.lastRunningSourceIds)
+				? runtime.lastRunningSourceIds.filter((item): item is string => typeof item === 'string')
+				: [],
 		}
 	}
 
@@ -1943,8 +2387,17 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 			patch.federated && typeof patch.federated === 'object' && !Array.isArray(patch.federated)
 				? (patch.federated as Record<string, unknown>)
 				: {}
+		const currentRuntime = this.getRuntimeConfig(currentConfig)
+		const patchRuntime =
+			patch.runtime && typeof patch.runtime === 'object' && !Array.isArray(patch.runtime)
+				? (patch.runtime as Record<string, unknown>)
+				: {}
 		return {
 			...nextConfig,
+			runtime: {
+				...currentRuntime,
+				...patchRuntime,
+			},
 			federated: this.getFederatedConfig({ ...currentFederated, ...patchFederated }),
 		}
 	}
@@ -2301,6 +2754,7 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 			payloadJson: unknown
 			location: string | null
 		},
+		streamConfig: unknown,
 	) {
 		const pipeline = await this.prisma.smartCityPipeline.findUnique({
 			where: { id: source.pipelineId },
@@ -2322,16 +2776,22 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 				organizationId: source.organizationId,
 				pipelineId: source.pipelineId,
 			}, event.eventTime)
-			const key = `${prefix}${event.eventTime.toISOString().replace(/[:.]/g, '-')}-${event.id}.json`
-			await this.uploadDataLakeJson(dataLake, key, {
-				type: 'raw_sensor_event',
-				sourceId: source.id,
-				sourceName: source.name,
-				sensorType: event.sensorType,
-				location: event.location,
-				eventTime: event.eventTime.toISOString(),
-				payload: event.payloadJson,
-			})
+			await this.writeDataLakeRecord(
+				dataLake,
+				prefix,
+				streamConfig,
+				{
+					type: 'raw_sensor_event',
+					sourceId: source.id,
+					sourceName: source.name,
+					sensorType: event.sensorType,
+					location: event.location,
+					eventTime: event.eventTime.toISOString(),
+					eventId: event.id,
+					payload: event.payloadJson,
+				},
+				`${event.id}.json`,
+			)
 		} catch (error) {
 			await this.markDataLakeError(
 				dataLake.id,
@@ -2346,6 +2806,7 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 			'id' | 'organizationId' | 'dataLakeConnectionId' | 'activeModelId'
 		>,
 		cleanedPayload: Record<string, unknown>,
+		streamConfig: unknown,
 	) {
 		if (!pipeline.dataLakeConnectionId) return
 		const dataLake = await this.prisma.dataLakeConnection.findFirst({
@@ -2370,14 +2831,20 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 				},
 				now,
 			)
-			const key = `${prefix}${now.toISOString().replace(/[:.]/g, '-')}-${Math.random().toString(36).slice(2, 8)}.json`
-			await this.uploadDataLakeJson(dataLake, key, {
-				type: 'cleaned_event',
-				pipelineId: pipeline.id,
-				activeModelId: pipeline.activeModelId,
-				timestamp: now.toISOString(),
-				payload: cleanedPayload,
-			})
+			const objectKey = `${now.toISOString().replace(/[:.]/g, '-')}-${createHash('sha1').update(JSON.stringify(cleanedPayload)).digest('hex').slice(0, 8)}.json`
+			await this.writeDataLakeRecord(
+				dataLake,
+				prefix,
+				streamConfig,
+				{
+					type: 'cleaned_event',
+					pipelineId: pipeline.id,
+					activeModelId: pipeline.activeModelId,
+					timestamp: now.toISOString(),
+					payload: cleanedPayload,
+				},
+				objectKey,
+			)
 		} catch (error) {
 			await this.markDataLakeError(
 				dataLake.id,
@@ -2393,6 +2860,7 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		>,
 		inputPayload: Record<string, unknown>,
 		result: Record<string, unknown>,
+		streamConfig: unknown,
 	) {
 		if (!pipeline.dataLakeConnectionId) return
 		const dataLake = await this.prisma.dataLakeConnection.findFirst({
@@ -2417,15 +2885,21 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 				},
 				now,
 			)
-			const key = `${prefix}${now.toISOString().replace(/[:.]/g, '-')}-${Math.random().toString(36).slice(2, 8)}.json`
-			await this.uploadDataLakeJson(dataLake, key, {
-				type: 'business_result',
-				pipelineId: pipeline.id,
-				activeModelId: pipeline.activeModelId,
-				timestamp: now.toISOString(),
-				inputPayload,
-				result,
-			})
+			const objectKey = `${now.toISOString().replace(/[:.]/g, '-')}-${createHash('sha1').update(JSON.stringify(result)).digest('hex').slice(0, 8)}.json`
+			await this.writeDataLakeRecord(
+				dataLake,
+				prefix,
+				streamConfig,
+				{
+					type: 'business_result',
+					pipelineId: pipeline.id,
+					activeModelId: pipeline.activeModelId,
+					timestamp: now.toISOString(),
+					inputPayload,
+					result,
+				},
+				objectKey,
+			)
 		} catch (error) {
 			await this.markDataLakeError(
 				dataLake.id,
@@ -2629,7 +3103,9 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		}
 
 		const rows = await Promise.all(
-			ordered.map(async event => this.createBusinessExportRow(pipeline.activeModelId, event)),
+			ordered.map(async event =>
+				this.createBusinessExportRow(pipeline.organizationId, pipeline.activeModelId, event),
+			),
 		)
 		return rows
 	}
@@ -2639,7 +3115,7 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		pipelineId: string,
 		stage: 'raw' | 'cleaned' | 'business',
 		limit: number,
-		since?: Date | null,
+		afterEventId?: string | null,
 	) {
 		const pipeline = await this.prisma.smartCityPipeline.findUnique({
 			where: { id: pipelineId },
@@ -2652,9 +3128,9 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 			where: {
 				organizationId,
 				pipelineId,
-				eventTime: since ? { gt: since } : undefined,
+				...(afterEventId ? { id: { gt: afterEventId } } : {}),
 			},
-			orderBy: { eventTime: 'asc' },
+			orderBy: { id: 'asc' },
 			take: limit,
 			include: {
 				source: {
@@ -2665,64 +3141,146 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		if (stage === 'raw') return events.map(event => this.createRawExportRow(event))
 		if (stage === 'cleaned') return events.map(event => this.createCleanedExportRow(event))
 		return Promise.all(
-			events.map(async event => this.createBusinessExportRow(pipeline.activeModelId, event)),
+			events.map(async event =>
+				this.createBusinessExportRow(pipeline.organizationId, pipeline.activeModelId, event),
+			),
 		)
 	}
 
-	private async enqueueExportTarget(targetId: string) {
+	private async enqueueExportTarget(targetId: string, force = false) {
 		if (!this.boss.instance) {
-			await this.executeExportTargetById(targetId)
+			await this.executeExportTargetById(targetId, force)
 			return
 		}
-		await this.boss.publish(SMART_CITY_EXPORT_QUEUE, { targetId })
+		await this.boss.publish(SMART_CITY_EXPORT_QUEUE, { targetId, force })
 	}
 
-	private async executeExportTargetById(targetId: string) {
+	private async executeExportTargetById(targetId: string, force = false) {
+		if (this.exportTargetLocks.has(targetId)) return
+		this.exportTargetLocks.add(targetId)
+		try {
+			await this.executeExportTargetByIdLocked(targetId, force)
+		} finally {
+			this.exportTargetLocks.delete(targetId)
+		}
+	}
+
+	private async executeExportTargetByIdLocked(targetId: string, force = false) {
 		const target = await this.prisma.smartCityExportTarget.findUnique({
 			where: { id: targetId },
 		})
 		if (!target || target.status === 'ARCHIVED' || target.status === 'PAUSED') return
 
-		const rows = await this.loadPipelineStageRowsSince(
-			target.organizationId,
-			target.pipelineId,
-			target.stage as 'raw' | 'cleaned' | 'business',
-			500,
-			target.lastCursorAt,
-		)
-		if (rows.length === 0) {
-			await this.prisma.smartCityExportTarget.update({
-				where: { id: target.id },
-				data: { lastRunAt: new Date(), lastError: null, status: 'ACTIVE' },
-			})
-			return
-		}
-
-		const result = await this.executeExportRun({
-			organizationId: target.organizationId,
-			pipelineId: target.pipelineId,
-			stage: target.stage as 'raw' | 'cleaned' | 'business',
-			adapterType: target.adapterType as ExportAdapterType,
-			rows,
-			settings:
-				target.settingsJson && typeof target.settingsJson === 'object' && !Array.isArray(target.settingsJson)
-					? (target.settingsJson as Record<string, unknown>)
-					: {},
-			saveCredentials: target.saveCredentials,
-			fileName: `${target.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${target.stage}.json`,
-			targetId: target.id,
+		const pipeline = await this.prisma.smartCityPipeline.findUnique({
+			where: { id: target.pipelineId },
+			select: { id: true, status: true, name: true },
 		})
-		const newestTime = this.extractNewestEventTimestamp(rows)
+		if (!pipeline || (!force && pipeline.status !== 'ACTIVE')) return
+
 		await this.prisma.smartCityExportTarget.update({
 			where: { id: target.id },
-			data: {
-				lastRunAt: new Date(),
-				lastRunId: result.metadata?.smartCityExportRunId as string | undefined,
-				lastCursorAt: newestTime ?? target.lastCursorAt,
-				lastError: null,
-				status: 'ACTIVE',
-			},
+			data: { status: 'ACTIVE', lastError: null },
 		})
+
+		const baseSettings =
+			target.settingsJson && typeof target.settingsJson === 'object' && !Array.isArray(target.settingsJson)
+				? (target.settingsJson as Record<string, unknown>)
+				: {}
+		const settings = target.isContinuous
+			? {
+					...baseSettings,
+					ifExists: baseSettings.ifExists ?? 'append',
+					...(target.adapterType === 'json' || target.adapterType === 'csv'
+						? {
+								appendKey:
+									typeof baseSettings.appendKey === 'string' && baseSettings.appendKey.trim()
+										? baseSettings.appendKey
+										: `smart-city/${target.pipelineId}/${target.stage}/${target.id}.ndjson`,
+							}
+						: {}),
+				}
+			: baseSettings
+		const fileName = this.resolveExportFileName(
+			target.adapterType,
+			settings,
+			target.name,
+			target.stage,
+		)
+
+		const batchLimit = 500
+		const maxBatches = force ? 100 : 20
+		let cursorEventId = target.lastCursorEventId
+		if (!cursorEventId && target.lastCursorAt) {
+			const anchor = await this.prisma.sensorEvent.findFirst({
+				where: {
+					organizationId: target.organizationId,
+					pipelineId: target.pipelineId,
+					eventTime: { lte: target.lastCursorAt },
+				},
+				orderBy: [{ eventTime: 'desc' }, { id: 'desc' }],
+				select: { id: true },
+			})
+			cursorEventId = anchor?.id ?? null
+		}
+		let totalExported = 0
+		let lastRunId: string | undefined
+		let batches = 0
+
+		for (let batchIndex = 0; batchIndex < maxBatches; batchIndex++) {
+			const rows = await this.loadPipelineStageRowsSince(
+				target.organizationId,
+				target.pipelineId,
+				target.stage as 'raw' | 'cleaned' | 'business',
+				batchLimit,
+				cursorEventId,
+			)
+			if (rows.length === 0) {
+				if (batchIndex === 0) {
+					await this.prisma.smartCityExportTarget.update({
+						where: { id: target.id },
+						data: { lastRunAt: new Date(), lastError: null, status: 'ACTIVE' },
+					})
+				}
+				break
+			}
+
+			const result = await this.executeExportRun({
+				organizationId: target.organizationId,
+				pipelineId: target.pipelineId,
+				stage: target.stage as 'raw' | 'cleaned' | 'business',
+				adapterType: target.adapterType as ExportAdapterType,
+				rows,
+				settings,
+				saveCredentials: target.saveCredentials,
+				fileName,
+				targetId: target.id,
+			})
+
+			totalExported += result.recordsExported
+			lastRunId = result.metadata?.smartCityExportRunId as string | undefined
+			cursorEventId = this.extractLastEventId(rows) ?? cursorEventId
+			batches += 1
+
+			await this.prisma.smartCityExportTarget.update({
+				where: { id: target.id },
+				data: {
+					lastRunAt: new Date(),
+					lastRunId,
+					lastCursorEventId: cursorEventId,
+					lastCursorAt: this.extractNewestEventTimestamp(rows) ?? target.lastCursorAt,
+					lastError: null,
+					status: 'ACTIVE',
+				},
+			})
+
+			if (rows.length < batchLimit) break
+		}
+
+		if (totalExported > 0) {
+			this.logger.log(
+				`Export target ${target.name} (${target.adapterType}): ${totalExported} rows in ${batches} batch(es)`,
+			)
+		}
 	}
 
 	private async executeExportRun(input: {
@@ -2748,6 +3306,8 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 				startedAt: new Date(),
 				metadata: json({
 					fileName: input.fileName,
+					previewRows: input.rows.slice(0, 5),
+					previewColumns: input.rows.length > 0 ? Object.keys(input.rows[0]) : [],
 				}),
 			},
 		})
@@ -2800,6 +3360,31 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 			}
 			throw error
 		}
+	}
+
+	private resolveExportFileName(
+		adapterType: string,
+		settings: Record<string, unknown>,
+		targetName: string,
+		stage: string,
+	): string {
+		if (adapterType === ExportAdapterType.HUGGINGFACE || adapterType === 'huggingface') {
+			const fromSettings = settings.fileName
+			if (typeof fromSettings === 'string' && fromSettings.trim()) return fromSettings.trim()
+			return `smart_city_${stage}.csv`
+		}
+		if (adapterType === ExportAdapterType.CSV || adapterType === 'csv') {
+			return `${targetName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${stage}.csv`
+		}
+		return `${targetName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${stage}.json`
+	}
+
+	private extractLastEventId(rows: Record<string, unknown>[]) {
+		for (let index = rows.length - 1; index >= 0; index -= 1) {
+			const eventId = rows[index]?.eventId
+			if (typeof eventId === 'string' && eventId.trim()) return eventId.trim()
+		}
+		return null
 	}
 
 	private extractNewestEventTimestamp(rows: Record<string, unknown>[]) {
@@ -2868,6 +3453,7 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 	}
 
 	private async createBusinessExportRow(
+		organizationId: string,
 		activeModelId: string | null,
 		event: {
 			id: string
@@ -2883,7 +3469,7 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 				? (event.payloadJson as Record<string, unknown>)
 				: { value: event.payloadJson }
 		const cleaned = this.createCleanedPayload(payload)
-		const result = await this.runProcessingInference(activeModelId, cleaned)
+		const result = await this.runProcessingInference(organizationId, activeModelId, cleaned)
 		return this.prepareExportRow({
 			stage: 'business',
 			eventId: event.id,
@@ -2985,6 +3571,51 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		})
 	}
 
+	private async writeDataLakeRecord(
+		dataLake: {
+			id: string
+			name: string
+			bucket: string
+			region: string | null
+			endpoint: string | null
+			accessKeyEncrypted: string | null
+			secretKeyEncrypted: string | null
+		},
+		prefix: string,
+		streamConfig: unknown,
+		payload: Record<string, unknown>,
+		objectKey: string,
+	) {
+		const runtime = this.getRuntimeConfig(streamConfig)
+		const connection = this.createDataLakeConnectionOptions(dataLake)
+		if (runtime.lakeWriteMode === 'append') {
+			const key = `${prefix}stream.ndjson`
+			await this.storageService.appendNdjsonLine(
+				{
+					bucket: dataLake.bucket,
+					key,
+					body: JSON.stringify(payload),
+					contentType: 'application/x-ndjson',
+					metadata: {
+						flowmatic: 'smart-city',
+						dataLakeId: dataLake.id,
+					},
+				},
+				connection,
+			)
+		} else {
+			await this.uploadDataLakeJson(dataLake, `${prefix}${objectKey}`, payload)
+			return
+		}
+		await this.prisma.dataLakeConnection.update({
+			where: { id: dataLake.id },
+			data: {
+				status: 'CONNECTED',
+				lastTestStatus: 'CONNECTED_AND_WRITABLE',
+			},
+		})
+	}
+
 	private createDataLakeConnectionOptions(dataLake: {
 		region: string | null
 		endpoint: string | null
@@ -3067,6 +3698,42 @@ export class SmartCityService implements OnModuleInit, OnModuleDestroy {
 		const resolved = Object.entries(replacements).reduce(
 			(acc, [key, value]) => acc.replaceAll(`{${key}}`, value),
 			normalizedTemplate,
+		)
+		const basePrefix = this.sanitizeDataLakePath(dataLake.basePrefix.replace(/^\/+|\/+$/g, ''))
+		const cleanResolved = this.sanitizeDataLakePath(resolved.replace(/^\/+/, ''))
+		return [basePrefix, cleanResolved].filter(Boolean).join('/').replace(/\/{2,}/g, '/') + '/'
+	}
+
+	private buildDataLakeBrowsePrefix(
+		dataLake: { basePrefix: string; pathRulesJson: unknown },
+		rule: 'raw' | 'cleaned' | 'business',
+		context: {
+			organizationId?: string
+			pipelineId?: string
+			modelId?: string
+		},
+		at: Date = new Date(),
+	) {
+		const pathRules =
+			dataLake.pathRulesJson && typeof dataLake.pathRulesJson === 'object' && !Array.isArray(dataLake.pathRulesJson)
+				? (dataLake.pathRulesJson as Record<string, unknown>)
+				: {}
+		const browseTemplate =
+			typeof pathRules.browse === 'string'
+				? String(pathRules.browse)
+				: '{organizationId}/{pipelineId}/{stage}/{yyyy}/{MM}/{dd}/'
+		const replacements: Record<string, string> = {
+			organizationId: this.sanitizeDataLakeValue(context.organizationId ?? 'unknown-org'),
+			pipelineId: this.sanitizeDataLakeValue(context.pipelineId ?? 'unknown-pipeline'),
+			modelId: this.sanitizeDataLakeValue(context.modelId ?? 'unknown-model'),
+			stage: rule,
+			yyyy: this.sanitizeDataLakeValue(String(at.getUTCFullYear())),
+			MM: this.sanitizeDataLakeValue(String(at.getUTCMonth() + 1).padStart(2, '0')),
+			dd: this.sanitizeDataLakeValue(String(at.getUTCDate()).padStart(2, '0')),
+		}
+		const resolved = Object.entries(replacements).reduce(
+			(acc, [key, value]) => acc.replaceAll(`{${key}}`, value),
+			browseTemplate.replace(/[\\]+/g, '/'),
 		)
 		const basePrefix = this.sanitizeDataLakePath(dataLake.basePrefix.replace(/^\/+|\/+$/g, ''))
 		const cleanResolved = this.sanitizeDataLakePath(resolved.replace(/^\/+/, ''))

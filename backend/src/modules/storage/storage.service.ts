@@ -263,4 +263,47 @@ export class StorageService {
 			etag: item.ETag ?? null,
 		}))
 	}
+
+	async getObjectBody(
+		bucket: string,
+		key: string,
+		connection?: S3ConnectionOptions,
+	): Promise<Buffer | null> {
+		const client = this.createClient(connection)
+		try {
+			const response = await client.send(
+				new GetObjectCommand({
+					Bucket: bucket,
+					Key: key,
+				}),
+			)
+			const bytes = await response.Body?.transformToByteArray()
+			return bytes ? Buffer.from(bytes) : Buffer.alloc(0)
+		} catch (error) {
+			const code =
+				error && typeof error === 'object' && 'name' in error
+					? String((error as { name?: string }).name)
+					: ''
+			if (code === 'NoSuchKey' || code === 'NotFound') return null
+			throw error
+		}
+	}
+
+	async appendNdjsonLine(
+		options: S3UploadOptions,
+		connection?: S3ConnectionOptions,
+	): Promise<string> {
+		const existing = await this.getObjectBody(options.bucket, options.key, connection)
+		const line = typeof options.body === 'string' ? options.body : options.body.toString('utf8')
+		const body =
+			existing && existing.length > 0 ? `${existing.toString('utf8').replace(/\n$/, '')}\n${line}` : line
+		return this.uploadObject(
+			{
+				...options,
+				body,
+				contentType: options.contentType ?? 'application/x-ndjson',
+			},
+			connection,
+		)
+	}
 }

@@ -107,7 +107,7 @@ async function bootstrap() {
 		console.warn('Could not install generation timeout middleware', err)
 	}
 
-	await app.listen(appConfig.server.port)
+	await app.listen(appConfig.server.port, '0.0.0.0')
 }
 
 void bootstrap()

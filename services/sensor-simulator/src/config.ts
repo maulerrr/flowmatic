@@ -4,6 +4,7 @@ export interface SimulatorConfig {
 	defaultLocation: string
 	apiKey: string | null
 	corsOrigins: string[]
+	astanaDatasetPath: string
 }
 
 export function loadConfig(): SimulatorConfig {
@@ -15,6 +16,8 @@ export function loadConfig(): SimulatorConfig {
 		.split(',')
 		.map(origin => origin.trim())
 		.filter(Boolean)
+	const astanaDatasetPath =
+		process.env.ASTANA_DATASET_PATH?.trim() || '/data/astana_synthetic_data.csv'
 
 	return {
 		port: Number.isFinite(port) ? port : 8091,
@@ -22,5 +25,6 @@ export function loadConfig(): SimulatorConfig {
 		defaultLocation,
 		apiKey,
 		corsOrigins,
+		astanaDatasetPath,
 	}
 }

@@ -16,6 +16,7 @@ import { ExportModule } from './modules/export/export.module'
 import { StorageModule } from './modules/storage/storage.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { SmartCityModule } from './modules/smart-city/smart-city.module'
+import { IntegrationsModule } from './modules/integrations/integrations.module'
 
 @Module({
 	imports: [
@@ -43,6 +44,7 @@ import { SmartCityModule } from './modules/smart-city/smart-city.module'
 		ExportModule,
 		StorageModule,
 		SmartCityModule,
+		IntegrationsModule,
 	],
 })
 export class AppModule {}

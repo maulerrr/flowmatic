@@ -102,6 +102,36 @@ export class JSONExportAdapter extends BaseExportAdapter {
 				}
 			}
 
+			const ifExists = typeof jsonConfig?.ifExists === 'string' ? jsonConfig.ifExists : 'replace'
+			const appendKey =
+				typeof jsonConfig?.appendKey === 'string' && jsonConfig.appendKey.trim()
+					? jsonConfig.appendKey.trim()
+					: null
+			if (ifExists === 'append' && appendKey) {
+				for (const row of convertedData) {
+					await this.storageService.appendNdjsonLine({
+						bucket: this.storageService.defaultBucket,
+						key: appendKey,
+						body: JSON.stringify(row),
+						contentType: 'application/x-ndjson',
+						metadata: {
+							organizationId: config.organizationId,
+							pipelineRunId: config.pipelineRunId,
+						},
+					})
+				}
+				this.logExport(config, convertedData.length, appendKey, 'success')
+				return {
+					success: true,
+					adapterType: this.type,
+					fileName: config.fileName,
+					destination: appendKey,
+					recordsExported: convertedData.length,
+					message: `Appended ${convertedData.length} records to ${appendKey}`,
+					metadata: { s3Key: appendKey, mode: 'append' },
+				}
+			}
+
 			const jsonContent = JSON.stringify(convertedData, null, jsonConfig?.prettyPrint ? 2 : 0)
 			const s3Key = this.storageService.generateS3Key(
 				config.organizationId,

@@ -1,0 +1,73 @@
+{
+  "type": "autoregressive_linear_forecaster",
+  "models": {
+    "astana_synthetic": {
+      "target": "Event_ID",
+      "timestamp": "Timestamp",
+      "features": [
+        "bias",
+        "lag_1",
+        "lag_2",
+        "lag_3"
+      ],
+      "coefficients": [
+        0.6666666299213133,
+        1.0000000039782422,
+        0.3333332501819914,
+        -0.33333325852371587
+      ],
+      "mae": 6.555981124765605e-05
+    },
+    "hf_ett_h1_energy": {
+      "target": "OT",
+      "timestamp": "date",
+      "features": [
+        "bias",
+        "lag_1",
+        "lag_2",
+        "lag_3"
+      ],
+      "coefficients": [
+        0.07662784480067457,
+        0.9849008779611921,
+        0.02074308763579875,
+        -0.011473717480670064
+      ],
+      "mae": 0.614690746718252
+    },
+    "hf_weather": {
+      "target": "Tpot (K)",
+      "timestamp": "date",
+      "features": [
+        "bias",
+        "lag_1",
+        "lag_2",
+        "lag_3"
+      ],
+      "coefficients": [
+        0.26290655129736773,
+        1.5412923680993644,
+        -0.5252475795185636,
+        -0.01696668874842391
+      ],
+      "mae": 0.14169121025176917
+    },
+    "hf_traffic": {
+      "target": "OT",
+      "timestamp": "date",
+      "features": [
+        "bias",
+        "lag_1",
+        "lag_2",
+        "lag_3"
+      ],
+      "coefficients": [
+        0.003642745980008019,
+        1.2862298112126043,
+        -0.10923321477093191,
+        -0.2924965461025242
+      ],
+      "mae": 0.0034768839596760245
+    }
+  }
+}

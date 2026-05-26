@@ -66,6 +66,14 @@ export interface SensorSimulatorConfig {
 	baseUrl: string
 }
 
+export interface ModelInferenceConfig {
+	baseUrl: string
+}
+
+export interface HuggingFaceConfig {
+	token?: string
+}
+
 @Injectable()
 export class AppConfigService {
 	constructor(private readonly config: NestConfigService) {}
@@ -171,6 +179,21 @@ export class AppConfigService {
 	get sensorSimulator(): SensorSimulatorConfig {
 		return {
 			baseUrl: this.get<string>('SENSOR_SIMULATOR_URL', 'http://localhost:8091'),
+		}
+	}
+
+	get modelInference(): ModelInferenceConfig {
+		return {
+			baseUrl: this.get<string>('MODEL_INFERENCE_URL', 'http://localhost:8093'),
+		}
+	}
+
+	get huggingFace(): HuggingFaceConfig {
+		const token =
+			this.get<string | undefined>('HUGGINGFACE_TOKEN') ??
+			this.get<string | undefined>('HF_TOKEN')
+		return {
+			token: token?.trim() || undefined,
 		}
 	}
 }

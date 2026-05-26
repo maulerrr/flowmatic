@@ -40,8 +40,9 @@ if (!pipeline) throw new Error('PipelineWorkbenchKey is not provided.')
 				</button>
 			</div>
 			<div class="flex items-center justify-center">
-				<div @click="pipeline.showConfigModal = true" class="w-full bg-card border-2 border-primary/20 rounded-xl p-5 cursor-pointer">
-					<div class="flex items-center gap-2 font-bold text-foreground"><Cpu class="w-5 h-5 text-primary" /> Flowmatic Engine</div>
+				<div @click="pipeline.openConfigModal()" class="w-full bg-card border-2 border-primary/20 rounded-xl p-5 cursor-pointer hover:border-primary/40 transition-colors">
+					<div class="flex items-center gap-2 font-bold text-foreground"><Cpu class="w-5 h-5 text-primary" /> Core unit</div>
+					<p class="mt-2 text-xs text-foreground/50 truncate">{{ pipeline.activeModelLabel }}</p>
 					<div class="grid grid-cols-2 gap-2 mt-4 text-xs">
 						<div class="bg-surface-2 p-3 rounded-lg border border-border">
 							Running<br /><b>{{ pipeline.runningSourceCount }}</b>

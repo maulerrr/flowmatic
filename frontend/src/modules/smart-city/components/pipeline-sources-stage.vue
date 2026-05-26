@@ -11,14 +11,10 @@ if (!pipeline) throw new Error('PipelineWorkbenchKey is not provided.')
 	<section v-show="pipeline.activeStage === 'sources'" class="pipeline-panel pipeline-panel__body space-y-5">
 		<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 			<div class="max-w-2xl">
-				<p class="text-[10px] font-bold uppercase tracking-wider text-foreground/40">Step 1</p>
-				<h3 class="mt-1 text-lg font-semibold text-foreground flex items-center gap-2">
-					<Radio class="w-4 h-4" /> Real-Time Sources
+				<h3 class="text-lg font-semibold text-foreground flex items-center gap-2">
+					<Radio class="w-4 h-4" /> Sources
 				</h3>
-				<p class="mt-2 text-sm text-foreground/60">
-					These are the inputs of the pipeline. Start a source to stream data continuously, test it to emit one event, or poll the HTTP feeds
-					manually.
-				</p>
+				<p class="mt-1 text-sm text-foreground/60">Connect simulated or external feeds, then start streaming.</p>
 			</div>
 			<div class="flex flex-wrap gap-2">
 				<button @click="pipeline.showSourceModal = true" class="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">

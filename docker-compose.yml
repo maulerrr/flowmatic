@@ -68,6 +68,9 @@ services:
       HOST: 0.0.0.0
       DEFAULT_LOCATION: Astana
       CORS_ORIGINS: "*"
+      ASTANA_DATASET_PATH: /data/astana_synthetic_data.csv
+    volumes:
+      - ./data:/data:ro
     ports:
       - "${SENSOR_SIMULATOR_PORT:-8091}:8091"
     healthcheck:
@@ -98,6 +101,69 @@ services:
     networks:
       - app_network
 
+  model-inference:
+    container_name: flowmatic-model-inference
+    build:
+      context: .
+      dockerfile: services/model-inference/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 8093
+      INFER_DEVICE: ${INFER_DEVICE:-auto}
+      HF_HOME: /cache/huggingface
+      CHECKPOINTS_DIR: /app/models/checkpoints
+    volumes:
+      - hf_model_cache:/cache/huggingface
+      - ./models/checkpoints:/app/models/checkpoints:ro
+    ports:
+      - "${MODEL_INFERENCE_PORT:-8093}:8093"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8093/health')",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
+    networks:
+      - app_network
+
+  postgres-export-test:
+    container_name: flowmatic-postgres-export-test
+    image: postgres:16-alpine
+    profiles:
+      - export-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: export_test
+      POSTGRES_PASSWORD: export_test
+      POSTGRES_DB: export_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U export_test -d export_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app_network
+
+  mongo-export-test:
+    container_name: flowmatic-mongo-export-test
+    image: mongo:7
+    profiles:
+      - export-test
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
   # ============================================================================
   # 4) Backend (NestJS API)
   # ============================================================================
@@ -110,10 +176,12 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin123}@postgres:5432/${POSTGRES_DB:-flowmatic}
       SERVER_PORT: 8080
-      NODE_ENV: production
+      SERVER_HOST: 0.0.0.0
+      NODE_ENV: development
       JWT_SECRET: ${JWT_SECRET:-supersecretkey}
       SECURITY_BACKEND_CORS_ORIGINS: "*"
       SENSOR_SIMULATOR_URL: ${SENSOR_SIMULATOR_URL:-http://sensor-simulator:8091}
+      MODEL_INFERENCE_URL: ${MODEL_INFERENCE_URL:-http://model-inference:8093}
       FEDERATED_COORDINATOR_DEMO_URL: ${FEDERATED_COORDINATOR_DEMO_URL:-http://federated-coordinator-demo:8092/api/v1/coordinator}
       S3_ACCESS_ENDPOINT: http://minio:9000
       S3_RESPONSE_ENDPOINT: http://minio:9000
@@ -124,17 +192,25 @@ services:
       S3_PATH_STYLE: "true"
       QUEUE_DRIVER: rabbitmq
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-flowmatic}:${RABBITMQ_PASSWORD:-flowmatic}@rabbitmq:5672
-    ports:
-      - "8080:8080"
+      HUGGINGFACE_TOKEN: ${HUGGINGFACE_TOKEN:-${HF_TOKEN:-}}
+      HF_TOKEN: ${HF_TOKEN:-}
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./models:/app/models:ro
     depends_on:
       postgres:
         condition: service_healthy
       sensor-simulator:
         condition: service_healthy
+      model-inference:
+        condition: service_healthy
       rabbitmq:
         condition: service_started
       minio:
         condition: service_started
+    ports:
+      - "8080:8080"
     networks:
       - app_network
 
@@ -147,12 +223,16 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
+        VITE_API_URL: /api/v1
         NGINX_SERVER_NAME: ${DOMAIN_NAME:-localhost}
+    environment:
+      NGINX_SERVER_NAME: ${DOMAIN_NAME:-localhost}
     restart: always
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     networks:
       - app_network
 
@@ -164,3 +244,4 @@ volumes:
   postgres-data:
   minio-data:
   rabbitmq-data:
+  hf_model_cache:

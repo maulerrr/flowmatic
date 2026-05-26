@@ -19,4 +19,9 @@ export class RegisterDto {
 	@IsOptional()
 	@IsString()
 	organizationName?: string
+
+	@ApiProperty({ required: false, description: 'Optional Hugging Face token saved for exports and core unit models' })
+	@IsOptional()
+	@IsString()
+	huggingFaceToken?: string
 }

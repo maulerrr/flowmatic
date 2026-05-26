@@ -1,0 +1,13 @@
+# Optional GPU passthrough for model-inference (RTX 4060 Ti, supercomputer nodes, etc.)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build model-inference
+services:
+  model-inference:
+    environment:
+      INFER_DEVICE: cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

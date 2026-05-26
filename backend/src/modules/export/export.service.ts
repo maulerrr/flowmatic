@@ -279,6 +279,14 @@ export class ExportService {
 		return value ?? null
 	}
 
+	async persistAdapterCredentials(
+		organizationId: string,
+		adapterType: ExportAdapterType,
+		settings: Record<string, unknown>,
+	) {
+		await this.saveAdapterCredentials(organizationId, adapterType, settings)
+	}
+
 	private async mergeSavedCredentials(
 		organizationId: string,
 		adapterType: ExportAdapterType,
@@ -291,10 +299,15 @@ export class ExportService {
 		const saved = await this.getSavedAdapterCredentials(organizationId, adapterType)
 		const merged = { ...(saved ?? {}), ...this.removeEmptyValues(settings) }
 
+		if (adapterType === ExportAdapterType.HUGGINGFACE && !this.hasValue(merged.token)) {
+			const orgToken = await this.getOrganizationHuggingFaceToken(organizationId)
+			if (orgToken) merged.token = orgToken
+		}
+
 		const missingCredentialKeys = credentialKeys.filter(key => !this.hasValue(merged[key]))
-		if (missingCredentialKeys.length > 0 && !saveCredentials) {
+		if (missingCredentialKeys.length > 0) {
 			throw new BadRequestException(
-				`Missing credentials for ${adapterType}: ${missingCredentialKeys.join(', ')}. Provide them or save credentials first.`,
+				`Missing credentials for ${adapterType}: ${missingCredentialKeys.join(', ')}. Provide them in the export target, enable "Save credentials", or configure them in Settings.`,
 			)
 		}
 
@@ -447,5 +460,35 @@ export class ExportService {
 			where: { pipelineRunId },
 			orderBy: { createdAt: 'desc' },
 		})
+	}
+
+	async getOrganizationHuggingFaceToken(organizationId: string): Promise<string | null> {
+		const saved = await this.getSavedAdapterCredentials(organizationId, ExportAdapterType.HUGGINGFACE)
+		const savedToken = saved?.token
+		if (typeof savedToken === 'string' && savedToken.trim().length > 0) {
+			return savedToken.trim()
+		}
+		return this.config.huggingFace.token ?? null
+	}
+
+	async saveOrganizationHuggingFaceToken(organizationId: string, token: string) {
+		const normalized = token.trim()
+		if (!normalized) {
+			throw new BadRequestException('Hugging Face token cannot be empty')
+		}
+		await this.saveAdapterCredentials(organizationId, ExportAdapterType.HUGGINGFACE, { token: normalized })
+	}
+
+	async removeOrganizationHuggingFaceToken(organizationId: string) {
+		await this.prisma.exportCredential.deleteMany({
+			where: { organizationId, adapterType: ExportAdapterType.HUGGINGFACE },
+		})
+	}
+
+	async getOrganizationHuggingFaceTokenPreview(organizationId: string) {
+		const token = await this.getOrganizationHuggingFaceToken(organizationId)
+		if (!token) return null
+		if (token.length <= 8) return '••••••••'
+		return `${token.slice(0, 4)}••••${token.slice(-4)}`
 	}
 }

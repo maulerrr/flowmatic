@@ -1,4 +1,6 @@
-export const SENSOR_KINDS = ['iot', 'video', 'power', 'network', 'weather', 'parking'] as const
+import { createAstanaTrafficPayload } from './astana-traffic-dataset'
+
+export const SENSOR_KINDS = ['iot', 'video', 'power', 'network', 'weather', 'parking', 'traffic'] as const
 export type SensorKind = (typeof SENSOR_KINDS)[number]
 
 export interface SensorPayload {
@@ -19,6 +21,10 @@ export function createPayload(
 	transport: SensorPayload['transport'],
 	location: string,
 ): SensorPayload {
+	if (sensorKind === 'traffic') {
+		return createAstanaTrafficPayload(transport, location) as SensorPayload
+	}
+
 	const base = {
 		location,
 		sensorKind,

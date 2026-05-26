@@ -69,9 +69,11 @@ export interface MongoDBConfig {
 export interface HuggingFaceConfig {
 	token: string
 	repoName: string
-	fileName: string
+	/** @deprecated Hourly parts are written under data/hourly/ automatically. */
+	fileName?: string
 	private?: boolean
 	commitMessage?: string
+	ifExists?: 'replace' | 'append' | 'fail'
 }
 
 /**

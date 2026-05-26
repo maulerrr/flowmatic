@@ -11,6 +11,8 @@ import {
 	HttpCode,
 	Req,
 	NotFoundException,
+	Inject,
+	forwardRef,
 } from '@nestjs/common'
 import { FastifyReply } from 'fastify'
 import { ApiTags } from '@nestjs/swagger'
@@ -27,6 +29,8 @@ import { UpdateOrganizationDto } from './dto/update-organization.dto'
 import { InviteMemberDto } from './dto/invite-member.dto'
 import { SwitchOrganizationDto } from './dto/switch-organization.dto'
 import { DeleteOrganizationDto } from './dto/delete-organization.dto'
+import { ExportService } from '../export/export.service'
+import { whoAmI } from '@huggingface/hub'
 
 @ApiTags('auth')
 @Controller('auth')
@@ -34,6 +38,8 @@ export class AuthController {
 	constructor(
 		private readonly authContext: AuthContextService,
 		private readonly config: AppConfigService,
+		@Inject(forwardRef(() => ExportService))
+		private readonly exportService: ExportService,
 	) {}
 
 	@Post('change-password')
@@ -93,6 +99,12 @@ export class AuthController {
 	@HttpCode(201)
 	async register(@Body() body: RegisterDto, @Res({ passthrough: true }) res: FastifyReply) {
 		const user = await this.authContext.register(body)
+		if (body.huggingFaceToken?.trim()) {
+			await this.exportService.saveOrganizationHuggingFaceToken(
+				user.organizationId,
+				body.huggingFaceToken.trim(),
+			)
+		}
 		const token = await this.authContext.createSession(user.id)
 
 		this.clearSessionCookies(res)
@@ -261,7 +273,12 @@ export class AuthController {
 
 		return {
 			success: true,
-			data: user,
+			data: {
+				...user,
+				huggingFaceIntegration: await this.getHuggingFaceIntegrationStatus(
+					req.authContext!.organizationId,
+				),
+			},
 		}
 	}
 
@@ -281,6 +298,19 @@ export class AuthController {
 	private clearSessionCookies(res: FastifyReply) {
 		for (const path of ['/', '/api/v1', '/api/v1/auth', '/auth']) {
 			res.clearCookie('flowmatic_session', { path })
+		}
+	}
+
+	private async getHuggingFaceIntegrationStatus(organizationId: string) {
+		const token = await this.exportService.getOrganizationHuggingFaceToken(organizationId)
+		if (!token) return { configured: false }
+		const tokenPreview =
+			await this.exportService.getOrganizationHuggingFaceTokenPreview(organizationId)
+		try {
+			const profile = await whoAmI({ accessToken: token })
+			return { configured: true, username: profile.name, tokenPreview }
+		} catch {
+			return { configured: true, tokenPreview }
 		}
 	}
 }

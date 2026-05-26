@@ -1,24 +1,5 @@
-import {
-	Activity,
-	Brain,
-	Cpu,
-	Database,
-	HardDrive,
-	LayoutDashboard,
-	Network,
-	Plus,
-	Radio,
-	RefreshCw,
-	Router,
-	Save,
-	Trash2,
-	Video,
-	Wifi,
-	Workflow,
-	X,
-	Zap,
-} from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { toast } from 'vue-sonner'
 import {
 	apiClient,
@@ -29,8 +10,11 @@ import {
 	type ExportAdapterMetadata,
 	type FederatedRound,
 	type SmartCityExportRun,
+	type SmartCityExportPreview,
 	type SmartCityExportTarget,
-	type FederatedConnectionState,
+	type HuggingFaceIntegrationStatus,
+	type HuggingFaceModelCatalogPage,
+	type HuggingFaceModelSummary,
 	type ModelArtifact,
 	type ModelTrainingRun,
 	type ResearchModel,
@@ -39,16 +23,48 @@ import {
 	type SensorSourceTestResult,
 	type SmartCityPipeline,
 } from '@/api/client'
+import { formatBytes, formatDateTime, sourceIcon } from './pipeline-display.helpers'
+import {
+	type ExportAdapterKind,
+	type ExportStage,
+	applyAdapterDefaults,
+	applyExportSettingsToForm,
+	buildExportSettings,
+	buildExportSettingsPreview,
+	buildPipelineFlowHint,
+	syncStageDependentExportFields,
+	validateExportTargetForm,
+} from './pipeline-export.helpers'
+import type { N8nWorkflowSnapshot, ProcessingTestResult } from './pipeline-workbench.types'
+import { replaceInList } from './pipeline-entity.helpers'
+import { createPipelineLiveStream } from './pipeline-runtime.helpers'
+import { usePipelineDataLake } from './usePipelineDataLake'
+import { usePipelineFederated } from './usePipelineFederated'
 
-export type PipelineStage = 'sources' | 'processing' | 'lake' | 'federated'
-export type ExportStage = 'raw' | 'cleaned' | 'business'
-export type ExportAdapterKind = 'json' | 'csv' | 'postgres' | 'mongodb' | 'huggingface'
+export type { PipelineStage, ExportStage, ExportAdapterKind } from './pipeline-workbench.types'
+export type { N8nWorkflowSnapshot, ProcessingTestResult } from './pipeline-workbench.types'
+
+type AutoRoutingBinding = {
+	sensorKind: string
+	modelId: string
+	label: string
+	reason?: string
+}
+
+type AutoRoutingPolicySnapshot = {
+	summary?: string
+	bindings?: AutoRoutingBinding[]
+	plannerSource?: string
+	generatedAt?: string
+}
 
 export function useSmartCityPipeline() {
+	const route = useRoute()
 	const viewMode = ref<'dashboard' | 'workflow'>('dashboard')
 	const activeStage = ref<'sources' | 'processing' | 'lake' | 'federated'>('sources')
 	const loading = ref(true)
 	const saving = ref(false)
+	const autoRoutingPhase = ref<'idle' | 'saving' | 'matching'>('idle')
 	const pipelines = ref<SmartCityPipeline[]>([])
 	const selectedPipelineId = ref('')
 	const sources = ref<SensorSource[]>([])
@@ -57,6 +73,8 @@ export function useSmartCityPipeline() {
 	const exportAdapters = ref<ExportAdapterMetadata[]>([])
 	const exportTargets = ref<SmartCityExportTarget[]>([])
 	const exportRuns = ref<SmartCityExportRun[]>([])
+	const exportPreview = ref<SmartCityExportPreview | null>(null)
+	const exportPreviewStage = ref<ExportStage>('cleaned')
 	const dataLakeObjects = ref<DataLakeObjectGroup[]>([])
 	const latestBackfill = ref<SmartCityBackfillResult | null>(null)
 	const federatedRounds = ref<FederatedRound[]>([])
@@ -64,9 +82,14 @@ export function useSmartCityPipeline() {
 	const models = ref<ModelArtifact[]>([])
 	const trainingRuns = ref<ModelTrainingRun[]>([])
 	const researchModels = ref<ResearchModel[]>([])
-	const latestProcessingResult = ref<any>(null)
-	const n8nWorkflow = ref<any>(null)
+	const latestProcessingResult = ref<ProcessingTestResult | null>(null)
+	const processingError = ref<string | null>(null)
+	const n8nWorkflow = ref<N8nWorkflowSnapshot | null>(null)
 	const logs = ref<string[]>([])
+	function addLog(message: string) {
+		logs.value.unshift(`${new Date().toLocaleTimeString()} ${message}`)
+		logs.value = logs.value.slice(0, 80)
+	}
 	const wsStatus = ref<'disconnected' | 'connecting' | 'connected'>('disconnected')
 	const simulatorPresets = ref<Record<string, unknown> | null>(null)
 
@@ -77,7 +100,22 @@ export function useSmartCityPipeline() {
 	const showPipelineModal = ref(false)
 	const showSourceModal = ref(false)
 	const showConfigModal = ref(false)
+	const huggingFaceIntegration = ref<HuggingFaceIntegrationStatus>({ configured: false })
+	const hfModelCatalog = ref<HuggingFaceModelCatalogPage | null>(null)
+	const hfModelSearch = ref('')
+	const hfModelPage = ref(1)
+	const hfModelLoading = ref(false)
+	const hfManualModelId = ref('')
+	const hfSelectedModelId = ref('')
+	const hfSelectedModelDetails = ref<HuggingFaceModelSummary | null>(null)
+	const hfTokenDraft = ref('')
+	const showObservability = ref(false)
+	const showSystemLog = ref(false)
 	const showDataLakeModal = ref(false)
+	const showExportTargetModal = ref(false)
+	const showBackfillModal = ref(false)
+	const editingExportTargetId = ref<string | null>(null)
+	const lakeExportTab = ref<'overview' | 'browser' | 'export'>('overview')
 	const showAdvancedExportJson = ref(false)
 
 	const pipelineForm = reactive({ name: '', description: '' })
@@ -92,17 +130,6 @@ export function useSmartCityPipeline() {
 		locationField: '',
 		subscribeMessage: '',
 		method: 'GET' as 'GET' | 'POST',
-	})
-	const dataLakeForm = reactive({
-		name: '',
-		provider: 'CUSTOM_S3' as DataLakeConnection['provider'],
-		bucket: '',
-		region: '',
-		endpoint: '',
-		basePrefix: '',
-		accessKey: '',
-		secretKey: '',
-		isDefault: true,
 	})
 	const exportForm = reactive({
 		stage: 'business' as ExportStage,
@@ -133,47 +160,93 @@ export function useSmartCityPipeline() {
 		mongodbIfExists: 'append' as 'append' | 'replace',
 		huggingFaceToken: '',
 		huggingFaceRepoName: '',
-		huggingFaceFileName: 'smart_city_business.csv',
 		huggingFaceCommitMessage: '',
 		huggingFacePrivate: false,
 		advancedJson: '',
 	})
 	const streamConfig = reactive({
+		coreUnitMode: 'manual' as 'manual' | 'auto',
 		anomalyDetection: true,
 		schemaValidation: true,
 		autoCleaning: true,
 		throughputLimit: 5,
 		encryptionLevel: 'Standard',
 	})
-	const federatedForm = reactive({
-		protocol: 'HTTP' as 'HTTP' | 'WEBSOCKET',
-		endpoint: '',
-		projectId: '',
-		nodeId: '',
-		topic: '',
-		apiKey: '',
-	})
-	const federatedRoundForm = reactive({
-		name: '',
-		sampleCount: 1000,
-	})
-	const federatedUpdateForm = reactive({
-		checkpointUri: '',
-		sampleCount: 1000,
-		notes: '',
-	})
-	const federatedAggregateForm = reactive({
-		globalModelVersion: '',
-		checkpointUri: '',
-		summary: '',
+	const routingPreview = ref<Record<string, unknown> | null>(null)
+	const runtimeForm = reactive({
+		sourcePollIntervalMs: 3000,
+		lakeWriteMode: 'append' as 'append' | 'object',
+		exportCadenceSeconds: 60,
 	})
 
 	let refreshTimer: number | undefined
-	let streamSocket: WebSocket | undefined
 
 	const selectedPipeline = computed(() =>
 		pipelines.value.find(pipeline => pipeline.id === selectedPipelineId.value),
 	)
+
+	const liveStream = createPipelineLiveStream(
+		{
+			events,
+			latestProcessingResult,
+			processingError,
+			latestBackfill,
+			wsStatus,
+		},
+		addLog,
+	)
+
+	const federated = usePipelineFederated({
+		selectedPipelineId,
+		selectedPipeline,
+		pipelines,
+		federatedRounds,
+		saving,
+		viewMode,
+		demoFederatedEndpoint,
+		addLog,
+		loadDashboard,
+	})
+
+	const dataLake = usePipelineDataLake({
+		selectedPipelineId,
+		selectedPipeline,
+		pipelines,
+		dataLakes,
+		dataLakeObjects,
+		saving,
+		showDataLakeModal,
+		addLog,
+	})
+
+	const {
+		federatedForm,
+		federatedRoundForm,
+		federatedUpdateForm,
+		federatedAggregateForm,
+		federatedConfig,
+		activeFederatedRound,
+		loadFederatedRounds,
+		connectFederated,
+		testFederatedConnection,
+		disconnectFederatedConnection,
+		startFederatedRoundFlow,
+		submitFederatedRoundUpdate,
+		aggregateFederatedRoundFlow,
+		syncFederatedGlobalState,
+		openFederatedWorkspace,
+		syncFederatedForm,
+	} = federated
+
+	const {
+		dataLakeForm,
+		saveDataLake,
+		testDataLake,
+		disconnectDataLake,
+		deleteDataLakeConnection,
+		refreshLakeBrowser,
+		replaceDataLake,
+	} = dataLake
 	const runningSourceCount = computed(
 		() => sources.value.filter(source => source.status === 'RUNNING').length,
 	)
@@ -186,18 +259,55 @@ export function useSmartCityPipeline() {
 		sources.value.length ? `${runningSourceCount.value}/${sources.value.length} running` : 'No sources',
 	)
 	const recentEventsPreview = computed(() => events.value.slice(0, 5))
-	const activeResearchModel = computed(() =>
-		researchModels.value.find(model => selectedPipeline.value?.activeModelId === model.id),
-	)
-	const activeDbModel = computed(() =>
-		models.value.find(model => selectedPipeline.value?.activeModelId === model.id),
-	)
+	const isApplyingAutoRouting = computed(() => autoRoutingPhase.value !== 'idle')
+	const autoRoutingStatusMessage = computed(() => {
+		if (autoRoutingPhase.value === 'matching') {
+			return 'Matching sensor streams to the best trained models…'
+		}
+		if (autoRoutingPhase.value === 'saving') {
+			return 'Saving adaptive auto mode…'
+		}
+		return null
+	})
+	const autoRoutingPolicy = computed((): AutoRoutingPolicySnapshot | null => {
+		const policy = selectedPipeline.value?.streamConfig?.autoRoutingPolicy
+		return policy && typeof policy === 'object' ? (policy as AutoRoutingPolicySnapshot) : null
+	})
+	const autoRoutingBindings = computed(() => autoRoutingPolicy.value?.bindings ?? [])
+	const autoRoutingSummary = computed(() => autoRoutingPolicy.value?.summary ?? '')
+	const lastAutoResolution = computed(() => {
+		const resolution = selectedPipeline.value?.streamConfig?.lastAutoResolution
+		return resolution && typeof resolution === 'object'
+			? (resolution as { label?: string; modelId?: string; sensorKind?: string; reason?: string })
+			: null
+	})
 	const activeModelLabel = computed(() => {
-		if (!selectedPipeline.value?.activeModelId) return 'No model selected'
-		return activeResearchModel.value?.run ?? activeDbModel.value?.name ?? selectedPipeline.value.activeModelId
+		if (autoRoutingPhase.value === 'matching') return 'Selecting best models…'
+		const mode = streamConfig.coreUnitMode === 'auto' ? 'auto' : 'manual'
+		if (mode === 'auto') {
+			if (autoRoutingBindings.value.length > 0) {
+				return autoRoutingBindings.value.map(binding => `${binding.sensorKind} → ${binding.label}`).join(' · ')
+			}
+			return 'Apply mode to configure routes'
+		}
+		const activeModelId = selectedPipeline.value?.activeModelId
+		if (!activeModelId) return 'No model selected'
+		if (activeModelId.startsWith('hf:')) return activeModelId.replace(/^hf:/, '')
+		if (activeModelId.startsWith('research:')) return activeModelId.replace(/^research:/, 'Research · ')
+		return activeModelId
+	})
+	const activeModelSubLabel = computed(() => {
+		if (streamConfig.coreUnitMode !== 'auto') return null
+		if (autoRoutingPhase.value === 'matching') return autoRoutingStatusMessage.value
+		if (lastAutoResolution.value?.label) {
+			return `Last live event: ${lastAutoResolution.value.sensorKind ?? 'stream'} → ${lastAutoResolution.value.label}`
+		}
+		if (autoRoutingSummary.value) return autoRoutingSummary.value
+		return 'Each event is routed to a modality-safe checkpoint at runtime.'
 	})
 	const latestTrainingRun = computed(() => trainingRuns.value[0] ?? null)
-	const processingModelCount = computed(() => researchModels.value.length + models.value.length)
+	const processingModelCount = computed(() => hfModelCatalog.value?.total ?? 0)
+	const usesSavedHuggingFaceToken = computed(() => huggingFaceIntegration.value.configured)
 	const linkedDataLake = computed(() =>
 		dataLakes.value.find(lake => lake.id === selectedPipeline.value?.dataLakeConnectionId) ?? null,
 	)
@@ -207,7 +317,9 @@ export function useSmartCityPipeline() {
 	const exportCredentialHint = computed(() => {
 		switch (exportForm.adapterType) {
 			case 'huggingface':
-				return 'Token can be saved and reused for later exports.'
+				return usesSavedHuggingFaceToken.value
+					? `Using saved organization token${huggingFaceIntegration.value.username ? ` (@${huggingFaceIntegration.value.username})` : ''}.`
+					: 'Save a Hugging Face token in Settings to reuse it across exports and the core unit.'
 			case 'postgres':
 				return 'Host, port, username, password, and database can be saved securely.'
 			case 'mongodb':
@@ -216,60 +328,54 @@ export function useSmartCityPipeline() {
 				return 'This adapter does not require reusable credentials.'
 		}
 	})
-	const exportSettingsPreview = computed(() => {
-		switch (exportForm.adapterType) {
-			case 'json':
-				return exportSettingsForm.jsonPrettyPrint ? 'Pretty JSON file in object storage' : 'Compact JSON file in object storage'
-			case 'csv':
-				return `CSV file with "${exportSettingsForm.csvDelimiter}" delimiter`
-			case 'postgres':
-				return `${exportSettingsForm.postgresHost || 'host'} / ${exportSettingsForm.postgresDatabase || 'database'} / ${exportSettingsForm.postgresTable || 'table'}`
-			case 'mongodb':
-				return `${exportSettingsForm.mongodbDatabase || 'database'} / ${exportSettingsForm.mongodbCollection || 'collection'}`
-			case 'huggingface':
-				return exportSettingsForm.huggingFaceRepoName
-					? `datasets/${exportSettingsForm.huggingFaceRepoName}`
-					: 'Dataset repo on Hugging Face'
-			default:
-				return 'Configure adapter settings'
-		}
-	})
+	const exportSettingsPreview = computed(() =>
+		buildExportSettingsPreview(exportForm.adapterType, exportSettingsForm),
+	)
 	const supportsSavedCredentials = computed(() =>
 		['huggingface', 'postgres', 'mongodb'].includes(exportForm.adapterType),
-	)
-	const federatedConfig = computed<FederatedConnectionState>(() => {
-		const raw = (selectedPipeline.value?.streamConfig?.federated ?? {}) as Partial<FederatedConnectionState>
-		return {
-			enabled: false,
-			protocol: 'HTTP',
-			endpoint: '',
-			projectId: null,
-			nodeId: null,
-			topic: null,
-			headers: {},
-			registerPayload: {},
-			status: 'DISCONNECTED',
-			lastConnectedAt: null,
-			lastTestedAt: null,
-			lastError: null,
-			lastTestResult: null,
-			registrationId: null,
-			registeredAt: null,
-			lastDeliveryAt: null,
-			globalModelVersion: null,
-			currentRoundId: null,
-			rounds: [],
-			...raw,
-		}
-	})
-	const activeFederatedRound = computed(
-		() => federatedRounds.value.find(round => round.id === federatedConfig.value.currentRoundId) ?? null,
 	)
 	const sourceMixSummary = computed(() => {
 		const external = sources.value.filter(source => source.mode === 'EXTERNAL').length
 		const simulated = sources.value.length - external
 		return `${external} external / ${simulated} simulated`
 	})
+	const pipelineRuntimeStatus = computed(() => selectedPipeline.value?.status ?? 'DRAFT')
+	const pipelineRuntimeLabel = computed(() => {
+		switch (pipelineRuntimeStatus.value) {
+			case 'ACTIVE':
+				return 'Live stream'
+			case 'PAUSED':
+				return 'Paused'
+			case 'ERROR':
+				return 'Error'
+			default:
+				return 'Stopped'
+		}
+	})
+	const isPipelineLive = computed(() => pipelineRuntimeStatus.value === 'ACTIVE')
+	const continuousExportTargets = computed(() =>
+		exportTargets.value.filter(target => target.isContinuous && target.status !== 'ARCHIVED'),
+	)
+	const exportHealthSummary = computed(() => {
+		const errorTargets = exportTargets.value.filter(target => target.lastError && target.status !== 'ARCHIVED')
+		const lastRun = exportRuns.value[0]
+		return {
+			continuous: continuousExportTargets.value.length,
+			errors: errorTargets.length,
+			lastStatus: lastRun?.status ?? null,
+			lastAdapter: lastRun?.adapterType ?? null,
+			lastAt: lastRun?.finishedAt ?? lastRun?.startedAt ?? null,
+		}
+	})
+	const pipelineFlowHint = computed(() =>
+		buildPipelineFlowHint({
+			isLive: isPipelineLive.value,
+			runningSourceCount: runningSourceCount.value,
+			recentEventCount: events.value.length,
+			continuousExportTargets: continuousExportTargets.value,
+			exportErrorCount: exportHealthSummary.value.errors,
+		}),
+	)
 	const simulatorEndpointHint = computed(() => {
 		if (sourceForm.mode !== 'SIMULATED') return ''
 		const presets = simulatorPresets.value?.presets as Record<string, { httpPollUrl?: string; websocketUrl?: string }> | undefined
@@ -287,7 +393,7 @@ export function useSmartCityPipeline() {
 	watch(
 		() => exportForm.adapterType,
 		adapterType => {
-			applyAdapterDefaults(adapterType)
+			refreshAdapterDefaults(adapterType)
 		},
 		{ immediate: true },
 	)
@@ -295,12 +401,16 @@ export function useSmartCityPipeline() {
 	watch(
 		() => exportForm.stage,
 		stage => {
-			syncStageDependentExportFields(stage)
+			refreshStageDependentExportFields(stage)
 		},
 	)
 
+	watch(exportPreviewStage, () => {
+		void loadExportPreview()
+	})
+
 	onMounted(async () => {
-		if (!federatedForm.endpoint) federatedForm.endpoint = demoFederatedEndpoint
+		federated.bootstrapFederatedEndpoint()
 		try {
 			const presetResponse = await apiClient.getSimulatorPresets()
 			simulatorPresets.value = presetResponse.data ?? null
@@ -308,13 +418,86 @@ export function useSmartCityPipeline() {
 			simulatorPresets.value = null
 		}
 		await loadPipelines()
+		await loadHuggingFaceIntegration()
 		refreshTimer = window.setInterval(refreshEvents, 5000)
 	})
 
 	onUnmounted(() => {
 		if (refreshTimer) window.clearInterval(refreshTimer)
-		streamSocket?.close()
+		liveStream.disconnect()
 	})
+
+	async function loadHuggingFaceIntegration() {
+		try {
+			const response = await apiClient.getHuggingFaceStatus()
+			huggingFaceIntegration.value = response.data ?? { configured: false }
+			if (huggingFaceIntegration.value.configured && exportForm.adapterType === 'huggingface') {
+				exportForm.saveCredentials = true
+			}
+		} catch {
+			huggingFaceIntegration.value = { configured: false }
+		}
+	}
+
+	async function saveHuggingFaceToken(token: string) {
+		if (!token.trim()) return toast.error('Enter a Hugging Face token')
+		const response = await apiClient.saveHuggingFaceToken(token.trim())
+		huggingFaceIntegration.value = response.data ?? { configured: true }
+		hfTokenDraft.value = ''
+		exportForm.saveCredentials = true
+		await loadHuggingFaceCatalog(1)
+		toast.success('Hugging Face token saved for this organization')
+	}
+
+	async function removeHuggingFaceToken() {
+		await apiClient.removeHuggingFaceToken()
+		huggingFaceIntegration.value = { configured: false }
+		toast.success('Hugging Face token removed')
+	}
+
+	async function loadHuggingFaceCatalog(page = hfModelPage.value) {
+		if (!huggingFaceIntegration.value.configured) {
+			hfModelCatalog.value = null
+			return
+		}
+		hfModelLoading.value = true
+		try {
+			const response = await apiClient.listHuggingFaceModels({
+				search: hfModelSearch.value.trim() || undefined,
+				page,
+				limit: 8,
+			})
+			hfModelCatalog.value = response.data ?? null
+			hfModelPage.value = page
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Could not load Hugging Face models')
+		} finally {
+			hfModelLoading.value = false
+		}
+	}
+
+	async function selectHuggingFaceModel(model: HuggingFaceModelSummary) {
+		hfSelectedModelId.value = model.modelId
+		hfManualModelId.value = model.modelId
+		hfSelectedModelDetails.value = model
+	}
+
+	async function resolveManualHuggingFaceModel() {
+		const modelId = hfManualModelId.value.trim()
+		if (!modelId.includes('/')) {
+			toast.error('Use the format username/model-name')
+			return
+		}
+		try {
+			const response = await apiClient.getHuggingFaceModel(modelId)
+			if (response.data) {
+				hfSelectedModelId.value = response.data.modelId
+				hfSelectedModelDetails.value = response.data
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Could not resolve model')
+		}
+	}
 
 	async function loadPipelines() {
 		loading.value = true
@@ -324,7 +507,13 @@ export function useSmartCityPipeline() {
 			exportAdapters.value = adapterResponse.data ?? []
 			if (!exportForm.targetName) exportForm.targetName = 'Business export'
 			pipelines.value = response.data ?? []
-			if (!selectedPipelineId.value) selectedPipelineId.value = pipelines.value[0]?.id ?? ''
+			const queryPipelineId =
+				typeof route.query.pipelineId === 'string' ? route.query.pipelineId : ''
+			const preferredId =
+				queryPipelineId && pipelines.value.some(pipeline => pipeline.id === queryPipelineId)
+					? queryPipelineId
+					: pipelines.value[0]?.id ?? ''
+			if (!selectedPipelineId.value || queryPipelineId) selectedPipelineId.value = preferredId
 			if (!selectedPipelineId.value) addLog('[READY] Create a pipeline to connect sources')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Could not load pipelines')
@@ -349,20 +538,39 @@ export function useSmartCityPipeline() {
 			])
 			exportTargets.value = targetsResponse.data ?? []
 			exportRuns.value = runsResponse.data ?? []
+			await loadExportPreview(pipelineId)
 			const lakeObjectsResponse = await apiClient.listSmartCityDataLakeObjects(pipelineId)
 			dataLakeObjects.value = lakeObjectsResponse.data?.objects ?? []
 			Object.assign(streamConfig, dashboard.pipeline.streamConfig)
+			syncRuntimeForm(dashboard.pipeline.streamConfig)
 			syncFederatedForm(dashboard.pipeline)
 			await loadFederatedRounds(pipelineId)
 			await loadObservability(pipelineId)
 			await loadN8nWorkflow()
 			await loadModels()
-			connectWebSocket(pipelineId)
+			liveStream.connect(pipelineId)
 			addLog(`[SYNC] ${dashboard.sources.length} sources, ${dashboard.events.length} recent events`)
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Could not load dashboard')
 		} finally {
 			loading.value = false
+		}
+	}
+
+	async function loadExportPreview(pipelineId = selectedPipelineId.value) {
+		if (!pipelineId) {
+			exportPreview.value = null
+			return
+		}
+		try {
+			const response = await apiClient.getSmartCityExportPreview(
+				pipelineId,
+				exportPreviewStage.value,
+				8,
+			)
+			exportPreview.value = response.data ?? null
+		} catch {
+			exportPreview.value = null
 		}
 	}
 
@@ -393,54 +601,9 @@ export function useSmartCityPipeline() {
 		researchModels.value = researchResponse.data ?? []
 	}
 
-	async function loadFederatedRounds(pipelineId: string) {
-		const response = await apiClient.listFederatedRounds(pipelineId)
-		federatedRounds.value = response.data?.rounds ?? []
-	}
-
 	async function loadObservability(pipelineId: string) {
 		const response = await apiClient.getSmartCityObservability(pipelineId)
 		observability.value = response.data ?? null
-	}
-
-	function connectWebSocket(pipelineId: string) {
-		streamSocket?.close()
-		const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-		const wsUrl = `${apiUrl.replace(/^http/, 'ws')}/api/v1/smart-city/pipelines/${pipelineId}/ws`
-		wsStatus.value = 'connecting'
-		streamSocket = new WebSocket(wsUrl)
-		streamSocket.onopen = () => {
-			wsStatus.value = 'connected'
-			addLog('[WS] Live stream connected')
-		}
-		streamSocket.onmessage = message => {
-			const payload = JSON.parse(message.data)
-			if (payload.type === 'snapshot') {
-				events.value = payload.data.events ?? events.value
-				return
-			}
-			if (payload.type === 'sensor_event') {
-				events.value = [payload.data, ...events.value].slice(0, 50)
-			}
-			if (payload.type === 'processing_result') {
-				latestProcessingResult.value = payload.data
-				addLog(`[PROCESS] ${payload.data?.output?.kind ?? 'model'} produced result`)
-			}
-			if (payload.type === 'backfill_completed') {
-				latestBackfill.value = payload.data as SmartCityBackfillResult
-				addLog(`[BACKFILL] ${payload.data?.scannedEvents ?? 0} events replayed`)
-			}
-			if (payload.type === 'federated_status') {
-				addLog(`[FEDERATED] ${payload.data?.status ?? 'status update'}`)
-			}
-		}
-		streamSocket.onclose = () => {
-			wsStatus.value = 'disconnected'
-			addLog('[WS] Live stream disconnected')
-		}
-		streamSocket.onerror = () => {
-			wsStatus.value = 'disconnected'
-		}
 	}
 
 	async function createPipeline() {
@@ -568,102 +731,155 @@ export function useSmartCityPipeline() {
 		}
 	}
 
-	async function saveConfiguration() {
-		if (!selectedPipelineId.value) return
-		const response = await apiClient.updateSmartCityPipeline(selectedPipelineId.value, {
-			streamConfig: { ...streamConfig },
-		})
-		replacePipeline(response.data)
-		showConfigModal.value = false
-		addLog(`[CONFIG] Saved ${streamConfig.throughputLimit} GB/s limit`)
-		toast.success('Configuration saved')
+	function openConfigModal() {
+		const active = selectedPipeline.value?.activeModelId ?? ''
+		streamConfig.coreUnitMode =
+			selectedPipeline.value?.streamConfig?.coreUnitMode === 'auto' ? 'auto' : 'manual'
+		hfSelectedModelId.value = active.startsWith('hf:') ? active.replace(/^hf:/, '') : ''
+		hfManualModelId.value = hfSelectedModelId.value
+		hfSelectedModelDetails.value = null
+		hfModelSearch.value = ''
+		hfModelPage.value = 1
+		void loadHuggingFaceIntegration().then(() => loadHuggingFaceCatalog(1))
+		void loadRoutingPreview()
+		showConfigModal.value = true
 	}
 
-	async function saveDataLake() {
-		if (!dataLakeForm.name.trim() || !dataLakeForm.bucket.trim()) {
-			return toast.error('Data lake name and bucket are required')
+	async function loadRoutingPreview() {
+		if (!selectedPipelineId.value) return
+		try {
+			const response = await apiClient.previewCoreUnitRouting(selectedPipelineId.value)
+			routingPreview.value = (response.data as Record<string, unknown> | undefined) ?? null
+		} catch {
+			routingPreview.value = null
 		}
+	}
+
+	async function saveConfiguration() {
+		if (!selectedPipelineId.value) return
+		const previousModelId = selectedPipeline.value?.activeModelId ?? ''
+		const nextModelId = hfSelectedModelId.value.trim() || hfManualModelId.value.trim()
+		saving.value = true
+		autoRoutingPhase.value = streamConfig.coreUnitMode === 'auto' ? 'saving' : 'idle'
+		try {
+			const response = await apiClient.updateSmartCityPipeline(selectedPipelineId.value, {
+				streamConfig: {
+					...streamConfig,
+					coreUnitMode: streamConfig.coreUnitMode,
+				},
+			})
+			replacePipeline(response.data)
+
+			if (streamConfig.coreUnitMode === 'auto') {
+				autoRoutingPhase.value = 'matching'
+				const policyResponse = await apiClient.buildCoreUnitAutoPolicy(selectedPipelineId.value)
+				replacePipeline(policyResponse.data)
+				Object.assign(streamConfig, policyResponse.data?.streamConfig ?? {})
+				await loadRoutingPreview()
+				addLog('[MODEL] Enabled adaptive auto routing on core unit')
+			} else if (nextModelId) {
+				const normalizedNext = `hf:${nextModelId}`
+				if (normalizedNext !== previousModelId) {
+					const deployResponse = await apiClient.deployHuggingFaceModel(
+						selectedPipelineId.value,
+						nextModelId,
+					)
+					replacePipeline(deployResponse.data)
+					addLog(`[MODEL] Selected Hugging Face model ${nextModelId}`)
+				}
+			}
+
+			showConfigModal.value = false
+			addLog(`[CONFIG] Saved processing settings (${streamConfig.throughputLimit} GB/s limit)`)
+			toast.success(
+				streamConfig.coreUnitMode === 'auto'
+					? 'Adaptive auto routing configured'
+					: 'Processing configuration saved',
+			)
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Could not save configuration')
+		} finally {
+			autoRoutingPhase.value = 'idle'
+			saving.value = false
+		}
+	}
+
+	function syncRuntimeForm(config?: Record<string, unknown>) {
+		const runtime = (config?.runtime ?? {}) as Record<string, unknown>
+		runtimeForm.sourcePollIntervalMs =
+			typeof runtime.sourcePollIntervalMs === 'number' ? runtime.sourcePollIntervalMs : 3000
+		runtimeForm.lakeWriteMode = runtime.lakeWriteMode === 'object' ? 'object' : 'append'
+		runtimeForm.exportCadenceSeconds =
+			typeof runtime.exportCadenceSeconds === 'number' ? runtime.exportCadenceSeconds : 60
+	}
+
+	async function startPipelineRuntime() {
+		if (!selectedPipelineId.value) return
 		saving.value = true
 		try {
-			const response = await apiClient.createDataLake({
-				...dataLakeForm,
-				region: dataLakeForm.region || undefined,
-				endpoint: dataLakeForm.endpoint || undefined,
-				basePrefix: dataLakeForm.basePrefix || undefined,
-				accessKey: dataLakeForm.accessKey || undefined,
-				secretKey: dataLakeForm.secretKey || undefined,
+			const response = await apiClient.startSmartCityPipeline(selectedPipelineId.value, {
+				sourcePollIntervalMs: runtimeForm.sourcePollIntervalMs,
 			})
-			if (response.data) {
-				dataLakes.value.unshift(response.data)
-				if (selectedPipelineId.value) {
-					const pipeline = await apiClient.updateSmartCityPipeline(selectedPipelineId.value, {
-						dataLakeConnectionId: response.data.id,
-					})
-					replacePipeline(pipeline.data)
-				}
-				Object.assign(dataLakeForm, {
-					name: '',
-					provider: 'CUSTOM_S3',
-					bucket: '',
-					region: '',
-					endpoint: '',
-					basePrefix: '',
-					accessKey: '',
-					secretKey: '',
-					isDefault: true,
-				})
-				showDataLakeModal.value = false
-				addLog(`[DATALAKE] Connected ${response.data.bucket}`)
-				toast.success('Data lake saved')
-			}
+			replacePipeline(response.data)
+			await loadDashboard(selectedPipelineId.value)
+			addLog('[RUNTIME] Pipeline started')
+			toast.success('Pipeline started')
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not save data lake')
+			toast.error(error instanceof Error ? error.message : 'Could not start pipeline')
 		} finally {
 			saving.value = false
 		}
 	}
 
-	async function testDataLake(lake: DataLakeConnection) {
+	async function stopPipelineRuntime() {
+		if (!selectedPipelineId.value) return
+		saving.value = true
 		try {
-			const response = await apiClient.testDataLake(lake.id)
-			replaceDataLake(response.data)
-			if (selectedPipelineId.value) {
-				const lakeObjectsResponse = await apiClient.listSmartCityDataLakeObjects(selectedPipelineId.value)
-				dataLakeObjects.value = lakeObjectsResponse.data?.objects ?? []
-			}
-			addLog(`[DATALAKE] Tested ${lake.bucket}`)
-			toast.success('Data lake config is valid')
+			const response = await apiClient.stopSmartCityPipeline(selectedPipelineId.value)
+			replacePipeline(response.data)
+			await loadDashboard(selectedPipelineId.value)
+			addLog('[RUNTIME] Pipeline stopped')
+			toast.success('Pipeline stopped')
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not test data lake')
+			toast.error(error instanceof Error ? error.message : 'Could not stop pipeline')
+		} finally {
+			saving.value = false
 		}
 	}
 
-	async function disconnectDataLake(lake: DataLakeConnection) {
+	async function resumePipelineRuntime() {
+		if (!selectedPipelineId.value) return
+		saving.value = true
 		try {
-			const response = await apiClient.disconnectDataLake(lake.id)
-			replaceDataLake(response.data)
-			addLog(`[DATALAKE] Disconnected ${lake.bucket}`)
-			toast.success('Data lake disconnected')
+			const response = await apiClient.resumeSmartCityPipeline(selectedPipelineId.value)
+			replacePipeline(response.data)
+			await loadDashboard(selectedPipelineId.value)
+			addLog('[RUNTIME] Pipeline resumed')
+			toast.success('Pipeline resumed')
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not disconnect data lake')
+			toast.error(error instanceof Error ? error.message : 'Could not resume pipeline')
+		} finally {
+			saving.value = false
 		}
 	}
 
-	async function deleteDataLakeConnection(lake: DataLakeConnection) {
-		if (!window.confirm(`Delete data lake "${lake.name}"?`)) return
+	async function savePipelineRuntime() {
+		if (!selectedPipelineId.value) return
+		saving.value = true
 		try {
-			await apiClient.deleteDataLake(lake.id)
-			dataLakes.value = dataLakes.value.filter(item => item.id !== lake.id)
-			if (selectedPipeline.value?.dataLakeConnectionId === lake.id && selectedPipelineId.value) {
-				const response = await apiClient.updateSmartCityPipeline(selectedPipelineId.value, {
-					dataLakeConnectionId: null,
-				})
-				replacePipeline(response.data)
-			}
-			addLog(`[DATALAKE] Deleted ${lake.bucket}`)
-			toast.success('Data lake deleted')
+			const response = await apiClient.updateSmartCityPipelineRuntime(selectedPipelineId.value, {
+				sourcePollIntervalMs: runtimeForm.sourcePollIntervalMs,
+				lakeWriteMode: runtimeForm.lakeWriteMode,
+				exportCadenceSeconds: runtimeForm.exportCadenceSeconds,
+			})
+			replacePipeline(response.data)
+			syncRuntimeForm(response.data?.streamConfig as Record<string, unknown> | undefined)
+			addLog('[RUNTIME] Updated interval and lake write mode')
+			toast.success('Runtime settings saved')
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not delete data lake')
+			toast.error(error instanceof Error ? error.message : 'Could not save runtime settings')
+		} finally {
+			saving.value = false
 		}
 	}
 
@@ -730,17 +946,24 @@ export function useSmartCityPipeline() {
 			Traffic_Density: 76,
 		})
 		latestProcessingResult.value = response.data
+		if (response.data?.error) {
+			processingError.value = response.data.error
+		} else {
+			processingError.value = null
+		}
 		addLog('[PROCESS] Manual processing test completed')
 	}
 
 	async function exportStageToAdapter() {
 		if (!selectedPipelineId.value) return
+		const validationError = validateExportTargetFormState()
+		if (validationError) return toast.error(validationError)
 		saving.value = true
 		try {
 			const response = await apiClient.exportSmartCityPipelineStage(selectedPipelineId.value, {
 				stage: exportForm.stage,
 				adapterType: exportForm.adapterType,
-				settings: buildExportSettings(),
+				settings: buildExportSettingsPayload(),
 				saveCredentials: exportForm.saveCredentials,
 				limit: exportForm.limit,
 			})
@@ -762,22 +985,34 @@ export function useSmartCityPipeline() {
 	async function saveExportTarget() {
 		if (!selectedPipelineId.value) return
 		if (!exportForm.targetName.trim()) return toast.error('Export target name is required')
+		const validationError = validateExportTargetFormState()
+		if (validationError) return toast.error(validationError)
+
 		saving.value = true
 		try {
-			const response = await apiClient.createSmartCityExportTarget(selectedPipelineId.value, {
-				name: exportForm.targetName,
+			const payload = {
+				name: exportForm.targetName.trim(),
 				stage: exportForm.stage,
 				adapterType: exportForm.adapterType,
-				settings: buildExportSettings(),
+				settings: buildExportSettingsPayload(),
 				saveCredentials: exportForm.saveCredentials,
 				isContinuous: exportForm.isContinuous,
 				cadenceSeconds: exportForm.cadenceSeconds,
-			})
-			if (response.data) {
-				exportTargets.value = [response.data, ...exportTargets.value]
-				addLog(`[EXPORT] Saved target ${response.data.name}`)
-				toast.success('Export target saved')
 			}
+			if (editingExportTargetId.value) {
+				const response = await apiClient.updateSmartCityExportTarget(editingExportTargetId.value, payload)
+				replaceExportTarget(response.data)
+				addLog(`[EXPORT] Updated target ${response.data?.name ?? exportForm.targetName}`)
+				toast.success('Export target updated')
+			} else {
+				const response = await apiClient.createSmartCityExportTarget(selectedPipelineId.value, payload)
+				if (response.data) {
+					exportTargets.value = [response.data, ...exportTargets.value.filter(item => item.id !== response.data?.id)]
+					addLog(`[EXPORT] Saved target ${response.data.name}`)
+					toast.success('Export target saved')
+				}
+			}
+			editingExportTargetId.value = null
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Could not save export target')
 		} finally {
@@ -789,24 +1024,38 @@ export function useSmartCityPipeline() {
 		try {
 			await apiClient.runSmartCityExportTarget(target.id)
 			addLog(`[EXPORT] Queued target ${target.name}`)
+			await new Promise(resolve => window.setTimeout(resolve, 2500))
 			if (selectedPipelineId.value) {
 				const runsResponse = await apiClient.listSmartCityExportRuns(selectedPipelineId.value)
 				exportRuns.value = runsResponse.data ?? []
+				await loadExportPreview(selectedPipelineId.value)
 			}
-			toast.success('Export target queued')
+			toast.success('Export target run finished')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Could not queue export target')
 		}
 	}
 
-	async function refreshLakeBrowser() {
-		if (!selectedPipelineId.value) return
+	async function deleteExportTarget(target: SmartCityExportTarget) {
+		if (!window.confirm(`Delete export target "${target.name}"?`)) return
 		try {
-			const response = await apiClient.listSmartCityDataLakeObjects(selectedPipelineId.value)
-			dataLakeObjects.value = response.data?.objects ?? []
+			await apiClient.deleteSmartCityExportTarget(target.id)
+			exportTargets.value = exportTargets.value.filter(item => item.id !== target.id)
+			if (editingExportTargetId.value === target.id) {
+				editingExportTargetId.value = null
+				showExportTargetModal.value = false
+			}
+			addLog(`[EXPORT] Deleted target ${target.name}`)
+			toast.success('Export target deleted')
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not load data lake objects')
+			toast.error(error instanceof Error ? error.message : 'Could not delete export target')
 		}
+	}
+
+	async function deleteEditingExportTarget() {
+		const target = exportTargets.value.find(item => item.id === editingExportTargetId.value)
+		if (!target) return toast.error('Export target not found')
+		await deleteExportTarget(target)
 	}
 
 	async function backfillDataLakeStages() {
@@ -830,12 +1079,6 @@ export function useSmartCityPipeline() {
 		}
 	}
 
-	function formatBytes(value: number) {
-		if (value < 1024) return `${value} B`
-		if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`
-		return `${(value / (1024 * 1024)).toFixed(1)} MB`
-	}
-
 	async function toggleContinuousTarget(target: SmartCityExportTarget) {
 		try {
 			const response = await apiClient.updateSmartCityExportTarget(target.id, {
@@ -852,333 +1095,94 @@ export function useSmartCityPipeline() {
 		}
 	}
 
-	async function connectFederated() {
-		if (!selectedPipelineId.value) return
-		if (!federatedForm.endpoint.trim()) return toast.error('Federated endpoint is required')
-		saving.value = true
-		try {
-			const response = await apiClient.connectFederatedLearning(selectedPipelineId.value, {
-				endpoint: federatedForm.endpoint,
-				protocol: federatedForm.protocol,
-				projectId: federatedForm.projectId || undefined,
-				nodeId: federatedForm.nodeId || undefined,
-				topic: federatedForm.topic || undefined,
-				apiKey: federatedForm.apiKey || undefined,
-			})
-			if (response.data?.pipeline) {
-				replacePipeline(response.data.pipeline)
-				syncFederatedForm(response.data.pipeline)
-			}
-			await loadFederatedRounds(selectedPipelineId.value)
-			addLog(`[FEDERATED] ${response.data?.connection.summary ?? 'Connected'}`)
-			toast.success('Federated connection saved')
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not connect federated learning')
-		} finally {
-			saving.value = false
-		}
-	}
-
-	async function testFederatedConnection() {
-		if (!selectedPipelineId.value) return
-		try {
-			const response = await apiClient.testFederatedLearning(selectedPipelineId.value)
-			addLog(`[FEDERATED] ${response.data?.summary ?? 'Connection test succeeded'}`)
-			await loadDashboard(selectedPipelineId.value)
-			toast.success('Federated connection tested')
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not test federated connection')
-		}
-	}
-
-	async function disconnectFederatedConnection() {
-		if (!selectedPipelineId.value) return
-		try {
-			const response = await apiClient.disconnectFederatedLearning(selectedPipelineId.value)
-			replacePipeline(response.data)
-			if (response.data) syncFederatedForm(response.data)
-			federatedRounds.value = []
-			addLog('[FEDERATED] Connection disabled')
-			toast.success('Federated connection disconnected')
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not disconnect federated connection')
-		}
-	}
-
-	async function startFederatedRoundFlow() {
-		if (!selectedPipelineId.value) return
-		try {
-			const response = await apiClient.startFederatedRound(selectedPipelineId.value, {
-				name: federatedRoundForm.name || undefined,
-				sampleCount: federatedRoundForm.sampleCount,
-			})
-			if (response.data?.pipeline) replacePipeline(response.data.pipeline)
-			await loadFederatedRounds(selectedPipelineId.value)
-			addLog(`[FEDERATED] Started round ${response.data?.round.name ?? ''}`.trim())
-			toast.success('Federated round started')
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not start federated round')
-		}
-	}
-
-	async function submitFederatedRoundUpdate() {
-		if (!selectedPipelineId.value || !activeFederatedRound.value) return
-		try {
-			const response = await apiClient.submitFederatedUpdate(
-				selectedPipelineId.value,
-				activeFederatedRound.value.id,
-				{
-					checkpointUri: federatedUpdateForm.checkpointUri || undefined,
-					sampleCount: federatedUpdateForm.sampleCount,
-					notes: federatedUpdateForm.notes || undefined,
-				},
-			)
-			if (response.data?.pipeline) replacePipeline(response.data.pipeline)
-			await loadFederatedRounds(selectedPipelineId.value)
-			addLog(`[FEDERATED] Submitted update for ${activeFederatedRound.value.name}`)
-			toast.success('Round update submitted')
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not submit federated update')
-		}
-	}
-
-	async function aggregateFederatedRoundFlow() {
-		if (!selectedPipelineId.value || !activeFederatedRound.value) return
-		try {
-			const response = await apiClient.aggregateFederatedRound(
-				selectedPipelineId.value,
-				activeFederatedRound.value.id,
-				{
-					globalModelVersion: federatedAggregateForm.globalModelVersion || undefined,
-					checkpointUri: federatedAggregateForm.checkpointUri || undefined,
-					summary: federatedAggregateForm.summary || undefined,
-				},
-			)
-			if (response.data?.pipeline) replacePipeline(response.data.pipeline)
-			await loadFederatedRounds(selectedPipelineId.value)
-			addLog(`[FEDERATED] Aggregated round ${activeFederatedRound.value.name}`)
-			toast.success('Federated round aggregated')
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not aggregate federated round')
-		}
-	}
-
-	async function syncFederatedGlobalState() {
-		if (!selectedPipelineId.value) return
-		try {
-			const response = await apiClient.syncFederatedGlobalModel(selectedPipelineId.value, {
-				includeRounds: true,
-			})
-			if (response.data?.pipeline) replacePipeline(response.data.pipeline)
-			federatedRounds.value = response.data?.rounds ?? federatedRounds.value
-			addLog(`[FEDERATED] ${response.data?.summary ?? 'Global state synced'}`)
-			toast.success('Federated global state synced')
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not sync global model')
-		}
-	}
-
-	function openFederatedWorkspace() {
-		viewMode.value = 'workflow'
-		addLog('[FEDERATED] Opened orchestration view')
-	}
-
-	function syncFederatedForm(pipeline?: SmartCityPipeline) {
-		const federated = (pipeline?.streamConfig?.federated ?? {}) as Partial<FederatedConnectionState>
-		Object.assign(federatedForm, {
-			protocol: federated.protocol ?? 'HTTP',
-			endpoint: federated.endpoint ?? '',
-			projectId: federated.projectId ?? '',
-			nodeId: federated.nodeId ?? '',
-			topic: federated.topic ?? '',
-			apiKey: '',
-		})
-	}
-
 	function replacePipeline(pipeline?: SmartCityPipeline) {
-		if (!pipeline) return
-		const index = pipelines.value.findIndex(item => item.id === pipeline.id)
-		if (index >= 0) pipelines.value[index] = pipeline
+		replaceInList(pipelines.value, pipeline)
 	}
 
 	function replaceSource(source?: SensorSource) {
-		if (!source) return
-		const index = sources.value.findIndex(item => item.id === source.id)
-		if (index >= 0) sources.value[index] = source
-	}
-
-	function replaceDataLake(lake?: DataLakeConnection) {
-		if (!lake) return
-		const index = dataLakes.value.findIndex(item => item.id === lake.id)
-		if (index >= 0) dataLakes.value[index] = lake
+		replaceInList(sources.value, source)
 	}
 
 	function replaceModel(model?: ModelArtifact) {
-		if (!model) return
-		const index = models.value.findIndex(item => item.id === model.id)
-		if (index >= 0) models.value[index] = model
+		replaceInList(models.value, model)
 	}
 
 	function replaceExportTarget(target?: SmartCityExportTarget) {
-		if (!target) return
-		const index = exportTargets.value.findIndex(item => item.id === target.id)
-		if (index >= 0) exportTargets.value[index] = target
+		replaceInList(exportTargets.value, target)
 	}
 
-	function applyAdapterDefaults(adapterType: ExportAdapterKind) {
-		switch (adapterType) {
-			case 'json':
-				exportSettingsForm.jsonPrettyPrint = true
-				break
-			case 'csv':
-				if (!exportSettingsForm.csvDelimiter) exportSettingsForm.csvDelimiter = ','
-				break
-			case 'postgres':
-				if (!exportSettingsForm.postgresPort) exportSettingsForm.postgresPort = 5432
-				if (!exportSettingsForm.postgresTable) exportSettingsForm.postgresTable = `smart_city_${exportForm.stage}`
-				break
-			case 'mongodb':
-				if (!exportSettingsForm.mongodbCollection) {
-					exportSettingsForm.mongodbCollection = `smart_city_${exportForm.stage}`
-				}
-				break
-			case 'huggingface':
-				if (!exportSettingsForm.huggingFaceFileName) {
-					exportSettingsForm.huggingFaceFileName = `smart_city_${exportForm.stage}.csv`
-				}
-				break
+	function refreshAdapterDefaults(adapterType: ExportAdapterKind = exportForm.adapterType) {
+		Object.assign(
+			exportSettingsForm,
+			applyAdapterDefaults({ ...exportForm, adapterType }, exportSettingsForm),
+		)
+	}
+
+	function refreshStageDependentExportFields(stage: ExportStage = exportForm.stage) {
+		Object.assign(exportSettingsForm, syncStageDependentExportFields(stage, exportSettingsForm))
+	}
+
+	function buildExportSettingsPayload(): Record<string, unknown> {
+		return buildExportSettings(exportForm, exportSettingsForm, () => toast.error('Advanced export JSON is invalid'))
+	}
+
+	function validateExportTargetFormState() {
+		return validateExportTargetForm({
+			form: exportForm,
+			settings: exportSettingsForm,
+			usesSavedHuggingFaceToken: usesSavedHuggingFaceToken.value,
+			isEditing: Boolean(editingExportTargetId.value),
+		})
+	}
+
+	function resetExportTargetForm() {
+		editingExportTargetId.value = null
+		exportForm.targetName = ''
+		exportForm.stage = 'business'
+		exportForm.adapterType = 'json'
+		exportForm.saveCredentials = usesSavedHuggingFaceToken.value
+		exportForm.limit = 100
+		exportForm.isContinuous = false
+		exportForm.cadenceSeconds = 60
+		exportSettingsForm.advancedJson = ''
+		refreshAdapterDefaults('json')
+		refreshStageDependentExportFields('business')
+	}
+
+	function openExportTargetModal(target?: SmartCityExportTarget) {
+		if (target) {
+			loadExportTargetIntoForm(target, { silent: true })
+		} else {
+			resetExportTargetForm()
+			if (!exportForm.targetName) exportForm.targetName = 'Business export'
 		}
+		showExportTargetModal.value = true
 	}
 
-	function syncStageDependentExportFields(stage: ExportStage) {
-		const tableName = `smart_city_${stage}`
-		const fileName = `smart_city_${stage}.csv`
-		if (!exportSettingsForm.postgresTable || exportSettingsForm.postgresTable.startsWith('smart_city_')) {
-			exportSettingsForm.postgresTable = tableName
-		}
-		if (
-			!exportSettingsForm.mongodbCollection ||
-			exportSettingsForm.mongodbCollection.startsWith('smart_city_')
-		) {
-			exportSettingsForm.mongodbCollection = tableName
-		}
-		if (
-			!exportSettingsForm.huggingFaceFileName ||
-			exportSettingsForm.huggingFaceFileName.startsWith('smart_city_')
-		) {
-			exportSettingsForm.huggingFaceFileName = fileName
-		}
-	}
-
-	function buildExportSettings(): Record<string, unknown> {
-		const settings = buildStructuredExportSettings()
-		const advanced = parseAdvancedExportSettings()
-		return { ...settings, ...advanced }
-	}
-
-	function buildStructuredExportSettings(): Record<string, unknown> {
-		switch (exportForm.adapterType) {
-			case 'json':
-				return {
-					prettyPrint: exportSettingsForm.jsonPrettyPrint,
-				}
-			case 'csv':
-				return {
-					delimiter: exportSettingsForm.csvDelimiter || ',',
-				}
-			case 'postgres':
-				return {
-					host: exportSettingsForm.postgresHost.trim(),
-					port: Number(exportSettingsForm.postgresPort),
-					username: exportSettingsForm.postgresUsername.trim(),
-					password: exportSettingsForm.postgresPassword,
-					database: exportSettingsForm.postgresDatabase.trim(),
-					table: exportSettingsForm.postgresTable.trim(),
-					ifExists: exportSettingsForm.postgresIfExists,
-				}
-			case 'mongodb':
-				return {
-					uri: exportSettingsForm.mongodbUri.trim(),
-					database: exportSettingsForm.mongodbDatabase.trim(),
-					collection: exportSettingsForm.mongodbCollection.trim(),
-					ifExists: exportSettingsForm.mongodbIfExists,
-				}
-			case 'huggingface':
-				return {
-					token: exportSettingsForm.huggingFaceToken.trim(),
-					repoName: exportSettingsForm.huggingFaceRepoName.trim(),
-					fileName: exportSettingsForm.huggingFaceFileName.trim(),
-					commitMessage: exportSettingsForm.huggingFaceCommitMessage.trim(),
-					private: exportSettingsForm.huggingFacePrivate,
-				}
-			default:
-				return {}
-		}
-	}
-
-	function parseAdvancedExportSettings(): Record<string, unknown> {
-		if (!exportSettingsForm.advancedJson.trim()) return {}
-		return JSON.parse(exportSettingsForm.advancedJson) as Record<string, unknown>
-	}
-
-	function loadExportTargetIntoForm(target: SmartCityExportTarget) {
+	function loadExportTargetIntoForm(
+		target: SmartCityExportTarget,
+		options: { silent?: boolean } = {},
+	) {
+		editingExportTargetId.value = target.id
 		exportForm.targetName = target.name
 		exportForm.stage = target.stage
 		exportForm.adapterType = target.adapterType as ExportAdapterKind
 		exportForm.saveCredentials = target.saveCredentials
 		exportForm.isContinuous = target.isContinuous
 		exportForm.cadenceSeconds = target.cadenceSeconds
-		applyExportSettingsToForm(target.adapterType as ExportAdapterKind, target.settingsJson)
-		addLog(`[EXPORT] Loaded target ${target.name} into form`)
-		toast.success('Export target loaded into form')
-	}
-
-	function applyExportSettingsToForm(
-		adapterType: ExportAdapterKind,
-		settings: Record<string, unknown> = {},
-	) {
-		exportSettingsForm.advancedJson = ''
-		switch (adapterType) {
-			case 'json':
-				exportSettingsForm.jsonPrettyPrint = Boolean(settings.prettyPrint ?? true)
-				break
-			case 'csv':
-				exportSettingsForm.csvDelimiter = String(settings.delimiter ?? ',')
-				break
-			case 'postgres':
-				exportSettingsForm.postgresHost = String(settings.host ?? '')
-				exportSettingsForm.postgresPort = Number(settings.port ?? 5432)
-				exportSettingsForm.postgresUsername = String(settings.username ?? '')
-				exportSettingsForm.postgresPassword = String(settings.password ?? '')
-				exportSettingsForm.postgresDatabase = String(settings.database ?? '')
-				exportSettingsForm.postgresTable = String(settings.table ?? `smart_city_${exportForm.stage}`)
-				exportSettingsForm.postgresIfExists =
-					settings.ifExists === 'replace' ? 'replace' : 'append'
-				break
-			case 'mongodb':
-				exportSettingsForm.mongodbUri = String(settings.uri ?? '')
-				exportSettingsForm.mongodbDatabase = String(settings.database ?? '')
-				exportSettingsForm.mongodbCollection = String(
-					settings.collection ?? `smart_city_${exportForm.stage}`,
-				)
-				exportSettingsForm.mongodbIfExists =
-					settings.ifExists === 'replace' ? 'replace' : 'append'
-				break
-			case 'huggingface':
-				exportSettingsForm.huggingFaceToken = String(settings.token ?? '')
-				exportSettingsForm.huggingFaceRepoName = String(settings.repoName ?? '')
-				exportSettingsForm.huggingFaceFileName = String(
-					settings.fileName ?? `smart_city_${exportForm.stage}.csv`,
-				)
-				exportSettingsForm.huggingFaceCommitMessage = String(settings.commitMessage ?? '')
-				exportSettingsForm.huggingFacePrivate = Boolean(settings.private ?? false)
-				break
+		Object.assign(
+			exportSettingsForm,
+			applyExportSettingsToForm(
+				target.adapterType as ExportAdapterKind,
+				target.stage,
+				target.settingsJson ?? {},
+				exportSettingsForm,
+			),
+		)
+		if (!options.silent) {
+			addLog(`[EXPORT] Loaded target ${target.name} into form`)
+			toast.success('Export target loaded into form')
 		}
-	}
-
-	function addLog(message: string) {
-		logs.value.unshift(`${new Date().toLocaleTimeString()} ${message}`)
-		logs.value = logs.value.slice(0, 80)
 	}
 
 	function resetSourceForm() {
@@ -1209,17 +1213,6 @@ export function useSmartCityPipeline() {
 		toast.success(result.summary ?? 'Source test completed')
 	}
 
-	function sourceIcon(kind: string) {
-		if (kind === 'video') return Video
-		if (kind === 'power') return Zap
-		if (kind === 'network') return Router
-		return Wifi
-	}
-
-	function formatDateTime(value?: string | null) {
-		if (!value) return 'Not available'
-		return new Date(value).toLocaleString()
-	}
 	return {
 		viewMode,
 		activeStage,
@@ -1233,6 +1226,8 @@ export function useSmartCityPipeline() {
 		exportAdapters,
 		exportTargets,
 		exportRuns,
+		exportPreview,
+		exportPreviewStage,
 		dataLakeObjects,
 		latestBackfill,
 		federatedRounds,
@@ -1241,6 +1236,7 @@ export function useSmartCityPipeline() {
 		trainingRuns,
 		researchModels,
 		latestProcessingResult,
+		processingError,
 		n8nWorkflow,
 		logs,
 		wsStatus,
@@ -1250,7 +1246,23 @@ export function useSmartCityPipeline() {
 		showPipelineModal,
 		showSourceModal,
 		showConfigModal,
+		huggingFaceIntegration,
+		hfModelCatalog,
+		hfModelSearch,
+		hfModelPage,
+		hfModelLoading,
+		hfManualModelId,
+		hfSelectedModelId,
+		hfSelectedModelDetails,
+		hfTokenDraft,
+		usesSavedHuggingFaceToken,
+		showObservability,
+		showSystemLog,
 		showDataLakeModal,
+		showExportTargetModal,
+		showBackfillModal,
+		editingExportTargetId,
+		lakeExportTab,
 		showAdvancedExportJson,
 		pipelineForm,
 		sourceForm,
@@ -1259,6 +1271,8 @@ export function useSmartCityPipeline() {
 		backfillForm,
 		exportSettingsForm,
 		streamConfig,
+		routingPreview,
+		runtimeForm,
 		federatedForm,
 		federatedRoundForm,
 		federatedUpdateForm,
@@ -1269,9 +1283,14 @@ export function useSmartCityPipeline() {
 		throughput,
 		sourceStatusText,
 		recentEventsPreview,
-		activeResearchModel,
-		activeDbModel,
 		activeModelLabel,
+		activeModelSubLabel,
+		isApplyingAutoRouting,
+		autoRoutingPhase,
+		autoRoutingStatusMessage,
+		autoRoutingBindings,
+		autoRoutingSummary,
+		lastAutoResolution,
 		latestTrainingRun,
 		processingModelCount,
 		linkedDataLake,
@@ -1282,6 +1301,12 @@ export function useSmartCityPipeline() {
 		federatedConfig,
 		activeFederatedRound,
 		sourceMixSummary,
+		pipelineRuntimeStatus,
+		pipelineRuntimeLabel,
+		isPipelineLive,
+		pipelineFlowHint,
+		exportHealthSummary,
+		continuousExportTargets,
 		simulatorEndpointHint,
 		loadPipelines,
 		loadDashboard,
@@ -1297,7 +1322,18 @@ export function useSmartCityPipeline() {
 		stopSource,
 		testSource,
 		removeSource,
+		openConfigModal,
 		saveConfiguration,
+		startPipelineRuntime,
+		stopPipelineRuntime,
+		resumePipelineRuntime,
+		savePipelineRuntime,
+		loadHuggingFaceIntegration,
+		loadHuggingFaceCatalog,
+		saveHuggingFaceToken,
+		removeHuggingFaceToken,
+		selectHuggingFaceModel,
+		resolveManualHuggingFaceModel,
 		saveDataLake,
 		testDataLake,
 		disconnectDataLake,
@@ -1310,7 +1346,12 @@ export function useSmartCityPipeline() {
 		testProcessingUnit,
 		exportStageToAdapter,
 		saveExportTarget,
+		openExportTargetModal,
+		resetExportTargetForm,
 		runExportTarget,
+		loadExportPreview,
+		deleteExportTarget,
+		deleteEditingExportTarget,
 		refreshLakeBrowser,
 		backfillDataLakeStages,
 		formatBytes,

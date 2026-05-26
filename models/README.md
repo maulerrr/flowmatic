@@ -78,6 +78,18 @@ models/checkpoints/registry.json
 
 The Hugging Face token is read only from `HF_TOKEN` when downloading. It must not be committed.
 
+## Upload checkpoints to Hugging Face
+
+Best checkpoint per model family (no seed suffixes, no `q1_` prefix):
+
+```bash
+python models/upload_checkpoints_to_hf.py
+```
+
+Reads `HF_TOKEN` from the repo root `.env`. Writes `models/reports/huggingface_model_manifest.json` with Hub repo IDs (`pushthetempo/flowmatic-...`).
+
+Also save the same token in Flowmatic **Settings → Hugging Face integration** so the Core Unit catalogue can list your models.
+
 ## Train The Q1 Core Suite
 
 From repo root:
