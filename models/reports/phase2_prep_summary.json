@@ -1,0 +1,32 @@
+{
+  "createdAt": "2026-05-26T17:40:24.735040+00:00",
+  "phase": 2,
+  "steps": [
+    {
+      "label": "Prepare benchmark datasets",
+      "script": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\paper\\prepare_benchmark_datasets.py",
+      "exitCode": "0"
+    },
+    {
+      "label": "Select production portfolio",
+      "script": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\paper\\select_production_portfolio.py",
+      "exitCode": "0"
+    },
+    {
+      "label": "Enrich checkpoint capabilities",
+      "script": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\paper\\enrich_production_capabilities.py",
+      "exitCode": "0"
+    },
+    {
+      "label": "Rebuild model registry",
+      "script": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\build_registry.py",
+      "exitCode": "0"
+    }
+  ],
+  "artifacts": {
+    "datasetManifest": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\paper\\reports\\dataset_manifest.json",
+    "productionPortfolio": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\reports\\production_portfolio.json",
+    "productionRegistry": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\reports\\production_model_registry.json",
+    "phase3Config": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\configs\\phase3_multiseed_suite.yaml"
+  }
+}

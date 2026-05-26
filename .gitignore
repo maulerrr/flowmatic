@@ -23,3 +23,7 @@ models/datasets/
 models/checkpoints/
 thesis/experiments/*_report.json
 thesis/experiments/continuous_export_test_report.json
+
+# Rejected thesis PDF drafts (sources live under thesis/latex/)
+memoirthesis-v5-phase4.pdf
+memoirthesis-v5-condensed.pdf

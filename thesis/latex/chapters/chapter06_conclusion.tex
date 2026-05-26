@@ -1,0 +1,38 @@
+%
+% Chapter 6: Conclusion (Phase 4)
+%
+
+\chapter{Conclusion and Future Directions}
+\label{chap:conclusion}
+
+\section{Summary of Contributions}
+
+This dissertation progressed from a classical automated preparation assistant to a deployable \textbf{Flowmatic} platform with:
+\begin{itemize}
+  \item multi-dimensional DQI and tabular preparation baselines (XGBoost F1 = 0.968 on Astana);
+  \item Dockerised batch and smart-city pipelines with reproducible API evidence;
+  \item an eight-model neural portfolio with multi-seed held-out test metrics;
+  \item adaptive Manual/Auto core-unit routing over a documented model registry;
+  \item public Hugging Face artifacts for reproducibility without Git LFS constraints.
+\end{itemize}
+
+\section{Key Findings}
+
+Classical preparation improves tabular classification over raw and generic AutoML features. Neural specialists further raise severity classification (macro-F1 = $0.911 \pm 0.017$) and provide unified forecasting, imputation, and reconstruction-anomaly capabilities across Astana and HF benchmarks. Platform upload processes 30\,000 records in 406\,ms with full quality scoring.
+
+\section{Limitations}
+
+\begin{itemize}
+  \item Astana remains semi-synthetic; live agency validation is ongoing via the workbench demo.
+  \item External graph benchmarks (METR-LA, PEMS-BAY) are ingested but not yet used as hold-out targets for Astana-trained models.
+  \item Router oracle ablations, CRPS, and AUROC event metrics are not yet reported.
+  \item LLM copilot summaries are optional and not formally calibrated; SHAP is retained only for classical baselines.
+\end{itemize}
+
+\section{Future Work}
+
+Priority extensions include Astana$\rightarrow$PeMS transfer experiments, auto-router confusion analysis, probabilistic forecasting metrics, and operator-facing calibration studies. Federated coordination remains a demonstration path pending production hardening.
+
+\section{Concluding Remarks}
+
+Automated preparation remains the foundation of trustworthy ITS analytics. Flowmatic shows that the same scientific stages can be engineered as an adaptive, multimodal platform whose experimental record---classical, neural, and operational---is reproducible from open scripts and published checkpoints.

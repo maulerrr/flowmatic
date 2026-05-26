@@ -90,6 +90,31 @@ Reads `HF_TOKEN` from the repo root `.env`. Writes `models/reports/huggingface_m
 
 Also save the same token in Flowmatic **Settings → Hugging Face integration** so the Core Unit catalogue can list your models.
 
+## Phase 2 — Production portfolio & dataset prep
+
+From repo root:
+
+```bash
+python models/paper/run_phase2_prep.py
+```
+
+Individual steps:
+
+```bash
+python models/paper/prepare_benchmark_datasets.py
+python models/paper/select_production_portfolio.py
+python models/paper/enrich_production_capabilities.py
+python models/build_registry.py
+```
+
+Phase 3 multi-seed validation uses:
+
+```bash
+python models/paper_experiments.py
+# or retrain production suite:
+python models/train.py --config models/configs/phase3_multiseed_suite.yaml
+```
+
 ## Train The Q1 Core Suite
 
 From repo root:

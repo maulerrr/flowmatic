@@ -1,0 +1,65 @@
+{
+  "createdAt": "2026-05-26T17:40:24.164318+00:00",
+  "root": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\datasets",
+  "families": [
+    "astana",
+    "hf_ett",
+    "hf_traffic",
+    "hf_weather",
+    "pems_bay",
+    "pems_metr_la"
+  ],
+  "entries": [
+    {
+      "name": "astana_synthetic",
+      "trainKey": "astana",
+      "status": "ready",
+      "path": "C:\\Users\\BG\\Desktop\\flowmatic\\data\\astana_synthetic_data.csv",
+      "rows": 30000
+    },
+    {
+      "name": "hf_ett_h1_energy",
+      "trainKey": "hf_ett",
+      "status": "cached",
+      "path": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\datasets\\hf_ett_h1_energy\\ETTh1.csv",
+      "rows": 17420,
+      "columns": 8
+    },
+    {
+      "name": "hf_weather",
+      "trainKey": "hf_weather",
+      "status": "cached",
+      "path": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\datasets\\hf_weather\\weather.csv",
+      "rows": 52696,
+      "columns": 22
+    },
+    {
+      "name": "hf_traffic",
+      "trainKey": "hf_traffic",
+      "status": "cached",
+      "path": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\datasets\\hf_traffic\\traffic.csv",
+      "rows": 17544,
+      "columns": 863
+    },
+    {
+      "name": "pems_metr_la",
+      "trainKey": "pems_metr_la",
+      "status": "converted",
+      "path": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\datasets\\pems_metr_la\\sensors.csv",
+      "source": "https://huggingface.co/datasets/witgaw/METR-LA",
+      "rows": 12000,
+      "columns": 208,
+      "nodes": 207
+    },
+    {
+      "name": "pems_bay",
+      "trainKey": "pems_bay",
+      "status": "converted",
+      "path": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\datasets\\pems_bay\\sensors.csv",
+      "source": "https://huggingface.co/datasets/witgaw/PEMS-BAY",
+      "rows": 12000,
+      "columns": 326,
+      "nodes": 325
+    }
+  ]
+}

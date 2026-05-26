@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import copy
 import csv
 import json
@@ -254,17 +255,28 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--config",
+        default=str(MODELS_ROOT / "configs" / "phase3_multiseed_suite.yaml"),
+    )
+    args = parser.parse_args()
     TABLES.mkdir(parents=True, exist_ok=True)
     REPORTS.mkdir(parents=True, exist_ok=True)
-    base_config = load_yaml(MODELS_ROOT / "configs" / "q1_enhanced_suite.yaml")
+    base_config = load_yaml(Path(args.config))
     base_config["max_rows"] = {
-        "astana": 30000,
-        "hf_ett": 17420,
-        "hf_weather": 50000,
-        "hf_traffic": 17544,
+        **{
+            "astana": 30000,
+            "hf_ett": 17420,
+            "hf_weather": 50000,
+            "hf_traffic": 17544,
+            "pems_metr_la": 12000,
+            "pems_bay": 12000,
+        },
+        **(base_config.get("max_rows") or {}),
     }
-    base_config["epochs"] = 8
-    seeds = [7, 42, 2026]
+    base_config["epochs"] = int(base_config.get("epochs", 8))
+    seeds = [int(seed) for seed in base_config.get("seeds", [7, 42, 2026])]
 
     multi_seed = run_multi_seed(base_config, seeds)
     ablation = run_ablation(base_config)

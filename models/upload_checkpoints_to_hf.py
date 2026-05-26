@@ -13,6 +13,7 @@ from huggingface_hub import HfApi, create_repo, upload_folder
 ROOT = Path(__file__).resolve().parents[1]
 CHECKPOINTS = ROOT / "models" / "checkpoints"
 MANIFEST_PATH = ROOT / "models" / "reports" / "huggingface_model_manifest.json"
+PORTFOLIO_PATH = ROOT / "models" / "reports" / "production_portfolio.json"
 
 KIND_SLUGS: dict[str, str] = {
     "tranad_anomaly": "tranad-anomaly-detector",
@@ -70,7 +71,23 @@ def repo_slug(metadata: dict) -> str:
     return f"flowmatic-{dataset_part}-{kind_part}"
 
 
-def pick_best_runs() -> list[tuple[Path, dict, str]]:
+def pick_best_runs(use_portfolio: bool = False) -> list[tuple[Path, dict, str]]:
+    if use_portfolio and PORTFOLIO_PATH.exists():
+        portfolio = json.loads(PORTFOLIO_PATH.read_text(encoding="utf-8"))
+        selected: list[tuple[Path, dict, str]] = []
+        for item in portfolio.get("models", []):
+            run_dir = CHECKPOINTS / item["run"]
+            metadata_path = run_dir / "metadata.json"
+            if not metadata_path.exists():
+                print(f"[WARN] Portfolio run missing: {item['run']}")
+                continue
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            if not (run_dir / "model.safetensors").exists() and not (run_dir / "model.pt").exists():
+                print(f"[WARN] Portfolio run has no weights: {item['run']}")
+                continue
+            selected.append((run_dir, metadata, repo_slug(metadata)))
+        return selected
+
     groups: dict[tuple[str, str], list[tuple[Path, dict, float]]] = {}
     for run_dir in sorted(CHECKPOINTS.iterdir()):
         if not run_dir.is_dir():
@@ -198,14 +215,25 @@ def upload_run(api: HfApi, username: str, token: str, run_dir: Path, metadata: d
 
 
 def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--portfolio",
+        action="store_true",
+        help="Upload only the official Phase 2 production portfolio checkpoints",
+    )
+    args = parser.parse_args()
+
     token = load_token()
     api = HfApi(token=token)
     profile = api.whoami(token=token)
     username = profile["name"]
     print(f"Authenticated as @{username}")
 
-    runs = pick_best_runs()
-    print(f"Uploading {len(runs)} model families (best checkpoint per kind+dataset)")
+    runs = pick_best_runs(use_portfolio=args.portfolio)
+    label = "production portfolio" if args.portfolio else "best checkpoint per kind+dataset"
+    print(f"Uploading {len(runs)} model families ({label})")
 
     manifest = {
         "uploadedAt": datetime.now(timezone.utc).isoformat(),

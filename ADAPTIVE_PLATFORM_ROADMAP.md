@@ -2,9 +2,11 @@
 
 **Document purpose:** Master handoff for thesis-aligned adaptive intelligence work. Captures current platform state, the scientific direction, phased delivery plan, and what the next agent should do first.
 
+**Agent snapshot (2026-05-21):** See **[HANDOFF.md](./HANDOFF.md)** — platform **OK**, thesis **NOT ACCEPTABLE**, HF model links, experiment artifacts.
+
 **Thesis title:** *Development of an Intelligent Assistant for Data Preparation Automation in Urban Transportation Management Systems* (Astana IT University, memoir v5).
 
-**Last updated:** 2026-05-26 (post-cleanup: export-test profile, archived legacy docs, README refresh)
+**Last updated:** 2026-05-21 (handoff snapshot + Phase 2–4 work)
 
 **Cleanup (2026-05-26):** Removed `archive-python/`, legacy compose backup, stale lockfiles, redundant thesis screenshots, superseded handoff checklist. Export-test Postgres/Mongo moved to Docker profile `export-test`. Planning docs archived under `docs/archive/`.
 
@@ -234,7 +236,7 @@ Minimum for defensible master’s / journal submission:
 
 ---
 
-### Phase 2 — Decide model portfolio & collect data
+### Phase 2 — Decide model portfolio & collect data (✅ implemented, run prep)
 
 **Goal:** Curate which models the adaptive platform officially supports (not every experimental checkpoint).
 
@@ -254,6 +256,17 @@ Minimum for defensible master’s / journal submission:
 4. Wire ingestion scripts under `models/paper/` or `thesis/experiments/`.
 5. Update auto router priorities from leaderboard winners only.
 
+**Run Phase 2 prep (from repo root):**
+
+```bash
+python models/paper/run_phase2_prep.py
+```
+
+**Artifacts:**
+- `models/reports/production_portfolio.json` — 8 official models + capabilities
+- `models/paper/reports/dataset_manifest.json` — ingested dataset families
+- `models/configs/phase3_multiseed_suite.yaml` — Phase 3 train/validation config
+
 **Exit criteria:** Registry contains ≤8 production models with documented input contracts; 3+ dataset families ingested.
 
 ---
@@ -261,6 +274,14 @@ Minimum for defensible master’s / journal submission:
 ### Phase 3 — Train, validate, ablate (Q1 experiments)
 
 **Goal:** Numbers for paper/thesis.
+
+**Run the highest-value core protocol (multi-seed aggregate + streaming + HF upload):**
+
+```bash
+python models/paper/run_phase3_core.py
+```
+
+This harvests existing `_seed42/_seed7/_seed2026` checkpoints, writes aggregate tables, benchmarks latency, and uploads the 8-model production portfolio to Hugging Face (`--portfolio` mode).
 
 **Tasks:**
 1. Retrain or fine-tune winners on each dataset with **fixed seeds** (42, 7, 2026).
@@ -280,9 +301,17 @@ Minimum for defensible master’s / journal submission:
 
 ---
 
-### Phase 4 — Paper & thesis rewrite
+### Phase 4 — Paper & thesis rewrite (✅ draft PDF generated)
 
 **Goal:** Q1-ready manuscript aligned with implemented system.
+
+**Build updated thesis PDF:**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/build-thesis-phase4.ps1
+```
+
+Output: `memoirthesis-v5-phase4.pdf` (repo root) synced from `master-thesis/dissertation_latex_v5`.
 
 **Tasks:**
 1. Rewrite **Methodology** to describe:

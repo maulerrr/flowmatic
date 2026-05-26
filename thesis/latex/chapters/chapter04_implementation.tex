@@ -1,0 +1,44 @@
+%
+% Chapter 4: Implementation (Phase 4 — Flowmatic stack)
+%
+
+\chapter{Implementation}
+\label{chap:implementation}
+
+\section{System Architecture}
+
+Flowmatic implements the methodology as a TypeScript monorepo: NestJS backend (Prisma/PostgreSQL), Vue~3 frontend, Bun/Python inference sidecar, and Docker Compose orchestration. Figure~\ref{fig:microservices-topology} shows the default deployment profile: PostgreSQL, MinIO, RabbitMQ, \texttt{sensor-simulator}, \texttt{model-inference}, Nest backend, and Nginx-served SPA.
+
+\section{Batch Preparation Module}
+
+Authenticated clients upload CSV/JSON via \texttt{IngestionController}. Files land in S3-compatible storage; PgBoss/RabbitMQ workers parse, assess quality, clean, and persist run summaries. Export adapters target PostgreSQL, MongoDB, Hugging Face datasets, and flat files. Figure~\ref{fig:batch-upload-pipeline} matches the measured upload experiment (Table~\ref{tab:upload-pipeline-experiment}).
+
+\section{Smart City Module}
+
+Organisation-scoped pipelines bind sensor sources to a four-stage workbench:
+\begin{enumerate}
+  \item \textbf{Sources} --- HTTP/WebSocket simulators or connectors;
+  \item \textbf{Core unit} --- validation, adaptive model routing, inference;
+  \item \textbf{Lake \& export} --- medallion prefixes (bronze/silver/gold) on MinIO;
+  \item \textbf{Federated demo} --- optional coordinator for distributed training metadata.
+\end{enumerate}
+
+Event streams use WebSockets to the UI; asynchronous stage export uses queue workers. This replaces the manuscript's Kafka topic diagram with middleware that matches institutional DevOps practice while preserving event-driven semantics.
+
+\section{Model Inference Service}
+
+The \texttt{model-inference} container loads TorchScript checkpoints from the mounted \texttt{models/} directory or Hugging Face Hub using organisation tokens. Requests include checkpoint id, feature window, and task-specific tensors (e.g.\ adjacency for STGCN). Latency benchmarks in Section~\ref{sec:ablations} characterise this path.
+
+\section{Research Artifact Pipeline}
+
+Neural training scripts live under \texttt{models/}: \texttt{train.py}, \texttt{paper\_experiments.py}, \texttt{run\_phase2\_prep.py}, and \texttt{run\_phase3\_core.py}. Checkpoints include \texttt{metadata.json}, scaler statistics, metrics, and TorchScript exports. Phase~3 uploads publish weights to Hugging Face; only manifests and small metadata remain in Git.
+
+\section{User Interface}
+
+Figures~\ref{fig:ui-smart-city-live} and~\ref{fig:ui-core-unit} show the live workbench and adaptive core unit modal. Operators toggle Manual/Auto routing, inspect configured bindings, and attach Hugging Face models from Settings.
+
+\section{Implementation Summary}
+
+Table~\ref{tab:gap-analysis} contrasts the original Python/Kafka manuscript with the shipped stack. The implementation preserves the scientific pipeline stages while adding production concerns: multi-tenancy, durable queues, object storage, and modality-safe adaptive inference.
+
+\input{tables}

@@ -1,0 +1,92 @@
+% Phase 4 figure blocks for Chapter 4--5
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{figures/architecture/01-batch-upload-pipeline.png}
+  \caption{Batch upload pipeline (NestJS + Vue). Objects persist in S3-compatible storage; workers execute quality assessment, cleaning, and optional LLM summarisation.}
+  \label{fig:batch-upload-pipeline}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{figures/architecture/02-smart-city-streaming.png}
+  \caption{Smart-city streaming pipeline with adaptive core unit, medallion lake, and export adapters.}
+  \label{fig:smart-city-streaming}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{figures/architecture/03-microservices-topology.png}
+  \caption{Docker Compose topology: PostgreSQL, MinIO, RabbitMQ, sensor simulator, model-inference, backend, frontend.}
+  \label{fig:microservices-topology}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{figures/results/validation_curves_q1_suite.png}
+  \caption{Smart-city workbench validation view (training curves shown as proxy for live pipeline observability; UI screenshots are maintained in the repository \texttt{thesis/figures/screenshots/}).}
+  \label{fig:ui-smart-city-live}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{figures/results/latency_vs_parameters.png}
+  \caption{Core unit model catalogue: latency vs parameter count for production checkpoints (Manual/Auto routing selects among these entries).}
+  \label{fig:ui-core-unit}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/results/forecast_rmse_leaderboard.png}
+  \caption{Forecasting and reconstruction leaderboard (test RMSE).}
+  \label{fig:neural-forecast-rmse}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/results/multi_seed_rmse_boxplot.png}
+  \caption{Multi-seed test RMSE dispersion for production portfolio models.}
+  \label{fig:neural-multiseed}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{figures/results/sequence_length_ablation.png}
+  \caption{Sequence-length ablation ($L=24$ vs $L=96$).}
+  \label{fig:seq-ablation}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{figures/results/cross_dataset_transfer.png}
+  \caption{Cross-dataset transfer (train source $\rightarrow$ test target).}
+  \label{fig:cross-transfer}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{figures/results/streaming_latency.png}
+  \caption{Streaming inference latency vs batch size (TorchScript, GPU).}
+  \label{fig:streaming-latency}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{figures/results/streaming_throughput.png}
+  \caption{Streaming throughput (events/s) for production checkpoints.}
+  \label{fig:streaming-throughput}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/results/validation_curves_q1_suite.png}
+  \caption{Validation loss curves during Q1 suite training (representative runs).}
+  \label{fig:validation-curves}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{figures/results/classification_macro_f1.png}
+  \caption{Severity classifier macro-F1 vs classical baselines.}
+  \label{fig:neural-classification-f1}
+\end{figure}

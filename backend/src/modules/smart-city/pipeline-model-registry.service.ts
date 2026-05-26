@@ -94,6 +94,22 @@ const KIND_PROFILE: Record<
 	},
 }
 
+type ProductionPortfolio = {
+	models?: Array<{
+		run: string
+		slot: string
+		kind: string
+		dataset: string
+		priority: number
+		capabilities?: {
+			modality?: ModelModality
+			tasks?: ModelTask[]
+			sensorKinds?: string[]
+			requiresGeo?: boolean
+		}
+	}>
+}
+
 function resolveWorkspacePath(...parts: string[]) {
 	const candidates = [resolve(process.cwd(), ...parts), resolve(process.cwd(), '..', ...parts)]
 	for (const candidate of candidates) {
@@ -105,8 +121,15 @@ function resolveWorkspacePath(...parts: string[]) {
 function inferModalityFromDataset(dataset: string): ModelModality {
 	if (dataset.includes('weather')) return 'weather'
 	if (dataset.includes('ett') || dataset.includes('energy')) return 'energy'
-	if (dataset.includes('traffic') || dataset.includes('astana')) return 'traffic'
+	if (dataset.includes('traffic') || dataset.includes('astana') || dataset.includes('pems') || dataset.includes('metr'))
+		return 'traffic'
 	return 'generic'
+}
+
+function loadProductionPortfolio(): ProductionPortfolio | null {
+	const portfolioPath = resolveWorkspacePath('models', 'reports', 'production_portfolio.json')
+	if (!existsSync(portfolioPath)) return null
+	return JSON.parse(readFileSync(portfolioPath, 'utf8')) as ProductionPortfolio
 }
 
 function buildEntry(input: {
@@ -114,23 +137,32 @@ function buildEntry(input: {
 	label: string
 	kind: string
 	dataset: string
-	source: 'research' | 'manifest'
+	source: ModelRegistryEntry['source']
+	priority?: number
+	modality?: ModelModality
+	tasks?: ModelTask[]
+	sensorKinds?: string[]
+	requiresGeo?: boolean
+	production?: boolean
+	productionSlot?: string
 	run?: string
 	repoId?: string
 }): ModelRegistryEntry | null {
 	const profile = KIND_PROFILE[input.kind]
-	if (!profile) return null
+	if (!profile && !input.modality) return null
 	return {
 		id: input.id,
 		label: input.label,
 		kind: input.kind,
 		dataset: input.dataset,
-		modality: profile.modality ?? inferModalityFromDataset(input.dataset),
-		tasks: profile.tasks,
-		sensorKinds: profile.sensorKinds,
-		requiresGeo: profile.requiresGeo,
-		priority: profile.priority,
+		modality: input.modality ?? profile?.modality ?? inferModalityFromDataset(input.dataset),
+		tasks: input.tasks ?? profile?.tasks ?? ['forecast'],
+		sensorKinds: input.sensorKinds ?? profile?.sensorKinds ?? ['generic'],
+		requiresGeo: input.requiresGeo ?? profile?.requiresGeo,
+		priority: input.priority ?? profile?.priority ?? 50,
 		source: input.source,
+		production: input.production,
+		productionSlot: input.productionSlot,
 		run: input.run,
 		repoId: input.repoId,
 	}
@@ -142,7 +174,36 @@ export class PipelineModelRegistryService {
 
 	listModels(force = false): ModelRegistryEntry[] {
 		if (this.cache && !force) return this.cache
+		const portfolio = loadProductionPortfolio()
+		const portfolioRuns = new Set((portfolio?.models ?? []).map(item => item.run))
+		const portfolioByRun = new Map((portfolio?.models ?? []).map(item => [item.run, item]))
 		const entries = new Map<string, ModelRegistryEntry>()
+
+		if (portfolio && portfolio.models?.length) {
+			const checkpointsDir = resolveWorkspacePath('models', 'checkpoints')
+			for (const item of portfolio.models) {
+				const metadataPath = resolve(checkpointsDir, item.run, 'metadata.json')
+				if (!existsSync(metadataPath)) continue
+				const metadata = JSON.parse(readFileSync(metadataPath, 'utf8')) as Record<string, unknown>
+				const capabilities = (metadata.capabilities ?? item.capabilities ?? {}) as Record<string, unknown>
+				const entry = buildEntry({
+					id: `production:${item.run}`,
+					label: item.run,
+					kind: String(metadata.kind ?? item.kind),
+					dataset: String(metadata.dataset ?? item.dataset),
+					source: 'production',
+					priority: item.priority,
+					modality: capabilities.modality as ModelModality | undefined,
+					tasks: capabilities.tasks as ModelTask[] | undefined,
+					sensorKinds: capabilities.sensorKinds as string[] | undefined,
+					requiresGeo: Boolean(capabilities.requiresGeo),
+					production: true,
+					productionSlot: item.slot,
+					run: item.run,
+				})
+				if (entry) entries.set(entry.id, entry)
+			}
+		}
 
 		const manifestPath = resolveWorkspacePath('models', 'reports', 'huggingface_model_manifest.json')
 		if (existsSync(manifestPath)) {
@@ -156,12 +217,17 @@ export class PipelineModelRegistryService {
 				}>
 			}
 			for (const model of manifest.models ?? []) {
+				if (portfolioRuns.size > 0 && !portfolioRuns.has(model.sourceRun)) continue
+				const portfolioItem = portfolioByRun.get(model.sourceRun)
 				const entry = buildEntry({
-					id: `research:${model.sourceRun}`,
+					id: portfolioItem ? `production:${model.sourceRun}` : `research:${model.sourceRun}`,
 					label: model.slug ?? model.repoId,
 					kind: model.kind,
 					dataset: model.dataset,
-					source: 'manifest',
+					source: portfolioItem ? 'production' : 'manifest',
+					priority: portfolioItem?.priority,
+					production: Boolean(portfolioItem),
+					productionSlot: portfolioItem?.slot,
 					run: model.sourceRun,
 					repoId: model.repoId,
 				})
@@ -173,17 +239,27 @@ export class PipelineModelRegistryService {
 		if (existsSync(checkpointsDir)) {
 			for (const dir of readdirSync(checkpointsDir, { withFileTypes: true })) {
 				if (!dir.isDirectory()) continue
+				if (portfolioRuns.size > 0 && !portfolioRuns.has(dir.name)) continue
 				const metadataPath = resolve(checkpointsDir, dir.name, 'metadata.json')
 				if (!existsSync(metadataPath)) continue
 				const metadata = JSON.parse(readFileSync(metadataPath, 'utf8')) as Record<string, unknown>
 				const kind = String(metadata.kind ?? '')
 				const dataset = String(metadata.dataset ?? 'generic')
+				const portfolioItem = portfolioByRun.get(dir.name)
+				const capabilities = (metadata.capabilities ?? {}) as Record<string, unknown>
 				const entry = buildEntry({
-					id: `research:${dir.name}`,
+					id: portfolioItem ? `production:${dir.name}` : `research:${dir.name}`,
 					label: dir.name,
 					kind,
 					dataset,
-					source: 'research',
+					source: portfolioItem ? 'production' : 'research',
+					priority: portfolioItem?.priority ?? (metadata.production as { priority?: number } | undefined)?.priority,
+					modality: capabilities.modality as ModelModality | undefined,
+					tasks: capabilities.tasks as ModelTask[] | undefined,
+					sensorKinds: capabilities.sensorKinds as string[] | undefined,
+					requiresGeo: Boolean(capabilities.requiresGeo),
+					production: Boolean(portfolioItem),
+					productionSlot: portfolioItem?.slot,
 					run: dir.name,
 				})
 				if (entry) entries.set(entry.id, entry)

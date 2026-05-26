@@ -84,6 +84,8 @@ def load_named_frame(name: str, nrows: int | None = None) -> FrameSpec:
         "hf_ett": MODEL_DATASETS / "hf_ett_h1_energy" / "ETTh1.csv",
         "hf_weather": MODEL_DATASETS / "hf_weather" / "weather.csv",
         "hf_traffic": MODEL_DATASETS / "hf_traffic" / "traffic.csv",
+        "pems_metr_la": MODEL_DATASETS / "pems_metr_la" / "sensors.csv",
+        "pems_bay": MODEL_DATASETS / "pems_bay" / "sensors.csv",
     }
     if name not in paths:
         raise ValueError(f"Unknown dataset: {name}")

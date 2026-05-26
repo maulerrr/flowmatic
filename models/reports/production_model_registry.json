@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-04-09T09:32:04.487985+00:00",
+  "createdAt": "2026-05-26T17:40:24.723733+00:00",
   "checkpointRoot": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\checkpoints",
   "count": 47,
   "entries": [
@@ -268,7 +268,11 @@
           "batchSize": 1,
           "meanLatencyMs": 0.19137859344482422
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "energy_forecast",
+        "priority": 20,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -284,8 +288,8 @@
           "sha256": "2e58febddb4a3d96c22ec1eeff9edd847e902df182f02ae5b71c31bb2669dbd9"
         },
         "metadata.json": {
-          "bytes": 2885,
-          "sha256": "0502cacf7f11295957e61abc86365bbbce1084672a378651f985376b745a5a21"
+          "bytes": 3523,
+          "sha256": "116e31a77fbf045479926f19dabe456fad3da226bb755fdcc2df5d7427374952"
         },
         "model_card.md": {
           "bytes": 2288,
@@ -520,7 +524,11 @@
           "batchSize": 1,
           "meanLatencyMs": 0.20534992218017578
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "energy_forecast",
+        "priority": 20,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -536,8 +544,8 @@
           "sha256": "935cfc0f130e30653b5dedc81f64f9a1bba9d660774a9b70e5809ef21a34727f"
         },
         "metadata.json": {
-          "bytes": 3854,
-          "sha256": "92c5682dba22c2e48f933316653b96db0d1f54d5f2efdf32e651a7854ab69fa4"
+          "bytes": 4492,
+          "sha256": "79c909ef1b1bcde4caf6d4bc056cfd55851c6208f980613891a6a246683cee8a"
         },
         "model_card.md": {
           "bytes": 3191,
@@ -1314,7 +1322,11 @@
           "batchSize": 1,
           "meanLatencyMs": 0.6761980056762695
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "traffic_speed_forecast",
+        "priority": 5,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -1330,8 +1342,8 @@
           "sha256": "e794e8589277ec62d35c763dd753c73fda8d4cd81eda5d00644d6ba1121b98fd"
         },
         "metadata.json": {
-          "bytes": 3682,
-          "sha256": "6d23eef744e628eaa1f7cb36b0622fcd3bef6b3164f91ed38639d4c7133a25ca"
+          "bytes": 4349,
+          "sha256": "bf3f3322fc4969d838ffc015541ca685df47ae4b6f33bbc444ed90fcdcc6e4d8"
         },
         "model_card.md": {
           "bytes": 3141,
@@ -2038,7 +2050,11 @@
           "batchSize": 1,
           "meanLatencyMs": 0.8628129959106445
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "traffic_forecast",
+        "priority": 1,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -2054,8 +2070,8 @@
           "sha256": "a60ddb206fe18c8a98c5e3b3cac53ddfdd0ae01acfbd3a9d475734cbcf19f4c0"
         },
         "metadata.json": {
-          "bytes": 2753,
-          "sha256": "f4a78db049106812fb90a10969ba375f6002e01ddd913686794a0ee2853f74af"
+          "bytes": 3420,
+          "sha256": "c387cddf14cb11d1ade1030750992330e1b8f1db79ff57dce01111e22e8bae0f"
         },
         "model_card.md": {
           "bytes": 2268,
@@ -2416,7 +2432,11 @@
           "batchSize": 1,
           "meanLatencyMs": 0.6591653823852539
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "traffic_forecast",
+        "priority": 1,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -2432,8 +2452,8 @@
           "sha256": "13b2e5061147f34569ec4e342bce1d5ed4f95e8db3551225f5db142c5888bac1"
         },
         "metadata.json": {
-          "bytes": 3702,
-          "sha256": "5d81ca3b6d61a54fd3c6e38468017b6b5e5211a96555d1ab5d661666ec4332a2"
+          "bytes": 4369,
+          "sha256": "83671ca0bb072bf30c9893bcbda80fbd476cb9c46cbe24ef232dc00df0d9e7bf"
         },
         "model_card.md": {
           "bytes": 3155,
@@ -2926,7 +2946,11 @@
           "batchSize": 1,
           "meanLatencyMs": 0.7609367370605469
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "imputation",
+        "priority": 8,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -2942,8 +2966,8 @@
           "sha256": "40d375af7555016305c09b8faa34198d8c5915d4561bd2a828345214639f9d4c"
         },
         "metadata.json": {
-          "bytes": 2872,
-          "sha256": "6df817f11c755add1b33f375f634053303b3f07acf33b844424686dee0388d08"
+          "bytes": 3554,
+          "sha256": "3745869f54c2deacc4055d01944448688cf613bb4883537c31ee1f708d5dc196"
         },
         "model_card.md": {
           "bytes": 2353,
@@ -3005,15 +3029,20 @@
           "test_rmse": 0.4746164083480835
         }
       },
-      "production": {},
+      "production": {
+        "official": true,
+        "slot": "graph_traffic_forecast",
+        "priority": 2,
+        "portfolioVersion": "phase2"
+      },
       "files": {
         "model.pt": {
           "bytes": 143427,
           "sha256": "e0bfd951ad1c8dbf70cddfb41a6c2ccb30f09df4c630d8bdb88367e1007d8ca6"
         },
         "metadata.json": {
-          "bytes": 21575,
-          "sha256": "cfc541beeac0c1cb8035ff76d0eef15b3919ac838a30bd5b3cc06a8fed1abf24"
+          "bytes": 22494,
+          "sha256": "a6a9386fed8a2b7df370985644235703cb67615c54c8072c048194ca16afae7e"
         },
         "model_card.md": {
           "bytes": 1849,
@@ -3500,7 +3529,11 @@
           "batchSize": 1,
           "meanLatencyMs": 0.24841308593750003
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "graph_traffic_forecast",
+        "priority": 2,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -3516,8 +3549,8 @@
           "sha256": "7ab7c87ae72ee1cb3eec0404c1410a6e7a67c033c463b91c1fd6f92480a79704"
         },
         "metadata.json": {
-          "bytes": 37436,
-          "sha256": "158693554a4da1e2625726644e7b62413860eb0a16227c40b759183b82c850ca"
+          "bytes": 38451,
+          "sha256": "60b07f9c0856b6cbdcf3a6a926e2536fb4545989925512468986b25330f4d1bd"
         },
         "model_card.md": {
           "bytes": 3174,
@@ -4144,7 +4177,11 @@
           "batchSize": 1,
           "meanLatencyMs": 0.44741153717041016
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "weather_forecast",
+        "priority": 1,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -4160,8 +4197,8 @@
           "sha256": "197632c2a62d1bf65258448bd3d40f01d6e5cc3b65b07ac3ea8c98e413366247"
         },
         "metadata.json": {
-          "bytes": 4609,
-          "sha256": "07f352f4f34b3227e3d295844881cf6469b961b4d2bc8d2e89b0f2075dc269de"
+          "bytes": 5506,
+          "sha256": "52f2af60d83d2af773041ce710f25b1b854c29f25449a25e517d89972dad3eeb"
         },
         "model_card.md": {
           "bytes": 3210,
@@ -4648,7 +4685,11 @@
           "batchSize": 1,
           "meanLatencyMs": 1.5166616439819336
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "traffic_anomaly",
+        "priority": 1,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -4664,8 +4705,8 @@
           "sha256": "59354c5db45fe1148663dcd3caff2608cbae2f9d981b819c4c507feaf66078fe"
         },
         "metadata.json": {
-          "bytes": 3780,
-          "sha256": "1195a40cfa48da46649803ee33862d541ffc38444f05118a982199b1d6837711"
+          "bytes": 4449,
+          "sha256": "1c3a8934d92255870f28978da60ece75a3d22938099e73a0948660a1247d5ab6"
         },
         "model_card.md": {
           "bytes": 3212,
@@ -4900,7 +4941,11 @@
           "batchSize": 1,
           "meanLatencyMs": 0.9542083740234375
         },
-        "torchscriptExported": true
+        "torchscriptExported": true,
+        "official": true,
+        "slot": "severity_classification",
+        "priority": 7,
+        "portfolioVersion": "phase2"
       },
       "files": {
         "model.pt": {
@@ -4916,8 +4961,8 @@
           "sha256": "d44eb629b89d600dc5b9603520707ab2a70ce81a5f761f3920a1d9978bb7097a"
         },
         "metadata.json": {
-          "bytes": 3964,
-          "sha256": "62e29d0dcfcfd1fa5b004ee2c58770a620c0eaab796f2cafe9655ed37ecc37c6"
+          "bytes": 4637,
+          "sha256": "fd0a34f1de2cd39c05e205a847c2ba7d5528e407da4f8f4059802c0949cc3c2d"
         },
         "model_card.md": {
           "bytes": 3272,

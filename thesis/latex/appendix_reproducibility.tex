@@ -1,0 +1,22 @@
+%
+% Appendix B: Reproducibility
+%
+\chapter{Reproducibility and Published Artifacts}
+\label{app:formulas}
+
+\section{Repository Commands}
+
+\begin{lstlisting}[basicstyle=\small\ttfamily]
+# Phase 2 - datasets + production portfolio
+python models/paper/run_phase2_prep.py
+
+# Phase 3 - multi-seed tables + streaming + HF upload
+python models/paper/run_phase3_core.py
+
+# Full paper experiments (ablation + transfer)
+python models/paper_experiments.py
+\end{lstlisting}
+
+\section{Model Objectives}
+
+The forecast, anomaly, imputation, and classification objectives used in Phase~3 are defined in Section~\ref{sec:neural_formulations}. Checkpoints and metrics reside under \texttt{models/checkpoints/}; Hugging Face repos are listed in \texttt{models/reports/huggingface\_model\_manifest.json}.

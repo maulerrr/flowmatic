@@ -1,0 +1,45 @@
+seed: 42
+seeds: [42, 7, 2026]
+max_rows:
+  astana: 18000
+  hf_ett: 16000
+  hf_weather: 18000
+  hf_traffic: 8000
+  pems_metr_la: 12000
+  pems_bay: 12000
+seq_len: 48
+horizon: 1
+epochs: 8
+batch_size: 128
+lr: 0.0008
+portfolio: models/reports/production_portfolio.json
+experiments:
+  - name: q1_astana_patchtst_density_forecaster
+    dataset: astana
+    kind: patchtst_forecast
+    target: Traffic_Density
+  - name: q1_astana_tranad_anomaly_detector
+    dataset: astana
+    kind: tranad_anomaly
+  - name: q1_hf_weather_timesblock_forecaster
+    dataset: hf_weather
+    kind: timesblock_forecast
+  - name: q1_hf_traffic_stgcn_forecaster
+    dataset: hf_traffic
+    kind: stgcn_forecast
+    max_nodes: 32
+  - name: q1_astana_saits_imputer
+    dataset: astana
+    kind: saits_imputer
+  - name: q1_astana_transformer_severity_classifier
+    dataset: astana
+    kind: transformer_classifier
+    label: Severity
+  - name: q1_hf_ett_dlinear_energy_forecaster
+    dataset: hf_ett
+    kind: dlinear_forecast
+    target: OT
+  - name: q1_astana_itransformer_speed_forecaster
+    dataset: astana
+    kind: itransformer_forecast
+    target: Speed_kmh

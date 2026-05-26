@@ -14,7 +14,9 @@ export interface ModelRegistryEntry {
 	sensorKinds: string[]
 	requiresGeo?: boolean
 	priority: number
-	source: 'research' | 'manifest'
+	source: 'research' | 'manifest' | 'production'
+	production?: boolean
+	productionSlot?: string
 	run?: string
 	repoId?: string
 }

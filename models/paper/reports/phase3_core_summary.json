@@ -1,0 +1,19 @@
+{
+  "createdAt": "2026-05-26T17:45:59.540905+00:00",
+  "phase": 3,
+  "portfolioModels": 8,
+  "multiSeedRows": 24,
+  "aggregateRows": 8,
+  "streamingRows": 24,
+  "cudaAvailable": true,
+  "artifacts": {
+    "multiSeedResults": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\paper\\tables\\multi_seed_results.csv",
+    "multiSeedAggregate": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\paper\\tables\\multi_seed_aggregate.csv",
+    "streamingBenchmark": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\paper\\tables\\streaming_benchmark.csv",
+    "hfManifest": "C:\\Users\\BG\\Desktop\\flowmatic\\models\\reports\\huggingface_model_manifest.json"
+  },
+  "upload": {
+    "exitCode": 0,
+    "stdout": "Authenticated as @pushthetempo\nUploading 8 model families (production portfolio)\n  -> flowmatic-astana-patchtst-density-forecaster  (q1_astana_patchtst_density_forecaster)\n     OK  https://huggingface.co/pushthetempo/flowmatic-astana-patchtst-density-forecaster\n  -> flowmatic-astana-tranad-anomaly-detector  (q1_astana_tranad_anomaly_detector)\n     OK  https://huggingface.co/pushthetempo/flowmatic-astana-tranad-anomaly-detector\n  -> flowmatic-weather-timesblock-forecaster  (q1_hf_weather_timesblock_forecaster)\n     OK  https://huggingface.co/pushthetempo/flowmatic-weather-timesblock-forecaster\n  -> flowmatic-traffic-stgcn-forecaster  (q1_hf_traffic_stgcn_forecaster)\n     OK  https://huggingface.co/pushthetempo/flowmatic-traffic-stgcn-forecaster\n  -> flowmatic-astana-saits-imputer  (q1_astana_saits_imputer)\n     OK  https://huggingface.co/pushthetempo/flowmatic-astana-saits-imputer\n  -> flowmatic-astana-transformer-severity-classifier  (q1_astana_transformer_severity_classifier)\n     OK  https://huggingface.co/pushthetempo/flowmatic-astana-transformer-severity-classifier\n  -> flowmatic-ett-dlinear-energy-forecaster  (q1_hf_ett_dlinear_energy_forecaster)\n     OK  https://huggingface.co/pushthetempo/flowmatic-ett-dlinear-energy-forecaster\n  -> flowmatic-astana-itransformer-speed-forecaster  (q1_astana_itransformer_speed_forecaster)\n     OK  https://huggingface.co/pushthetempo/flowmatic-astana-itransformer-speed-forecaster\n\nManifest: C:\\Users\\BG\\Desktop\\flowmatic\\models\\reports\\huggingface_model_manifest.json\n"
+  }
+}

@@ -1,0 +1,15 @@
+%
+% Abstract — Phase 4 update
+%
+\chapter{Abstract}
+\begin{SingleSpace}
+This dissertation presents an intelligent assistant for automating data preparation in urban transportation systems, extended into a deployable \textbf{Flowmatic} platform with adaptive model routing and a reproducible neural research suite.
+
+The classical methodology integrates multi-dimensional data quality assessment, automated feature engineering, ensemble anomaly detection, and gradient-boosted event classification. On semi-synthetic Astana traffic data, the full preparation pipeline achieves 96.83\% accuracy (F1 = 0.968) with XGBoost---substantially above raw-data and generic AutoML baselines.
+
+The production platform implements the same scientific stages in NestJS/Vue with Docker Compose, S3-compatible storage, and queue-backed workers. A live smart-city workbench demonstrates WebSocket telemetry, Manual/Auto core-unit routing, and medallion lake export. An eight-model neural portfolio (forecasting, anomaly reconstruction, imputation, graph traffic, severity classification) is evaluated on \textbf{held-out temporal test splits} with multi-seed replication; severity classification reaches macro-F1 = $0.911 \pm 0.017$. Checkpoints are published on Hugging Face for reproducibility.
+
+The work bridges classical preparation research and modern multimodal smart-city MLOps, providing auditable quality metrics, modality-safe inference, and open experimental artifacts suitable for thesis examination and journal submission.
+
+\end{SingleSpace}
+\keywords{Data Preparation, Intelligent Transportation Systems, Smart Cities, Adaptive Routing, Neural Time Series, MLOps, Anomaly Detection}
