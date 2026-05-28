@@ -1,56 +1,56 @@
 %
-% Chapter 5: Results and Discussion (Phase 4 rewrite — aligned with Flowmatic platform)
+% Chapter 5: Results and Discussion
 %
 
 \chapter{Results and Discussion}
 \label{chap:results}
 
-\section{Overview of the Evaluation Programme}
+\section{Overview}
 \label{sec:exp_overview}
 
-This chapter reports three complementary evaluation layers that together answer the research questions posed in Chapter~\ref{chap:intro}:
+This chapter answers the research questions in Section~\ref{sec:research_questions} through three evaluation layers:
 \begin{enumerate}
-  \item \textbf{Classical preparation study} (original dissertation protocol): multi-dimensional DQI, tabular feature engineering, ensemble anomaly detectors, and XGBoost/Random Forest classification on Astana and public traffic benchmarks.
-  \item \textbf{Production platform validation}: reproducible API experiments on the deployed Flowmatic stack (batch upload and live smart-city workbench).
-  \item \textbf{Neural production portfolio} (Phase~2--3): eight modality-specific checkpoints evaluated on held-out temporal test splits with multi-seed replication ($s\in\{42,7,2026\}$), sequence ablations, cross-dataset transfer, and streaming inference latency.
+  \item \textbf{Classical preparation study} --- multi-dimensional DQI, tabular feature engineering, ensemble anomaly detectors, and XGBoost/Random Forest classification on Astana and public traffic benchmarks.
+  \item \textbf{Platform validation} --- reproducible API experiments on the deployed Flowmatic stack (batch upload and live smart-city workbench).
+  \item \textbf{Neural portfolio evaluation} --- eight modality-specific checkpoints on held-out temporal test splits with multi-seed replication ($s\in\{42,7,2026\}$), sequence ablations, cross-dataset transfer, and streaming inference latency.
 \end{enumerate}
 
-All neural numbers are reproducible from the monorepo via \texttt{python models/paper/run\_phase3\_core.py}; checkpoints are published on Hugging Face under \texttt{@pushthetempo/flowmatic-*} to avoid Git LFS limits.
+Neural results can be reproduced with \texttt{python models/paper/run\_phase3\_core.py}. Checkpoints are published on Hugging Face under \texttt{@pushthetempo/flowmatic-*}.
 
 \section{Experimental Protocol}
 \label{sec:exp_protocol}
 
 \subsection{Datasets}
 
-Table~\ref{tab:phase4_datasets} summarises the dataset families ingested in Phase~2. Astana remains the primary smart-city case study; Hugging Face bundles provide weather, energy, and traffic graph benchmarks; METR-LA and PEMS-BAY supply external traffic graphs converted to wide sensor matrices.
+Table~\ref{tab:phase4_datasets} lists the dataset families used in the neural evaluation. Astana remains the primary smart-city case study. Hugging Face bundles provide weather, energy, and traffic graph benchmarks. METR-LA and PEMS-BAY are ingested for future external validation.
 
 \input{tables_phase4}
 
 \subsection{Hold-out validation}
 
-Neural models never observe the test partition during training. Windows are extracted in temporal order; the earliest 70\% train, next 15\% validate, and final 15\% test (Table~\ref{tab:split_protocol}). Reported RMSE, masked MSE, and macro-F1 are computed \emph{only} on the test split. This design prevents leakage from future timesteps while remaining compatible with streaming smart-city pipelines where recent history informs the next prediction.
+Neural models never observe the test partition during training. Windows are extracted in temporal order: earliest 70\% train, next 15\% validate, final 15\% test (Table~\ref{tab:split_protocol}). Reported RMSE, masked MSE, and macro-F1 are computed only on the test split.
 
 \subsection{Multi-seed robustness}
 
-Each production architecture is trained independently for seeds 42, 7, and 2026 with fixed hyper-parameters (\texttt{phase3\_multiseed\_suite.yaml}). We report the mean, standard deviation, and 95\% confidence interval $\bar{m} \pm 1.96\, s/\sqrt{n}$ across seeds ($n=3$).
+Each architecture is trained independently for seeds 42, 7, and 2026 with fixed hyper-parameters (\texttt{phase3\_multiseed\_suite.yaml}). We report mean, standard deviation, and 95\% confidence interval $\bar{m} \pm 1.96\, s/\sqrt{n}$ across seeds ($n=3$).
 
-\section{Classical Preparation Results (Historical Baseline)}
+\section{Classical Preparation Results}
 \label{sec:classical_results}
 
-The original dissertation evaluated automated preparation against raw data, simple preprocessing, and generic FeatureTools-style automation using XGBoost as the downstream classifier. On Astana, the full preparation pipeline achieved \textbf{0.9683 accuracy} and \textbf{0.9676 F1-score}, outperforming raw data (0.7823 accuracy) and generic AutoML features (0.9234). The ensemble anomaly detector (Isolation Forest + LOF + One-Class SVM) reached F1 = 0.858, exceeding any single detector.
+The original dissertation compared automated preparation against raw data, simple preprocessing, and generic FeatureTools-style automation using XGBoost as the downstream classifier. On Astana, the full preparation pipeline achieved \textbf{0.9683 accuracy} and \textbf{0.9676 F1-score}, outperforming raw data (0.7823 accuracy) and generic AutoML features (0.9234). The ensemble anomaly detector (Isolation Forest + LOF + One-Class SVM) reached F1 = 0.858.
 
-These classical results remain valid as \emph{preparation-strategy baselines}. They demonstrate that domain-aware quality indexing and feature generation improve tabular classification. The Flowmatic platform extends---rather than replaces---this evidence by operationalising preparation as a service and adding neural task specialists for forecasting, imputation, and reconstruction-based anomaly scoring.
+These results answer \textbf{RQ1}: domain-aware preparation improves tabular traffic classification. They remain valid as preparation-strategy baselines. Flowmatic extends this evidence by operationalising preparation as a service and adding neural task specialists for forecasting, imputation, and reconstruction-based anomaly scoring.
 
 \section{Platform Case Studies}
 \label{sec:platform_cases}
 
 \subsection{Batch upload experiment}
 
-Table~\ref{tab:upload-pipeline-experiment} documents an end-to-end run on \texttt{astana\_synthetic\_data.csv} through the production NestJS API: 30\,000 records ingested and cleaned in 406\,ms with quality score 100/100. This confirms that the batch path described in Figure~\ref{fig:batch-upload-pipeline} is not illustrative---it is measured on a running Docker Compose stack.
+Table~\ref{tab:upload-pipeline-experiment} documents an end-to-end run on \texttt{astana\_synthetic\_data.csv} through the production NestJS API: 30\,000 records ingested and cleaned in 406\,ms with quality score 100/100. This confirms that the batch path in Figure~\ref{fig:batch-upload-pipeline} was measured on a running Docker Compose stack and supports \textbf{RQ2}.
 
 \subsection{Live smart-city workbench}
 
-Figure~\ref{fig:ui-smart-city-live} and Table~\ref{tab:smart-city-live-demo} summarise the Astana Live Demo: two simulated sources (IoT traffic + weather), WebSocket-connected event stream, four-stage pipeline rail, and optional federated coordinator. The adaptive core unit (Figure~\ref{fig:ui-core-unit}) supports Manual and Auto routing modes; Auto binds sensor modalities to production checkpoints via the registry described in Chapter~\ref{chap:methodology}.
+Table~\ref{tab:smart-city-live-demo} summarises the Astana Live Demo: two simulated sources (IoT traffic and weather), WebSocket-connected event stream, four-stage pipeline rail, and optional federated coordinator. The adaptive core unit supports Manual and Auto routing modes described in Chapter~\ref{chap:methodology}. UI screenshots will be inserted in the final manuscript after platform capture; Figure~\ref{fig:ui-smart-city-live} is reserved for that purpose.
 
 \input{tables}
 
@@ -59,21 +59,21 @@ Figure~\ref{fig:ui-smart-city-live} and Table~\ref{tab:smart-city-live-demo} sum
 
 \subsection{Model definitions}
 
-Eight checkpoints form the official portfolio: PatchTST and iTransformer (traffic forecast), TranAD (anomaly), TimesBlock (weather), STGCN (graph traffic), SAITS (imputation), Transformer classifier (severity), and DLinear (energy). Compact mathematical definitions appear in Section~\ref{sec:neural_formulations} and Appendix~\ref{app:formulas}.
+Eight checkpoints form the official portfolio: PatchTST and iTransformer (traffic forecast), TranAD (anomaly), TimesBlock (weather), STGCN (graph traffic), SAITS (imputation), Transformer classifier (severity), and DLinear (energy). Mathematical definitions appear in Section~\ref{sec:neural_formulations}.
 
 \input{model_formulas}
 
 \subsection{Multi-seed test performance}
 
-Table~\ref{tab:multiseed_aggregate} lists held-out test metrics aggregated across seeds. Highlights:
+Table~\ref{tab:multiseed_aggregate} lists held-out test metrics aggregated across seeds. Main observations:
 \begin{itemize}
-  \item \textbf{Severity classification:} macro-F1 = $0.911 \pm 0.017$, exceeding the classical XGBoost F1 ($0.968$ accuracy $\approx$ high but on a different feature pipeline).
-  \item \textbf{Anomaly reconstruction:} TranAD test RMSE = $0.035 \pm 0.004$ on normalised windows---orders of magnitude lower scale than forecast RMSE because the objective is reconstruction not horizon prediction.
+  \item \textbf{Severity classification:} macro-F1 = $0.911 \pm 0.017$.
+  \item \textbf{Anomaly reconstruction:} TranAD test RMSE = $0.035 \pm 0.004$ on normalised windows (reconstruction objective, not horizon forecasting).
   \item \textbf{Weather forecasting:} TimesBlock RMSE = $0.034 \pm 0.002$ on the HF weather bundle.
   \item \textbf{Graph traffic:} STGCN RMSE = $0.479 \pm 0.002$ on 32-node subgraphs of HF traffic.
 \end{itemize}
 
-Figure~\ref{fig:neural-multiseed} visualises seed dispersion; Figure~\ref{fig:neural-forecast-rmse} ranks forecasting RMSE across all checkpoint families.
+Figure~\ref{fig:neural-multiseed} shows seed dispersion; Figure~\ref{fig:neural-forecast-rmse} ranks forecasting RMSE across checkpoint families. Together these results answer \textbf{RQ3}.
 
 \input{figures_phase4}
 
@@ -82,32 +82,32 @@ Figure~\ref{fig:neural-multiseed} visualises seed dispersion; Figure~\ref{fig:ne
 
 \subsection{Sequence length}
 
-Table~\ref{tab:seq_ablation} and Figure~\ref{fig:seq-ablation} compare window lengths $L\in\{24,96\}$. Longer context helps DLinear on ETT (0.147 vs 0.241 RMSE) but hurts PatchTST on Astana density (0.807 vs 0.559), suggesting modality-specific horizon tuning. Production models use $L=48$ as a balanced default.
+Table~\ref{tab:seq_ablation} and Figure~\ref{fig:seq-ablation} compare window lengths $L\in\{24,96\}$. Longer context helps DLinear on ETT (0.147 vs 0.241 RMSE) but hurts PatchTST on Astana density (0.807 vs 0.559). Production models use $L=48$ as a balanced default.
 
 \subsection{Cross-dataset transfer}
 
-Table~\ref{tab:cross_transfer} and Figure~\ref{fig:cross-transfer} report training on one HF bundle and testing on another without fine-tuning. Transfer RMSE remains finite but degrades relative to in-domain runs, quantifying domain shift between energy and weather telemetry.
+Table~\ref{tab:cross_transfer} and Figure~\ref{fig:cross-transfer} report training on one HF bundle and testing on another without fine-tuning. Transfer RMSE remains finite but degrades relative to in-domain runs, indicating domain shift between energy and weather telemetry.
 
 \subsection{Streaming inference latency}
 
-Figure~\ref{fig:streaming-latency} and Figure~\ref{fig:streaming-throughput} benchmark TorchScript exports on GPU with batch sizes $\{1,16,64\}$. Mean single-event latency stays below 2\,ms for compact models (DLinear, TimesBlock) and below 2\,s for large Transformers---informing Auto routing latency budgets in production.
+Figures~\ref{fig:streaming-latency} and~\ref{fig:streaming-throughput} benchmark TorchScript exports on GPU with batch sizes $\{1,16,64\}$. Mean single-event latency stays below 2\,ms for compact models (DLinear, TimesBlock) and below 2\,s for large Transformers.
 
-\section{Synchronisation with Classical Claims}
+\section{Comparison with Classical Baselines}
 \label{sec:sync_classical}
 
-Table~\ref{tab:classical-vs-neural} positions manuscript-reported Random Forest / XGBoost scores alongside neural checkpoints on Astana. The abstract's 96.62\% Random Forest figure and Chapter~5's XGBoost table are \emph{consistent preparation baselines}; the Transformer severity model reaches 99.09\% accuracy and 0.925 macro-F1 under the neural protocol. We retain both rows to show evolution from tabular preparation research to deployable multimodal inference.
+Table~\ref{tab:classical-vs-neural} places manuscript-reported Random Forest / XGBoost scores alongside neural checkpoints on Astana. The abstract's 96.62\% Random Forest figure and Chapter~5's XGBoost table are consistent tabular baselines. The Transformer severity model reaches 99.09\% accuracy and 0.925 macro-F1 under the neural protocol on a different feature pipeline. Both rows are kept to show the progression from tabular preparation research to deployable multimodal inference.
 
 \section{Discussion}
 \label{sec:discussion}
 
-\textbf{Test-set discipline.} All neural metrics in Table~\ref{tab:multiseed_aggregate} come from the held-out 15\% temporal test split. Platform upload metrics reflect full-file processing and are complementary---they validate engineering latency, not generalisation.
+\textbf{Test-set discipline.} Neural metrics in Table~\ref{tab:multiseed_aggregate} come from the held-out 15\% temporal test split. Platform upload metrics validate engineering latency and are complementary.
 
-\textbf{External validity.} METR-LA and PEMS-BAY are ingested and available for future Astana$\rightarrow$PeMS transfer experiments; the current portfolio evaluation emphasises in-domain test splits plus HF cross-transfer.
+\textbf{External validity.} METR-LA and PEMS-BAY are ingested but not yet used as hold-out targets for Astana-trained models. Cross-dataset transfer within HF bundles provides a first generalisation check.
 
-\textbf{Explainability shift.} Classical SHAP attributions on tree models are replaced in production by LLM-generated pipeline summaries and Insight Engine narratives (Chapter~\ref{chap:implementation}). Neural models expose reconstruction residuals (TranAD) and attention-based imputation masks (SAITS) as mechanistic diagnostics.
+\textbf{Explainability.} Classical SHAP attributions on tree models are replaced in production by LLM-generated pipeline summaries and Insight Engine narratives. Neural models expose reconstruction residuals (TranAD) and imputation masks (SAITS) as diagnostics.
 
-\textbf{Remaining gaps.} Auto-router vs oracle ablations, CRPS/probabilistic scores, and AUROC for anomaly events are scheduled future work (Chapter~\ref{chap:conclusion}).
+\textbf{Routing evidence.} Manual/Auto routing is implemented and demonstrated in the workbench (\textbf{RQ4}). Formal router-vs-oracle ablations, CRPS scores, and AUROC for anomaly events are not yet reported and are listed as future work.
 
 \section{Summary}
 
-The experimental record supports three claims: (1)~automated classical preparation improves tabular traffic classification; (2)~the Flowmatic platform implements this logic as a reproducible service with live smart-city validation; (3)~the eight-model neural portfolio delivers multi-dataset, multi-seed evidence on held-out test data with published artifacts suitable for Q1-style reproducibility.
+The experimental record supports four conclusions aligned with the research questions: (1)~automated classical preparation improves tabular traffic classification; (2)~Flowmatic implements this workflow as a reproducible service with measured batch latency; (3)~the eight-model neural portfolio provides multi-dataset, multi-seed evidence on held-out test data with published artifacts; (4)~registry-based routing enables modality-aware inference in the smart-city pipeline, with deeper routing analysis left for future work.

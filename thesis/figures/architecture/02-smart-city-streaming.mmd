@@ -1,30 +1,44 @@
-%% Flowmatic Smart City workbench — streaming-ish path vs thesis Kafka diagram. Render: mmdc -i 02-smart-city-streaming.mmd -o 02-smart-city-streaming.png
+%% Flowmatic smart-city pipeline. Render: scripts/render-thesis-figures.ps1
 flowchart LR
-  subgraph edge["Edge / demo services"]
-    SIM["sensor-simulator\n(HTTP ingest)"]
+  subgraph edge["Edge / demo"]
+    SIM["sensor-simulator<br/>HTTP ingest"]
   end
 
-  subgraph core["NestJS Smart City domain"]
-    API["smart-city controller / service"]
-    EV["Persisted sensor events\n& pipeline runs"]
-    Q2["Queues: boss + smart-city-stage-export"]
-    INF["MODEL_INFERENCE_URL\n(for Hub / deployed models)"]
+  subgraph core["Smart City core — NestJS"]
+    API["Pipeline API<br/>and event store"]
+    EV["Sensor events<br/>and run history"]
+    ROUTE["Adaptive core unit<br/>Manual / Auto routing"]
+    INF["model-inference<br/>TorchScript / HF"]
+    Q2["Stage export queue"]
   end
 
-  subgraph federated_demo["Optional coordination"]
-    FED["federated-coordinator-demo\n(HTTP/WebSocket protocols)"]
+  subgraph lake["Medallion lake"]
+    BRZ["Bronze<br/>raw events"]
+    SLV["Silver<br/>validated streams"]
+    GLD["Gold<br/>ML-ready exports"]
+    ADP["Export adapters<br/>HF, Postgres, Mongo"]
   end
 
-  subgraph lake["Medallion data lake targets"]
-    S3LAK["S3-compatible lake\nbronze → silver → gold prefixes"]
-    ADP["Export adapters\n(HF / Postgres / Mongo / files)"]
+  subgraph opt["Optional demo"]
+    FED["federated-coordinator"]
   end
 
-  SIM -->|poll / push events| API
+  SIM -->|"poll / push"| API
   API --> EV
+  API --> ROUTE
+  ROUTE --> INF
   API --> Q2
-  API --> INF
-  API <-->|training metadata| FED
-  Q2 --> S3LAK
-  Q2 --> ADP
-  API -->|"lake browse / backfill"| S3LAK
+  Q2 --> BRZ
+  BRZ --> SLV
+  SLV --> GLD
+  GLD --> ADP
+  API <-->|metadata| FED
+
+  classDef edgeStyle fill:#EEF2FF,stroke:#4338CA,stroke-width:2px
+  classDef coreStyle fill:#E8F4FC,stroke:#2563EB,stroke-width:2px
+  classDef lakeStyle fill:#F0FDF4,stroke:#16A34A,stroke-width:2px
+  classDef optStyle fill:#FFF7ED,stroke:#EA580C,stroke-width:2px
+  class SIM edgeStyle
+  class API,EV,ROUTE,INF,Q2 coreStyle
+  class BRZ,SLV,GLD,ADP lakeStyle
+  class FED optStyle

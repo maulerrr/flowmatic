@@ -1,4 +1,4 @@
-"""Create and start a smart-city pipeline with simulated sensor sources for thesis screenshots."""
+"""Create Astana geospatial smart-city pipeline for thesis defence screenshots."""
 from __future__ import annotations
 
 import json
@@ -36,14 +36,14 @@ def main() -> None:
 
     pipelines = session.get(f"{BASE}/smart-city/pipelines", timeout=30).json()
     existing = pipelines.get("data") or []
-    pipeline = next((p for p in existing if p.get("name") == "Astana Live Demo"), None)
+    pipeline = next((p for p in existing if p.get("name") == "Astana Geospatial Demo"), None)
 
     if not pipeline:
         r = session.post(
             f"{BASE}/smart-city/pipelines",
             json={
-                "name": "Astana Live Demo",
-                "description": "Thesis demo: simulated IoT + weather feeds via sensor-simulator",
+                "name": "Astana Geospatial Demo",
+                "description": "Thesis defence demo: Astana geospatial traffic simulator (latitude/longitude)",
             },
             timeout=30,
         )
@@ -57,57 +57,80 @@ def main() -> None:
     sources = session.get(f"{BASE}/smart-city/pipelines/{pipeline_id}/sources", timeout=30).json()
     source_list = sources.get("data") or []
 
-    if not source_list:
-        for kind, name in [("iot", "IoT Traffic Sensors"), ("weather", "Weather Stations")]:
-            r = session.post(
-                f"{BASE}/smart-city/pipelines/{pipeline_id}/sources",
-                json={
-                    "name": name,
-                    "type": "HTTP_POLLING",
-                    "mode": "SIMULATED",
-                    "sensorKind": kind,
-                    "pollIntervalMs": 3000,
-                },
-                timeout=30,
-            )
-            r.raise_for_status()
-            src = r.json()["data"]
-            print("created source", kind, src["id"])
-            source_list.append(src)
+    desired = [
+        ("traffic", "Astana Geospatial Traffic", "WEBSOCKET"),
+        ("weather", "Astana Weather Stations", "HTTP_POLLING"),
+    ]
+
+    existing_kinds = {s.get("sensorKind"): s for s in source_list}
+    for kind, name, transport in desired:
+        if kind in existing_kinds:
+            source_list.append(existing_kinds[kind])
+            continue
+        r = session.post(
+            f"{BASE}/smart-city/pipelines/{pipeline_id}/sources",
+            json={
+                "name": name,
+                "type": transport,
+                "mode": "SIMULATED",
+                "sensorKind": kind,
+                "pollIntervalMs": 2000 if kind == "traffic" else 3000,
+            },
+            timeout=30,
+        )
+        r.raise_for_status()
+        src = r.json()["data"]
+        print("created source", kind, src["id"])
+        source_list.append(src)
 
     for src in source_list:
         if src.get("status") != "RUNNING":
             r = session.post(f"{BASE}/smart-city/sources/{src['id']}/start", timeout=30)
             if r.ok:
-                print("started source", src["id"], src.get("name"))
+                print("started source", src["id"], src.get("name"), src.get("sensorKind"))
             else:
                 print("start failed", src["id"], r.status_code, r.text[:200])
 
-    # Poll events a few times
-    for i in range(5):
+    for i in range(8):
         events = session.get(
             f"{BASE}/smart-city/pipelines/{pipeline_id}/events",
-            params={"limit": 10},
+            params={"limit": 20},
             timeout=30,
         ).json()
-        count = len(events.get("data") or [])
-        print(f"poll {i+1}: {count} recent events")
-        if count > 0:
+        data = events.get("data") or []
+        print(f"poll {i+1}: {len(data)} recent events")
+        if data:
+            sample = data[0].get("payload") or data[0]
+            lat = sample.get("latitude") or sample.get("lat")
+            lng = sample.get("longitude") or sample.get("lng")
+            print(" sample coords", lat, lng)
             break
         time.sleep(2)
 
     obs = session.get(f"{BASE}/smart-city/pipelines/{pipeline_id}/observability", timeout=30).json()
-    print("observability keys", list((obs.get("data") or {}).keys()))
 
     result = {
         "pipelineId": pipeline_id,
         "pipelineName": pipeline.get("name"),
         "sources": [
-            {"id": s["id"], "name": s.get("name"), "status": s.get("status"), "sensorKind": s.get("sensorKind")}
+            {
+                "id": s["id"],
+                "name": s.get("name"),
+                "status": s.get("status"),
+                "sensorKind": s.get("sensorKind"),
+                "type": s.get("type"),
+            }
             for s in source_list
         ],
         "recentEventCount": len(
-            (session.get(f"{BASE}/smart-city/pipelines/{pipeline_id}/events", params={"limit": 20}, timeout=30).json().get("data") or [])
+            (
+                session.get(
+                    f"{BASE}/smart-city/pipelines/{pipeline_id}/events",
+                    params={"limit": 20},
+                    timeout=30,
+                ).json().get("data")
+                or []
+            )
         ),
         "observability": obs.get("data"),
     }

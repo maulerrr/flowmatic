@@ -27,3 +27,15 @@ thesis/experiments/continuous_export_test_report.json
 # Rejected thesis PDF drafts (sources live under thesis/latex/)
 memoirthesis-v5-phase4.pdf
 memoirthesis-v5-condensed.pdf
+
+# AITU LaTeX build artifacts (rebuild via scripts/build-thesis-laptop.ps1)
+thesis/AITU Thesis Template/memoirthesis.aux
+thesis/AITU Thesis Template/memoirthesis.log
+thesis/AITU Thesis Template/memoirthesis.toc
+thesis/AITU Thesis Template/memoirthesis.lof
+thesis/AITU Thesis Template/memoirthesis.lot
+thesis/AITU Thesis Template/memoirthesis.out
+thesis/AITU Thesis Template/memoirthesis.idx
+thesis/AITU Thesis Template/memoirthesis.bbl
+thesis/AITU Thesis Template/memoirthesis.blg
+thesis/AITU Thesis Template/memoirthesis.pdf

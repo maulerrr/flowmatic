@@ -1,35 +1,5 @@
-{
-  "pipelineId": "cmpmaabqo0003p93catilx40v",
-  "pipelineName": "Astana Live Demo",
-  "sources": [
-    {
-      "id": "cmpmaabt10005p93cgh6wgdxo",
-      "name": "IoT Traffic Sensors",
-      "status": "STOPPED",
-      "sensorKind": "iot"
-    },
-    {
-      "id": "cmpmaabuu0007p93c03sn8cw2",
-      "name": "Weather Stations",
-      "status": "STOPPED",
-      "sensorKind": "weather"
-    }
-  ],
-  "recentEventCount": 2,
-  "observability": {
-    "windowHours": 24,
-    "eventsLast24h": 2,
-    "runningSources": 2,
-    "sourceErrors": 0,
-    "exportSuccesses": 0,
-    "exportFailures": 0,
-    "trainingRuns": 0,
-    "federatedStatus": "DISCONNECTED",
-    "activeRoundId": null,
-    "globalModelVersion": null,
-    "alerts": [],
-    "lastEventAt": "2026-05-26T06:58:22.549Z",
-    "lastExportAt": null,
-    "lastTrainingAt": null
-  }
+﻿{
+    "pipelineId":  "cmpo5mrmu0008o42s9jpdkuma",
+    "pipelineName":  "Astana Geospatial Demo",
+    "recentEventCount":  0
 }

@@ -2,7 +2,7 @@
 % Requires: \usepackage{graphicx} \usepackage{subcaption} \usepackage{float}
 
 % ---------------------------------------------------------------------------
-% Chapter 4 — Updated architecture (replaces Figures 4.1 and 4.2)
+% Chapter 4 — Architecture
 % ---------------------------------------------------------------------------
 
 \begin{figure}[H]
@@ -26,53 +26,42 @@
   \label{fig:microservices-topology}
 \end{figure}
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{figures/architecture/04-medallion-data-lake.png}
+  \caption{Medallion data lake layout (bronze, silver, gold) used in the Smart City export stage.}
+  \label{fig:medallion-lake}
+\end{figure}
+
 % ---------------------------------------------------------------------------
-% Chapter 4 — Platform UI (new figures 4.3–4.10)
+% Chapter 4 — Platform UI (screenshots pending capture)
 % ---------------------------------------------------------------------------
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.55\textwidth]{figures/screenshots/00-login.png}
-  \caption{Flowmatic login interface with organisation-scoped session authentication.}
+  \fbox{\parbox{0.55\textwidth}{\centering\vspace{1.8cm}\textit{Placeholder: login screenshot}\vspace{1.8cm}}}
+  \caption{Flowmatic login interface with organisation-scoped session authentication (screenshot pending).}
   \label{fig:ui-login}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{figures/screenshots/02-upload.png}
-    \caption{Batch upload}
-    \label{fig:ui-upload}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{figures/screenshots/04-pipelines-runs.png}
-    \caption{Pipeline runs}
-    \label{fig:ui-pipelines}
-  \end{subfigure}
-  \caption{Tabular data preparation workflow: ingestion and run monitoring for the Astana semi-synthetic dataset.}
+  \fbox{\parbox{0.88\textwidth}{\centering\vspace{2.0cm}\textit{Placeholder: batch upload and pipeline runs screenshots}\vspace{2.0cm}}}
+  \caption{Tabular data preparation workflow: ingestion and run monitoring for the Astana semi-synthetic dataset (screenshots pending).}
   \label{fig:ui-batch-workflow}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.92\textwidth]{figures/screenshots/08-smart-city-live-workbench.png}
-  \caption{Live smart-city workbench with two simulated sources (IoT traffic and weather), WebSocket-connected event stream, and four-stage flow rail (Sources $\rightarrow$ Core $\rightarrow$ Lake \& Export $\rightarrow$ Federated).}
+  \fbox{\parbox{0.92\textwidth}{\centering\vspace{2.2cm}\textit{Placeholder: smart-city live workbench screenshot}\vspace{2.2cm}}}
+  \caption{Live smart-city workbench with simulated sources, WebSocket event stream, and four-stage flow rail (screenshot pending).}
   \label{fig:ui-smart-city-live}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{figures/screenshots/09-core-unit-huggingface-modal.png}
-    \caption{Core unit configuration}
-    \label{fig:ui-core-unit}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{figures/screenshots/10-workflow-graph.png}
-    \caption{Workflow graph view}
-    \label{fig:ui-workflow-graph}
-  \end{subfigure}
-  \caption{Production configuration surfaces for model deployment (Hugging Face integration) and pipeline topology visualisation.}
+  \fbox{\parbox{0.88\textwidth}{\centering\vspace{2.0cm}\textit{Placeholder: core unit and workflow graph screenshots}\vspace{2.0cm}}}
+  \caption{Core unit configuration and pipeline topology visualisation (screenshots pending).}
   \label{fig:ui-config-graph}
 \end{figure}
 
@@ -97,6 +86,6 @@
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.85\textwidth]{figures/results/multi_seed_rmse_boxplot.png}
-  \caption{Multi-seed robustness (RMSE boxplots) for Q1 core suite checkpoints.}
+  \caption{Multi-seed robustness (RMSE boxplots) for production portfolio checkpoints.}
   \label{fig:neural-multiseed}
 \end{figure}

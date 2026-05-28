@@ -1,13 +1,21 @@
 # LaTeX integration guide
 
-Paste-ready blocks for updating `memoirthesis-v5-condensed` (or a v6 LaTeX source).
+Paste-ready blocks for updating the memoir thesis source (v5 condensed or v6).
 
 ## Files
 
 | File | Contents |
 |------|----------|
-| `figures.tex` | `\includegraphics` blocks for architecture, UI, and neural result figures |
-| `tables.tex` | Upload experiment, classical vs neural, smart-city demo, gap analysis |
+| `chapters/chapter01_addendum.tex` | Revised objectives and research questions |
+| `chapters/chapter03_methodology.tex` | Methodology (classical + adaptive routing) |
+| `chapters/chapter04_implementation.tex` | Implementation chapter |
+| `chapters/chapter05_results.tex` | Results and discussion |
+| `chapters/chapter06_conclusion.tex` | Conclusion |
+| `figures.tex` | Architecture + UI + neural result figures |
+| `figures_phase4.tex` | Figures used via `\input` in Chapter 5 |
+| `tables.tex` | Upload experiment, classical vs neural, demo tables |
+| `tables_phase4.tex` | Dataset, split, multi-seed, ablation tables |
+| `frontmatter/abstract.tex` | Revised abstract |
 
 ## Usage
 
@@ -16,36 +24,34 @@ Paste-ready blocks for updating `memoirthesis-v5-condensed` (or a v6 LaTeX sourc
 \input{thesis/latex/tables}
 ```
 
-Adjust paths if figures live under a different directory relative to your `.tex` root. Recommended layout:
+## Render architecture figures
 
-```
-thesis/
-  figures/
-    architecture/*.png
-    screenshots/*.png
-    results/*.png
-  latex/
-    figures.tex
-    tables.tex
+From repo root:
+
+```powershell
+.\scripts\render-thesis-figures.ps1
 ```
 
-## Packages required
+Sources: `thesis/figures/architecture/*.mmd` → PNG via Docker `minlag/mermaid-cli`.
 
-```latex
-\usepackage{graphicx}
-\usepackage{subcaption}
-\usepackage{float}
-\usepackage{booktabs}
+## Build full PDF (external memoir project)
+
+```powershell
+.\scripts\build-thesis-phase4.ps1
 ```
 
-## Figure mapping (manuscript update)
+Requires memoir project at `C:\Users\BG\Desktop\master-thesis\dissertation_latex_v5\`.
 
-| Old | New replacement |
-|-----|-----------------|
-| Fig. 4.1 Batch architecture | `01-batch-upload-pipeline.png` |
-| Fig. 4.2 Streaming architecture | `02-smart-city-streaming.png` + `08-smart-city-live-workbench.png` |
-| (new) | `03-microservices-topology.png`, UI screenshots `00`–`10` |
-| Ch. 5 neural results | `figures/results/*.png` + Table `tab:classical-vs-neural` |
+## Figure mapping
+
+| Manuscript figure | Asset |
+|-------------------|-------|
+| Batch architecture (Fig. 4.1) | `01-batch-upload-pipeline.png` |
+| Smart-city pipeline (Fig. 4.2) | `02-smart-city-streaming.png` |
+| Deployment topology | `03-microservices-topology.png` |
+| Medallion lake | `04-medallion-data-lake.png` |
+| UI screenshots | `figures/screenshots/*.png` (capture after platform run) |
+| Neural results | `figures/results/*.png` |
 
 ## Reproducing experiments
 
@@ -55,4 +61,4 @@ python thesis/experiments/_run_upload_experiment.py
 python thesis/experiments/_setup_smart_city_pipeline.py
 ```
 
-Use `http://localhost/api/v1` (port 80 via Nginx), **not** `127.0.0.1:8080` — another process may bind 8080 on Windows.
+Use `http://localhost/api/v1` (port 80 via Nginx), not `127.0.0.1:8080` on Windows.

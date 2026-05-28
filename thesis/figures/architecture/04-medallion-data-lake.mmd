@@ -1,17 +1,27 @@
-%% Medallion layout as exposed in Smart City lake stage UI. Render: mmdc -i 04-medallion-data-lake.mmd -o 04-medallion-data-lake.png
+%% Medallion data lake layout. Render: scripts/render-thesis-figures.ps1
 flowchart TB
   subgraph ingest["Acquisition"]
-    RAW["Bronze — raw/near-raw sensor events\n(immutable landing)"]
+    RAW["Bronze<br/>raw / near-raw sensor events"]
   end
 
   subgraph process["Curation"]
-    SIL["Silver — validated, typed,\nnormalized timelines"]
-    FEAT["Enriched streams\n(metrics, aggregates, QC flags)"]
+    SIL["Silver<br/>validated and typed timelines"]
+    FEAT["Enriched streams<br/>metrics, QC flags"]
   end
 
   subgraph serve["Consumption"]
-    GOLD["Gold — analytics / ML-ready\npartitions & exports"]
-    EXP["Exports & registry\nHF datasets, warehouses, downloads"]
+    GOLD["Gold<br/>analytics-ready partitions"]
+    EXP["Exports and registry<br/>HF, warehouses, files"]
   end
 
-  RAW --> SIL --> FEAT --> GOLD --> EXP
+  RAW --> SIL
+  SIL --> FEAT
+  FEAT --> GOLD
+  GOLD --> EXP
+
+  classDef bronze fill:#FFF7ED,stroke:#EA580C,stroke-width:2px
+  classDef silver fill:#E8F4FC,stroke:#2563EB,stroke-width:2px
+  classDef gold fill:#F0FDF4,stroke:#16A34A,stroke-width:2px
+  class RAW bronze
+  class SIL,FEAT silver
+  class GOLD,EXP gold

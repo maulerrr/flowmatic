@@ -2,6 +2,11 @@
 $ErrorActionPreference = "Stop"
 
 $flowmatic = Resolve-Path (Join-Path $PSScriptRoot "..")
+$renderScript = Join-Path $PSScriptRoot "render-thesis-figures.ps1"
+if (Test-Path $renderScript) {
+    & $renderScript
+}
+
 $thesisRoot = "C:\Users\BG\Desktop\master-thesis\dissertation_latex_v5"
 $latexSrc = Join-Path $flowmatic "thesis\latex"
 $figuresSrc = Join-Path $flowmatic "thesis\figures"
@@ -34,7 +39,7 @@ Copy-Item (Join-Path $latexSrc "tables.tex") (Join-Path $thesisRoot "chapters\ch
 # Addenda appended to ch1/ch2
 $ch1 = Get-Content (Join-Path $thesisRoot "chapters\chapter01\introduction.tex") -Raw
 $add1 = Get-Content (Join-Path $latexSrc "chapters\chapter01_addendum.tex") -Raw
-if ($ch1 -notmatch "Platform Evolution \(Flowmatic\)") {
+if ($ch1 -notmatch "Platform Evolution") {
     $ch1 = $ch1.TrimEnd() + "`r`n`r`n" + $add1
     [System.IO.File]::WriteAllText((Join-Path $thesisRoot "chapters\chapter01\introduction.tex"), $ch1, (New-Object System.Text.UTF8Encoding($false)))
 }

@@ -1,0 +1,55 @@
+\chapter{Literature Review}
+\label{chap:literature}
+
+\section{Scope of the Review}
+
+This chapter reviews the literature needed for an intelligent assistant that automates data preparation in urban transportation management systems. The review is intentionally focused on four questions that shape the proposed system: how traffic data quality should be assessed, how missing and noisy traffic observations should be treated, how spatiotemporal features can be generated automatically, and how anomaly detection and explainability support operational use.
+
+\section{Data Quality in Transportation Analytics}
+
+General data quality research treats quality as fitness for use rather than a fixed property of a dataset. Wang and Strong~\cite{wang1996beyond} group quality into intrinsic, contextual, representational, and accessibility dimensions, while Pipino et al.~\cite{pipino2002data} show that useful assessment combines objective metrics with user-oriented judgments. In transportation systems this perspective is especially important because the same sensor record may be acceptable for strategic planning but unusable for real-time incident response.
+
+Transportation data adds domain-specific constraints. Sensor streams are spatially distributed, time ordered, and often produced by heterogeneous devices. Rahm and Do~\cite{rahm2000data} describe common quality problems in integrated data sources, and Heinrich et al.~\cite{heinrich2007assessing} connect those problems to intelligent transportation systems, where positional accuracy, temporal consistency, and network coverage are central. Composite indices such as the Data Quality Index~\cite{bieberstein2006data} provide a concise way to aggregate dimensions, but the weighting must remain application dependent. For this thesis, the quality score therefore uses six dimensions: completeness, consistency, accuracy, timeliness, uniqueness, and validity.
+
+\section{Automated Preprocessing and Missing Data}
+
+Automated preprocessing research has moved from fixed rule chains toward pipelines that adapt to data characteristics and downstream tasks. Liu et al.~\cite{liu2022automated} describe automated preprocessing as a pipeline optimization problem, while scenario-based preprocessing for traffic accident severity prediction shows the value of choosing operations from domain context rather than applying generic defaults~\cite{sharma2022scenario}. AutoML work also shows that preprocessing and feature construction should be treated as part of the model search space rather than as isolated manual steps~\cite{kumar2021automl,feurer2019auto}.
+
+Missing traffic data is a recurring operational problem caused by sensor failures, communication gaps, and maintenance outages. Recent reviews emphasize that effective imputation must use temporal and spatial structure instead of relying only on mean or median replacement~\cite{tang2024missing,chan2023missing}. Tensor methods, graph-based models, autoencoders, and probabilistic approaches are frequently used, but they differ in data requirements and deployment cost. Boquet et al.~\cite{boquet2020vae} show that variational autoencoders can support imputation, dimensionality reduction, model selection, and anomaly detection within a single traffic forecasting framework. For a practical assistant, this motivates a modular design: simple methods remain available for small or sparse datasets, while spatiotemporal and ensemble methods are selected when enough historical structure exists.
+
+\section{Feature Engineering for Traffic Data}
+
+Feature engineering is a major source of performance improvement in traffic analytics because raw timestamps, coordinates, and sensor counts rarely expose the periodic and network effects needed by learning algorithms. Automated feature generation has been studied for urban management and traffic forecasting~\cite{cai2022feature,luo2024spatiotemporal}. Recent spatiotemporal forecasting literature shows that temporal cycles, local neighborhood relationships, and learned graph structure all affect prediction quality~\cite{yan2021dynamic,wang2023adaptive,mu2024spatiotemporal}.
+
+The literature suggests a useful division between interpretable engineered features and representation learning. Deep graph and Transformer models can learn complex dependencies~\cite{wu2021graph,liu2023transformer}, but operational systems still benefit from explicit features such as peak-hour indicators, rolling statistics, density proxies, speed deviations, and distance-to-center measures. Such features are easier to audit, cheaper to compute, and suitable for classical classifiers. The proposed assistant therefore generates a compact set of traffic-aware features and then selects among them using mutual information and model-based importance.
+
+\section{Anomaly Detection and Event Classification}
+
+Traffic anomaly detection covers both data quality errors and operational events. Classical methods such as Local Outlier Factor~\cite{breunig2000lof} and Isolation Forest~\cite{liu2008isolation} remain attractive because they are efficient and interpretable. Broader anomaly detection surveys~\cite{chandola2009anomaly,pang2021deep} distinguish point, contextual, and collective anomalies, which maps well to transportation data: a speed may be normal on one road at midnight but anomalous on another road during peak hours.
+
+Recent traffic studies extend this baseline with deep, streaming, and federated approaches. Variational and autoencoder-based models can learn normal traffic patterns from multivariate time series~\cite{ding2024variational,kim2024autoencoder}; real-time urban traffic work emphasizes low-latency anomaly detection and load balancing~\cite{laanaoui2024realtime}; and hierarchical federated learning has been proposed for trajectory anomaly detection across regions~\cite{wang2023federatedtrajectory}. These studies support the thesis decision to use an ensemble detector: no single method is robust across sparse, noisy, and context-dependent anomalies.
+
+For event classification, Random Forests, gradient boosting, and support vector machines remain strong baselines~\cite{breiman2001random,cortes1995svm,chen2016xgboost}. Gradient boosting is particularly suitable because it handles nonlinear feature interactions and missing values efficiently, while Random Forests provide stable feature importance. This thesis evaluates multiple classifiers but uses XGBoost as the principal downstream model when comparing preprocessing strategies.
+
+\section{Intelligent Transportation Systems and Deployment}
+
+Intelligent transportation systems are increasingly built around IoT sensing, event streams, and distributed analytics. Smart city architectures rely on sensing, communication, data management, and application layers~\cite{zanella2014iot}; big-data ITS surveys identify volume, velocity, variety, and veracity as persistent challenges~\cite{its_bigdata2018}; and Kafka-style event streams provide a practical foundation for real-time data pipelines~\cite{kreps2011kafka,event_driven2025}. These works indicate that data preparation should not be a one-time offline script. It must be deployable as a service that can validate, enrich, and score data continuously.
+
+\section{Explainability and Research Gap}
+
+Explainability matters because transportation agencies need to justify alerts, feature choices, and model outputs. SHAP values provide a consistent feature attribution method for tree and ensemble models~\cite{lundberg2017unified,lundberg2020local}, while broader interpretability work warns that explanations must be tied to concrete user decisions rather than presented as decorative model outputs~\cite{lipton2018mythos,ribeiro2016should}.
+
+The reviewed literature leaves a practical integration gap. Data quality assessment, imputation, feature engineering, anomaly detection, classification, streaming deployment, and explainability are often studied separately. This thesis addresses that gap by implementing a unified assistant that connects these stages into one reproducible pipeline and evaluates whether automated preparation improves downstream traffic event classification.
+
+\section{Neural Time-Series Models in Traffic Analytics}
+
+Recent work on traffic forecasting uses decomposition linear models~\cite{zeng2023transformers}, patch-based Transformers~\cite{nie2023patchtst}, and graph spatio-temporal networks~\cite{yu2018stgcn}. Deployed smart-city systems typically combine stream ingestion, model registries, and latency-aware inference rather than offline notebooks alone~\cite{its_bigdata2018,event_driven2025}. Flowmatic follows this pattern: classical preparation provides tabular baselines, while neural checkpoints handle modality-specific forecasting, reconstruction, and classification tasks selected by explicit routing rules.
+
+\section{Scope of This Thesis}
+
+The dissertation reports two linked parts that were actually completed:
+\begin{enumerate}
+  \item a classical automated preparation study with ensemble anomaly detection and tree-based classification on Astana traffic data;
+  \item a production implementation (\textbf{Flowmatic}) with neural extensions, adaptive routing, and reproducible platform experiments.
+\end{enumerate}
+Chapter~\ref{chap:results} presents both parts side by side and states where the platform extends or differs from the original manuscript design.

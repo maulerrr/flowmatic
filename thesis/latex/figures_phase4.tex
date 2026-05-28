@@ -1,4 +1,4 @@
-% Phase 4 figure blocks for Chapter 4--5
+% Phase 4 figure blocks for Chapters 4--5
 
 \begin{figure}[H]
   \centering
@@ -10,28 +10,37 @@
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{figures/architecture/02-smart-city-streaming.png}
-  \caption{Smart-city streaming pipeline with adaptive core unit, medallion lake, and export adapters.}
+  \caption{Smart-city pipeline with adaptive core unit, medallion lake, and export adapters.}
   \label{fig:smart-city-streaming}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.88\textwidth]{figures/architecture/03-microservices-topology.png}
-  \caption{Docker Compose topology: PostgreSQL, MinIO, RabbitMQ, sensor simulator, model-inference, backend, frontend.}
+  \caption{Docker Compose topology: PostgreSQL, MinIO, RabbitMQ, sensor simulator, model-inference, backend, and frontend.}
   \label{fig:microservices-topology}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.92\textwidth]{figures/results/validation_curves_q1_suite.png}
-  \caption{Smart-city workbench validation view (training curves shown as proxy for live pipeline observability; UI screenshots are maintained in the repository \texttt{thesis/figures/screenshots/}).}
+  \includegraphics[width=0.82\textwidth]{figures/architecture/04-medallion-data-lake.png}
+  \caption{Medallion data lake layout used in the Smart City export stage (bronze, silver, gold).}
+  \label{fig:medallion-lake}
+\end{figure}
+
+% UI screenshots — populate after platform capture (thesis/figures/screenshots/)
+% \begin{figure}[H] ... \includegraphics{figures/screenshots/08-smart-city-live-workbench.png} ...
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.88\textwidth}{\centering\vspace{2.2cm}\textit{Placeholder: smart-city workbench screenshot}\\\vspace{0.4cm}\small To be replaced with \texttt{figures/screenshots/08-smart-city-live-workbench.png} after platform validation.\vspace{2.2cm}}}
+  \caption{Live smart-city workbench (screenshot pending platform capture).}
   \label{fig:ui-smart-city-live}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.78\textwidth]{figures/results/latency_vs_parameters.png}
-  \caption{Core unit model catalogue: latency vs parameter count for production checkpoints (Manual/Auto routing selects among these entries).}
+  \fbox{\parbox{0.78\textwidth}{\centering\vspace{2.0cm}\textit{Placeholder: core unit configuration screenshot}\\\vspace{0.4cm}\small To be replaced with \texttt{figures/screenshots/09-core-unit-huggingface-modal.png}.\vspace{2.0cm}}}
+  \caption{Adaptive core unit configuration with Manual/Auto routing (screenshot pending).}
   \label{fig:ui-core-unit}
 \end{figure}
 
@@ -79,14 +88,14 @@
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{figures/results/validation_curves_q1_suite.png}
-  \caption{Validation loss curves during Q1 suite training (representative runs).}
+  \includegraphics[width=0.85\textwidth]{figures/results/validation_curves_training.png}
+  \caption{Validation loss curves during neural model training (representative runs).}
   \label{fig:validation-curves}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.78\textwidth]{figures/results/classification_macro_f1.png}
-  \caption{Severity classifier macro-F1 vs classical baselines.}
+  \caption{Severity classifier macro-F1 compared with classical baselines.}
   \label{fig:neural-classification-f1}
 \end{figure}

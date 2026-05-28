@@ -1,0 +1,42 @@
+% Neural task formulations for the production portfolio (included from Chapter 3)
+
+Each production model consumes a normalized window $\mathbf{X}\in\mathbb{R}^{L\times d}$ of length $L=48$ and feature dimension $d$. Targets are denoted $y$; graph models use adjacency $\mathbf{A}\in\mathbb{R}^{N\times N}$ over $N$ sensors.
+
+\subsection{Forecasting (PatchTST, iTransformer, DLinear, TimesBlock, STGCN)}
+
+Point forecasting minimizes squared error on a held-out temporal test split:
+\begin{equation}
+\label{eq:forecast_loss}
+\mathcal{L}_{\mathrm{forecast}} = \frac{1}{|\mathcal{T}_{\mathrm{test}}|}\sum_{t\in\mathcal{T}_{\mathrm{test}}}\left\|\hat{y}_t - y_t\right\|_2^2 .
+\end{equation}
+DLinear decomposes each channel into trend and seasonal components via moving-average smoothing kernel $\mathbf{1}_k/k$ before applying linear projections~\cite{zeng2023transformers}. PatchTST partitions $\mathbf{X}$ into patches of length $p$ and applies channel-independent self-attention over patch tokens~\cite{nie2023patchtst}. STGCN combines graph convolution on $\mathbf{A}$ with temporal convolution:
+\begin{equation}
+\label{eq:stgcn}
+\mathbf{H}^{(l+1)} = \sigma\!\left(\mathbf{A}\mathbf{H}^{(l)}\mathbf{W}^{(l)}_{\mathrm{g}}\right) * \mathbf{W}^{(l)}_{\mathrm{t}},
+\end{equation}
+where $*$ denotes temporal convolution and $\sigma$ is ReLU.
+
+\subsection{Anomaly detection (TranAD-style reconstruction)}
+
+Let $f_\theta$ reconstruct window $\mathbf{X}$. Anomaly score is reconstruction residual:
+\begin{equation}
+\label{eq:tranad_score}
+s(\mathbf{X}) = \frac{1}{Ld}\sum_{i=1}^{L}\sum_{j=1}^{d}\left(X_{ij} - \hat{X}_{ij}\right)^2 .
+\end{equation}
+Training minimizes $\|\mathbf{X} - f_\theta(\mathbf{X})\|_F^2$ on normal traffic windows; elevated $s(\mathbf{X})$ flags corrupted streams.
+
+\subsection{Imputation (SAITS-style masked reconstruction)}
+
+Given mask $\mathbf{M}\in\{0,1\}^{L\times d}$ with mask ratio $\rho=0.25$, the model predicts occluded values:
+\begin{equation}
+\label{eq:saits_loss}
+\mathcal{L}_{\mathrm{impute}} = \frac{\sum_{i,j}(1-M_{ij})(X_{ij}-\hat{X}_{ij})^2}{\sum_{i,j}(1-M_{ij})}.
+\end{equation}
+
+\subsection{Severity classification (Transformer encoder)}
+
+For class set $\mathcal{C}$, the encoder outputs logits $\mathbf{z}=h_\phi(\mathbf{X})$ and probabilities $\pi_c=\mathrm{softmax}(\mathbf{z})_c$. We report macro-F1:
+\begin{equation}
+\label{eq:macro_f1}
+F_1^{\mathrm{macro}} = \frac{1}{|\mathcal{C}|}\sum_{c\in\mathcal{C}}\frac{2P_c R_c}{P_c+R_c}.
+\end{equation}

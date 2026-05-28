@@ -1,20 +1,34 @@
-%% docker-compose topology — app_network. Render: mmdc -i 03-microservices-topology.mmd -o 03-microservices-topology.png
+%% Docker Compose topology. Render: scripts/render-thesis-figures.ps1
 flowchart TB
-  subgraph user["Operators & analysts"]
+  subgraph user["Users"]
     BROWSER["Web browser"]
   end
 
-  subgraph docker["Docker Compose — app_network"]
-    FE["frontend\nNginx + Vite build\n:80"]
-    BE["backend\nNestJS API\n:8080"]
-    PG[("postgres:15-alpine")]
-    MINIO["minio\nAPI :9100,\nconsole :9101"]
-    RMQ["rabbitmq:3.13-management\n5672 / 15672"]
-    SIM["sensor-simulator\n:8091"]
-    MI["model-inference\n(Bun) :8093"]
-    FCD["federated-coordinator-demo\n:8092"]
+  subgraph compose["Docker Compose — app_network"]
+    FE["frontend<br/>Nginx + Vue<br/>:80"]
+    BE["backend<br/>NestJS API<br/>:8080"]
+    PG[("postgres<br/>:5432")]
+    MINIO["minio<br/>:9100 / :9101"]
+    RMQ["rabbitmq<br/>:5672 / :15672"]
+    SIM["sensor-simulator<br/>:8091"]
+    MI["model-inference<br/>:8093"]
+    FCD["federated-coordinator<br/>:8092"]
   end
 
   BROWSER -->|"HTTP"| FE
-  FE -->|"/api/v1 proxy"| BE
-  BE --> PG & MINIO & RMQ & SIM & MI & FCD
+  FE -->|"/api/v1"| BE
+  BE --> PG
+  BE --> MINIO
+  BE --> RMQ
+  BE --> SIM
+  BE --> MI
+  BE --> FCD
+
+  classDef userStyle fill:#EEF2FF,stroke:#4338CA,stroke-width:2px
+  classDef appStyle fill:#E8F4FC,stroke:#2563EB,stroke-width:2px
+  classDef infraStyle fill:#F0FDF4,stroke:#16A34A,stroke-width:2px
+  classDef mlStyle fill:#FFF7ED,stroke:#EA580C,stroke-width:2px
+  class BROWSER userStyle
+  class FE,BE appStyle
+  class PG,MINIO,RMQ infraStyle
+  class SIM,MI,FCD mlStyle

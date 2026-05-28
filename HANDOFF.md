@@ -1,8 +1,9 @@
 # Flowmatic Agent Handoff
 
-**Date:** 2026-05-21  
+**Date:** 2026-05-27  
 **Repository:** [github.com/maulerrr/flowmatic](https://github.com/maulerrr/flowmatic)  
-**Branch at handoff:** `main`
+**Branch:** `main`  
+**Last updated from:** Laptop (`c:\Users\kurai\OneDrive\Desktop\projects\flowmatic`) — push before continuing on desktop PC.
 
 ---
 
@@ -10,15 +11,59 @@
 
 | Area | Status | Notes |
 |------|--------|--------|
-| **Platform (Flowmatic app)** | **OK** | Docker stack runs; Auto/Manual core unit, smart-city workbench, insights, batch pipeline, HF integration. Suitable for demo and further product work. |
-| **ML research (Phases 2–3)** | **OK (core done)** | 8-model production portfolio, multi-seed metrics, datasets ingested, checkpoints on Hugging Face. Gaps: router ablations, Astana→PeMS holdout eval, CRPS/AUROC. |
-| **Thesis / paper (Phase 4)** | **NOT ACCEPTABLE** | Draft PDF `memoirthesis-v5-phase4.pdf` (local only, **do not treat as submission-ready**) has structural rewrites but missing UI screenshots, broken Unicode in Ch.1, proxy figures, incomplete classical Ch.5 integration, and no defensible single narrative. **Requires full rewrite**, not patch. |
+| **Platform (Flowmatic app)** | **OK** | Docker stack runs on laptop. Astana Geospatial Demo pipeline configured. Demo login works. |
+| **ML research (Phases 2–3)** | **OK (core done)** | 8-model portfolio, multi-seed metrics, HF checkpoints. Gaps: router ablations, Astana→PeMS holdout, CRPS/AUROC. |
+| **Thesis (AITU template)** | **SUBMISSION-DRAFT** | Full 50-page PDF rebuilt on laptop. Citations, TOC/LOF/LOT, figures, metadata fixed. **Not final** — see Q1 review for remaining revisions before antiplagiarism/defense. |
+| **Q1 paper review** | **DONE** | `paper-review-q1.md` — defense-ready with revisions; journal-not-ready. |
 
-**Primary handoff doc:** this file. **Roadmap:** [`ADAPTIVE_PLATFORM_ROADMAP.md`](./ADAPTIVE_PLATFORM_ROADMAP.md). **Setup:** [`README.md`](./README.md).
+**Primary handoff doc:** this file. **Thesis review:** [`paper-review-q1.md`](./paper-review-q1.md). **Gap analysis:** [`thesis/GAP_ANALYSIS.md`](./thesis/GAP_ANALYSIS.md). **Setup:** [`README.md`](./README.md).
 
 ---
 
-## 1. What Flowmatic is
+## 1. What changed on the laptop (2026-05-21 → 2026-05-27)
+
+### Thesis — new canonical source tree
+
+The old desktop path `C:\Users\BG\Desktop\master-thesis\dissertation_latex_v5\` is **not on the laptop**. The submission thesis now lives in:
+
+```
+thesis/AITU Thesis Template/     ← PRIMARY LaTeX source (6 chapters + appendix)
+memoirthesis-flowmatic.pdf       ← Compiled output (repo root, copy of template build)
+thesis/figures/                  ← Shared figures (architecture, results, screenshots)
+paper-review-q1.md               ← Strict Q1/defense review (2026-05-27)
+```
+
+**Build command (requires Docker):**
+
+```powershell
+.\scripts\build-thesis-laptop.ps1
+```
+
+Output: `thesis/AITU Thesis Template/memoirthesis.pdf` + copy to `memoirthesis-flowmatic.pdf`.
+
+### Thesis fixes applied (2026-05-27)
+
+- BibTeX + 4-pass LaTeX build (citations no longer `?`)
+- Table of Contents, List of Figures, List of Tables populated
+- `listings` / `fancyvrb` for Appendix A code blocks
+- Figure sizing via `\thesisfigure` + `adjustbox` (screenshots fit page)
+- Title metadata: **Supervisor Aivar Sakhipov Aituarovich**, program **7M06105**, **School of Software Engineering**
+- Neural formulations moved to **Chapter 3** (`sec:neural_formulations`)
+- UI screenshots committed under `thesis/figures/screenshots/` (login, workbench, core unit, workflow graph)
+- Architecture Mermaid PNGs regenerated via `scripts/render-thesis-figures.ps1`
+
+### Platform demo on laptop
+
+- `.env` + `backend/.env` created from examples
+- `data/astana_synthetic_data.csv` generated (30k rows): `node scripts/generate-astana-dataset.js`
+- Astana Geospatial Demo pipeline via `scripts/setup-astana-geospatial-demo.ps1`
+- Stack: `docker compose up -d --build` → http://localhost
+
+**Demo login:** `thesis.demo@flowmatic.local` / `ThesisDemo2025!`
+
+---
+
+## 2. What Flowmatic is
 
 Production smart-city + data-prep platform:
 
@@ -29,119 +74,62 @@ Production smart-city + data-prep platform:
 
 **Stack:** NestJS (Fastify) + Vue 3 + PostgreSQL + MinIO + RabbitMQ + Bun backend; Python inference sidecar; Docker Compose.
 
-**Demo login:** `thesis.demo@flowmatic.local` / `ThesisDemo2025!` (re-register if DB volume was reset).
-
 ---
 
-## 2. Phased delivery state
+## 3. Phased delivery state
 
 ### Phase 1 — Adaptive core unit ✅
-
-Implemented and unit-tested:
 
 | Component | Path |
 |-----------|------|
 | Model registry | `backend/src/modules/smart-city/pipeline-model-registry.service.ts` |
 | Rule router | `backend/src/modules/smart-city/pipeline-model-router.service.ts` |
-| Optional LLM policy | `pipeline-auto-routing.service.ts` (on Save Auto policy, not per event) |
+| Optional LLM policy | `pipeline-auto-routing.service.ts` |
 | Workbench UI | `frontend/src/modules/smart-city/components/pipeline-processing-stage.vue` |
 | Tests | `backend/src/modules/smart-city/__tests__/pipeline-model-router.spec.ts` |
 
-**Requires for Auto mode:** `models/` mounted in backend container (`docker-compose.yml` volume `./models:/app/models:ro`) and `models/reports/production_portfolio.json` or checkpoints present.
+**Requires for Auto mode:** `./models:/app/models:ro` on backend + `models/reports/production_portfolio.json`.
 
 ### Phase 2 — Portfolio & datasets ✅
 
 **Run:** `python models/paper/run_phase2_prep.py`
 
-| Artifact | Purpose |
-|----------|---------|
-| `models/reports/production_portfolio.json` | 8 official models + capabilities + priorities |
-| `models/paper/reports/dataset_manifest.json` | 6 dataset families ingested |
-| `models/configs/phase3_multiseed_suite.yaml` | Train/validation config |
-
-**Production portfolio (8 models):**
-
-| Slot | Checkpoint run | Kind |
-|------|----------------|------|
-| Traffic forecast | `q1_astana_patchtst_density_forecaster` | patchtst_forecast |
-| Traffic anomaly | `q1_astana_tranad_anomaly_detector` | tranad_anomaly |
-| Weather forecast | `q1_hf_weather_timesblock_forecaster` | timesblock_forecast |
-| Graph traffic | `q1_hf_traffic_stgcn_forecaster` | stgcn_forecast |
-| Imputation | `q1_astana_saits_imputer` | saits_imputer |
-| Severity classification | `q1_astana_transformer_severity_classifier` | transformer_classifier |
-| Energy forecast | `q1_hf_ett_dlinear_energy_forecaster` | dlinear_forecast |
-| Speed forecast | `q1_astana_itransformer_speed_forecaster` | itransformer_forecast |
-
 ### Phase 3 — Experiments (partial) ⚠️
 
 **Run:** `python models/paper/run_phase3_core.py`
 
-Done:
+**Not done** (do not claim as answered in thesis):
 
-- Multi-seed aggregate (seeds 42, 7, 2026) → `models/paper/tables/multi_seed_aggregate.{md,csv}`
-- Streaming latency benchmark → `models/paper/tables/streaming_benchmark.csv`
-- HF upload of portfolio → `models/reports/huggingface_model_manifest.json`
-- Summary → `models/paper/reports/phase3_core_summary.json`
-
-**Not done** (do not claim in paper):
-
-- Auto router vs oracle ablation
+- Auto router vs oracle ablation (**RQ4 gap** — see `paper-review-q1.md` Weakness 2)
 - Astana → PeMS/METR-LA external holdout
 - CRPS, AUROC, calibration metrics
-- Full `paper_experiments.py` refresh (ablation + transfer retrain)
 
-**Evaluation protocol (neural):** 70% train / 15% val / **15% temporal test** (`models/flowml/data.py` → `split_dataset`). Test metrics only on held-out tail.
+**Evaluation protocol (neural):** 70% train / 15% val / **15% temporal test**; seeds `{42, 7, 2026}`.
 
-### Phase 4 — Thesis rewrite ❌ UNACCEPTABLE
+### Phase 4 — Thesis ✅ draft / ⚠️ revisions before final submit
 
-Attempted via `scripts/build-thesis-phase4.ps1` + LaTeX under `thesis/latex/chapters/`.
+| Item | Status |
+|------|--------|
+| AITU template 6 chapters + appendix | ✅ In repo |
+| Compiled PDF (~50 pp) | ✅ `memoirthesis-flowmatic.pdf` |
+| Citations, cross-refs, TOC/LOF/LOT | ✅ Fixed |
+| UI screenshots in Ch. 4 | ✅ Committed |
+| Q1 review document | ✅ `paper-review-q1.md` |
+| Classical baseline reproducibility | ❌ Numbers cited from prior manuscript; no script in repo |
+| RQ4 routing metrics | ❌ Implemented in UI only; not quantified |
+| Abstract vs Table 4.2 (96.83% vs 96.62%) | ❌ Not harmonized |
+| Stale text in conclusion §6.4 (screenshots pending) | ❌ Remove on PC |
 
-**Problems with draft:**
+**Legacy sources (keep for reference, not primary build):**
 
-- Local PDF only; not reviewed for submission
-- Missing real UI screenshots (`thesis/figures/screenshots/` not reliably in repo)
-- Architecture PNGs may be missing on fresh clone
-- Unicode errors in legacy Introduction text
-- Ch.5 mixes new neural narrative with removed classical figures/tables inconsistently
-- Does not meet Q1 bar for experiment section (missing router ablation, external validation, probabilistic metrics)
-
-**LaTeX sources worth keeping:** `thesis/latex/chapters/*.tex`, `model_formulas.tex`, `tables_phase4.tex`, `figures_phase4.tex`.
-
-**Canonical memoir project (external):** `C:\Users\BG\Desktop\master-thesis\dissertation_latex_v5\` — build script syncs into this tree.
-
----
-
-## 3. Hugging Face models (published weights)
-
-**Hub user:** `@pushthetempo`  
-**Manifest:** `models/reports/huggingface_model_manifest.json`  
-**Upload command:** `python models/upload_checkpoints_to_hf.py --portfolio`
-
-| Model | Hugging Face URL |
-|-------|------------------|
-| PatchTST traffic density | https://huggingface.co/pushthetempo/flowmatic-astana-patchtst-density-forecaster |
-| TranAD anomaly | https://huggingface.co/pushthetempo/flowmatic-astana-tranad-anomaly-detector |
-| TimesBlock weather | https://huggingface.co/pushthetempo/flowmatic-weather-timesblock-forecaster |
-| STGCN graph traffic | https://huggingface.co/pushthetempo/flowmatic-traffic-stgcn-forecaster |
-| SAITS imputer | https://huggingface.co/pushthetempo/flowmatic-astana-saits-imputer |
-| Transformer severity classifier | https://huggingface.co/pushthetempo/flowmatic-astana-transformer-severity-classifier |
-| DLinear energy (ETT) | https://huggingface.co/pushthetempo/flowmatic-ett-dlinear-energy-forecaster |
-| iTransformer speed | https://huggingface.co/pushthetempo/flowmatic-astana-itransformer-speed-forecaster |
-
-**Note:** Git does **not** contain checkpoint binaries (`.gitignore`). On a new machine, restore weights from HF:
-
-```bash
-pip install huggingface_hub
-python models/download_checkpoints_from_hf.py --skip-existing
-```
-
-Requires `HF_TOKEN` or `HUGGINGFACE_TOKEN` in `.env` (public repos work without token; token avoids rate limits).
+- `thesis/latex/` — Phase 4 snippet sources
+- `scripts/build-thesis-phase4.ps1` — old build path
 
 ---
 
-## 4. Key experiment numbers (held-out test, multi-seed)
+## 4. Key experiment numbers
 
-From `models/paper/tables/multi_seed_aggregate.md` (n=3 seeds):
+From `models/paper/tables/multi_seed_aggregate.md` (n=3 seeds, held-out test):
 
 | Model | Metric | Mean ± 95% CI |
 |-------|--------|----------------|
@@ -154,7 +142,9 @@ From `models/paper/tables/multi_seed_aggregate.md` (n=3 seeds):
 | DLinear (ETT) | RMSE | 0.153 ± 0.011 |
 | iTransformer (speed) | RMSE | 0.999 ± 0.001 |
 
-Classical thesis baseline (original Ch.5, not re-run on platform): XGBoost **0.9683 accuracy** on prepared Astana tabular features.
+**Classical baseline (prior study, not re-run on laptop):** XGBoost **0.9683 accuracy** on prepared Astana tabular features. Abstract also mentions 96.83%; Table 4.2 lists RF/XGBoost at 96.62% — **needs harmonization** (see review).
+
+**Platform batch experiment (Table 4.1):** 30,000 records, 406 ms processing, quality 100/100.
 
 ---
 
@@ -162,60 +152,69 @@ Classical thesis baseline (original Ch.5, not re-run on platform): XGBoost **0.9
 
 ```
 flowmatic/
-├── HANDOFF.md                    ← this file
-├── ADAPTIVE_PLATFORM_ROADMAP.md  ← phased plan
-├── README.md                     ← setup + quickstart
-├── docker-compose.yml            ← default stack (models mount on backend)
-├── .env.example
-├── backend/                      ← NestJS API, Prisma, smart-city module
-├── frontend/                     ← Vue SPA
-├── services/
-│   ├── sensor-simulator/         ← Astana traffic + weather HTTP/WS
-│   ├── model-inference/          ← TorchScript / HF inference
-│   └── federated-coordinator-demo/
-├── models/
-│   ├── checkpoints/              ← GITIGNORED — train or restore from HF
-│   ├── datasets/                 ← GITIGNORED — run prepare_benchmark_datasets.py
-│   ├── configs/phase3_multiseed_suite.yaml
-│   ├── paper/                    ← experiment scripts + tables + figures
-│   ├── reports/
-│   │   ├── production_portfolio.json
-│   │   ├── huggingface_model_manifest.json
-│   │   └── phase2_prep_summary.json
-│   ├── upload_checkpoints_to_hf.py
-│   └── paper/run_phase{2,3}_*.py
+├── HANDOFF.md                         ← this file
+├── paper-review-q1.md                 ← Q1/defense review (2026-05-27)
+├── memoirthesis-flowmatic.pdf         ← compiled thesis (laptop build)
+├── scripts/
+│   ├── build-thesis-laptop.ps1        ← Docker TeX build (USE THIS)
+│   ├── render-thesis-figures.ps1      ← Mermaid → PNG
+│   ├── setup-astana-geospatial-demo.ps1
+│   ├── generate-astana-dataset.js
+│   └── validate-thesis-references.ps1
 ├── thesis/
+│   ├── AITU Thesis Template/          ← PRIMARY LaTeX (memoirthesis.tex)
+│   ├── figures/
+│   │   ├── architecture/*.png
+│   │   ├── results/*.png
+│   │   └── screenshots/*.png          ← UI captures for Ch. 4
 │   ├── GAP_ANALYSIS.md
-│   ├── THESIS_SUPPLEMENT_V2.md
-│   └── latex/                    ← Phase 4 rewrite sources (draft quality)
-├── data/                         ← GITIGNORED — astana_synthetic_data.csv locally
-└── scripts/build-thesis-phase4.ps1
+│   └── latex/                         ← legacy Phase 4 snippets
+├── backend/                           ← NestJS + smart-city module
+├── frontend/                          ← Vue SPA
+├── models/                            ← ML scripts, configs, reports
+├── services/                          ← sensor-simulator, model-inference
+└── data/                              ← GITIGNORED — generate locally
 ```
 
 ---
 
 ## 6. Commands cheat sheet
 
-### Platform
+### Platform (PC or laptop)
 
 ```bash
 cp .env.example .env
+cp backend/.env.example backend/.env   # if missing
 docker compose up -d --build
 # UI: http://localhost  |  API: http://localhost:8080/api/v1
 ```
 
+**Generate Astana CSV (if `data/` empty):**
+
+```bash
+node scripts/generate-astana-dataset.js
+```
+
+**Astana Geospatial Demo pipeline:**
+
+```powershell
+.\scripts\setup-astana-geospatial-demo.ps1
+```
+
+### Thesis build
+
+```powershell
+.\scripts\build-thesis-laptop.ps1
+```
+
+Requires Docker (uses `texlive/texlive:latest`). Syncs figures from `thesis/figures/` into template tree.
+
 ### ML / experiments
 
 ```bash
-# Python 3.10+; PyTorch with CUDA optional
-pip install torch pandas pyyaml huggingface_hub  # see models/README.md for full deps
-
-python models/download_checkpoints_from_hf.py --skip-existing  # new device
-python models/paper/run_phase2_prep.py      # datasets + portfolio
-python models/paper/run_phase3_core.py      # aggregate + streaming + HF upload
-python models/paper_experiments.py          # full retrain (hours) — optional
-
-python models/upload_checkpoints_to_hf.py --portfolio
+python models/download_checkpoints_from_hf.py --skip-existing
+python models/paper/run_phase2_prep.py
+python models/paper/run_phase3_core.py
 ```
 
 ### Backend tests
@@ -226,72 +225,90 @@ cd backend && bun run test -- src/modules/smart-city/__tests__/pipeline-model-ro
 
 ---
 
-## 7. Environment secrets (never commit)
+## 7. Hugging Face models
+
+**Hub user:** `@pushthetempo`  
+**Manifest:** `models/reports/huggingface_model_manifest.json`
+
+Checkpoints are **not in Git** — restore with `python models/download_checkpoints_from_hf.py --skip-existing` and `HF_TOKEN` in `.env`.
+
+---
+
+## 8. Recommended next work (priority order)
+
+From `paper-review-q1.md` — do these on **desktop PC** before antiplagiarism submission:
+
+1. **Critical:** Add RQ4 routing evaluation table OR reframe RQ4 as implementation-only in conclusions.
+2. **Critical:** Harmonize 96.83% vs 96.62% classifier numbers in abstract / Table 4.2 / §5.3.
+3. **Critical:** Add classical baseline reproduction script OR explicit "prior study" disclaimer with frozen artifact.
+4. **High:** Split Table 4.2 by task; remove suspicious 1.88 GB/s throughput row or measure properly.
+5. **High:** Remove stale "screenshots will be added" from `conclusion.tex` §6.4.
+6. **Medium:** Discuss iTransformer RMSE ≈ 1.0 failure in Results/Discussion.
+
+### Platform (optional)
+
+- Re-run demo screenshots after UI changes
+- Router ablation experiment for thesis Table 5.X
+
+---
+
+## 9. Environment secrets (never commit)
 
 | Variable | Purpose |
 |----------|---------|
-| `HF_TOKEN` / `HUGGINGFACE_TOKEN` | Dataset download, HF export, model catalogue |
+| `HF_TOKEN` / `HUGGINGFACE_TOKEN` | HF download/upload, model catalogue |
 | `OPENAI_API_KEY` | Upload summaries, insights copilot, optional Auto policy LLM |
 | `JWT_SECRET` | Auth |
 | Postgres/MinIO/RabbitMQ passwords | Infra |
 
-Set in root `.env` and/or `backend/.env` (Docker reads both for backend service).
+---
+
+## 10. Git / what is committed vs ignored
+
+**Committed in this push:**
+
+- Fresh `HANDOFF.md`, `paper-review-q1.md`
+- Full `thesis/AITU Thesis Template/` LaTeX sources + `thesisbiblio.bib`
+- `thesis/figures/` (architecture, results, screenshots)
+- `memoirthesis-flowmatic.pdf` (compiled thesis)
+- Build scripts (`build-thesis-laptop.ps1`, etc.)
+- LaTeX build aux files may be present — safe to delete locally; rebuild regenerates
+
+**Not committed (`.gitignore`):**
+
+- `data/`, `models/checkpoints/`, `models/datasets/`
+- `.env`, `backend/.env`
+- Old rejected drafts: `memoirthesis-v5-phase4.pdf`, `memoirthesis-v5-condensed.pdf`
 
 ---
 
-## 8. Known gaps & recommended next work
+## 11. Continue on desktop PC
 
-### Platform (low priority — OK)
+```bash
+git clone https://github.com/maulerrr/flowmatic.git
+cd flowmatic
+git pull   # if already cloned
+```
 
-- Human QA checklist in roadmap §Phase 1 verification still unchecked
-- Capture fresh workbench screenshots into `thesis/figures/screenshots/` and commit
+Then:
 
-### Experiments (medium)
+1. Read this file + `paper-review-q1.md`
+2. Open `memoirthesis-flowmatic.pdf` — verify formatting
+3. `cp .env.example .env` and configure secrets
+4. `docker compose up -d --build`
+5. Pick a critical fix from §8 and continue thesis polish
 
-1. Run Astana→PeMS transfer eval using ingested `pems_metr_la`
-2. Router ablation: auto vs oracle vs wrong manual
-3. Regenerate `paper_experiments.py` tables if retraining
-
-### Thesis (high — blocked on quality)
-
-1. **Reject** `memoirthesis-v5-phase4.pdf` as baseline
-2. Restore/commit UI screenshots + architecture PNGs (from `.mmd` via mermaid-cli)
-3. Rewrite Ch.5 as single coherent experiment chapter (classical study → platform validation → neural portfolio)
-4. Fix Introduction Unicode; align abstract with one classifier story (RF 96.62% vs XGBoost vs Transformer)
-5. External validation subsection with honest limitations
-6. Only then rebuild PDF
+**Old desktop thesis path** (`dissertation_latex_v5`) is superseded by `thesis/AITU Thesis Template/` unless user explicitly merges content back.
 
 ---
 
-## 9. Docker / compose notes
+## 12. Contact context for next agent
 
-- **Default `up`:** postgres, minio, rabbitmq, sensor-simulator, model-inference, backend, frontend. **No** export-test DBs.
-- **Export-test profile:** `docker compose --profile export-test up -d postgres-export-test mongo-export-test`
-- **GPU inference:** `docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d model-inference`
-- Backend **`depends_on` model-inference** — inference must be healthy before API starts
-- **`./models:/app/models:ro`** on backend — required for Auto routing registry
-
----
-
-## 10. Git commit at this handoff
-
-This snapshot commits:
-
-- Handoff + README refresh
-- Phase 2–3 scripts, configs, reports, experiment tables
-- Thesis LaTeX draft sources (not the PDF)
-- Platform registry changes for production portfolio
-- Paper figures under `models/paper/figures/` (for reproducibility)
-
-**Not committed:** `data/`, `models/checkpoints/`, `models/datasets/`, `.env*`, local thesis PDF.
-
----
-
-## 11. Contact context for next agent
-
-- User language: English; thesis may be Russian/English mix in external memoir project
-- User rejected Phase 4 PDF quality — prioritize platform + experiments over thesis patches until a clear rewrite plan exists
+- User goal: submit thesis to **antiplagiarism** soon, then defense
+- Author: **Ramazan Bakytuly**; supervisor: **Aivar Sakhipov Aituarovich**; program **7M06105**; School of Software Engineering, Astana IT University
+- Thesis title: *Development of an Intelligent Assistant for Data Preparation Automation in Urban Transportation Management Systems*
+- Work spans **classical preparation study** + **Flowmatic platform** + **neural portfolio** — dual narrative; see Table 4.4 and Q1 review
 - Models on HF to avoid GitHub 100MB limit
-- Prior conversation arc: Phase 1 Auto routing → Phase 2 portfolio/datasets → Phase 3 core experiments + HF push → Phase 4 thesis attempt (failed quality bar)
+- Laptop session completed PDF build + review; PC session should focus on **critical revisions** in §8, not re-scaffolding
 
-**Start here:** read this file → run `docker compose up` → verify Auto mode with demo login → read `production_portfolio.json` → decide thesis vs experiment next steps with user.
+**Start here:** `HANDOFF.md` → `paper-review-q1.md` → `memoirthesis-flowmatic.pdf` → user picks next fix.

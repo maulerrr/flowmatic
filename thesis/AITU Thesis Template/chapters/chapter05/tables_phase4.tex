@@ -1,0 +1,87 @@
+% Phase 4 experiment tables — \input from Chapter 5
+
+\begin{table}[H]
+  \centering
+  \caption{Experimental datasets used in Flowmatic Phase~2--3 evaluation (May 2026).}
+  \label{tab:phase4_datasets}
+  \small
+  \begin{tabular}{@{}llrrl@{}}
+    \toprule
+    \textbf{Key} & \textbf{Role} & \textbf{Rows used} & \textbf{Features} & \textbf{Source} \\
+    \midrule
+    astana & Primary smart-city case & 18\,000--30\,000 & 9 & Semi-synthetic Astana traffic \\
+    hf\_weather & Weather forecast & 18\,000 & 22 & Hugging Face weather bundle \\
+    hf\_ett & Energy / utility proxy & 16\,000 & 8 & ETTh1 (HF) \\
+    hf\_traffic & Graph traffic & 8\,000 & 863 & HF traffic sensors \\
+    pems\_metr\_la & External traffic graph & 12\,000 & 207 & METR-LA (HF parquet) \\
+    pems\_bay & External traffic graph & 12\,000 & 325 & PEMS-BAY (HF parquet) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Temporal data split protocol (identical across neural runs).}
+  \label{tab:split_protocol}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Split} & \textbf{Share} & \textbf{Use} \\
+    \midrule
+    Train & 70\% (earliest) & Parameter estimation \\
+    Validation & 15\% & Early stopping / model selection \\
+    Test & 15\% (latest) & \textbf{Reported metrics only} --- never used in training \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Production portfolio: multi-seed test metrics (seeds 42, 7, 2026; mean $\pm$ 95\% CI).}
+  \label{tab:multiseed_aggregate}
+  \small
+  \begin{tabular}{@{}lllcc@{}}
+    \toprule
+    \textbf{Task slot} & \textbf{Model} & \textbf{Metric} & \textbf{Mean} & \textbf{95\% CI} \\
+    \midrule
+    Traffic forecast & PatchTST & RMSE & 0.561 & $\pm 0.004$ \\
+    Traffic anomaly & TranAD & RMSE & 0.035 & $\pm 0.004$ \\
+    Weather forecast & TimesBlock & RMSE & 0.034 & $\pm 0.002$ \\
+    Graph traffic & STGCN & RMSE & 0.479 & $\pm 0.002$ \\
+    Imputation & SAITS & Masked MSE & 0.640 & $\pm 0.009$ \\
+    Severity class. & Transformer & Macro-F1 & 0.911 & $\pm 0.017$ \\
+    Energy forecast & DLinear & RMSE & 0.153 & $\pm 0.011$ \\
+    Speed forecast & iTransformer & RMSE & 0.999 & $\pm 0.001$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Sequence-length ablation (Astana PatchTST, ETT DLinear; test RMSE).}
+  \label{tab:seq_ablation}
+  \begin{tabular}{@{}llcc@{}}
+    \toprule
+    \textbf{Model} & \textbf{Dataset} & $L=24$ & $L=96$ \\
+    \midrule
+    PatchTST & Astana density & 0.559 & 0.807 \\
+    DLinear & ETT energy (OT) & 0.241 & 0.147 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Cross-dataset transfer (train on source, evaluate on target test split; RMSE).}
+  \label{tab:cross_transfer}
+  \small
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    \textbf{Architecture} & \textbf{Train} & \textbf{Test} & \textbf{RMSE} \\
+    \midrule
+    DLinear & hf\_ett & hf\_weather & 0.165 \\
+    DLinear & hf\_weather & hf\_ett & 0.634 \\
+    PatchTST & hf\_ett & hf\_weather & 0.291 \\
+    PatchTST & hf\_weather & hf\_ett & 0.492 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

@@ -1,0 +1,57 @@
+%
+% Chapter 1 — Introduction
+%
+\chapter{Introduction}
+\label{chap:intro}
+\setlength{\parskip}{1em}
+
+\section{Background and Motivation}
+
+Urban transportation management systems (UTMS) depend on timely, reliable sensor and event data. In practice, agencies receive CSV exports, API feeds, and streaming telemetry with missing values, inconsistent schemas, duplicate records, and domain-specific anomalies. Manual preparation is slow, difficult to audit, and hard to reproduce when models or analysts change.
+
+Research on data quality~\cite{wang1996beyond,pipino2002data}, automated preprocessing~\cite{liu2022automated,feurer2019auto}, and intelligent transportation systems~\cite{its_bigdata2018,zanella2014iot} shows that preparation should be treated as a first-class engineering problem rather than an ad hoc notebook step. This thesis addresses that gap for urban traffic analytics by designing, implementing, and evaluating an intelligent preparation assistant that later evolved into the deployable \textbf{Flowmatic} platform.
+
+\section{Problem Statement}
+
+The central problem is how to automate data preparation for urban traffic data while preserving auditability and supporting both batch analytics and operational smart-city pipelines. Existing work often studies quality assessment, imputation, feature engineering, or anomaly detection in isolation. Operational teams still lack a unified workflow that records quality diagnostics, applies domain-aware transformations, and connects prepared data to downstream models in a reproducible way.
+
+\section{Research Objectives}
+\label{sec:objectives}
+
+The thesis pursues five objectives aligned with the completed work:
+\begin{enumerate}
+  \item To design and evaluate an automated data preparation workflow for urban traffic data, including multi-dimensional quality assessment, feature generation, ensemble anomaly screening, and tabular event classification.
+  \item To implement that workflow as a containerised web platform with authenticated upload, asynchronous processing, durable storage, and export to common destinations.
+  \item To extend the platform with a smart-city pipeline that ingests simulated or external sensor streams---including an Astana geospatial traffic simulator---routes events through an adaptive core unit, and persists outputs in a medallion-style data lake.
+  \item To train and evaluate a portfolio of neural models for forecasting, anomaly reconstruction, imputation, and severity classification on held-out temporal test splits with multi-seed replication.
+  \item To validate the deployed system through reproducible API experiments and a live Astana smart-city demonstration suitable for thesis defence.
+\end{enumerate}
+
+\section{Research Questions}
+\label{sec:research_questions}
+
+\begin{description}
+  \item[RQ1:] Does domain-aware automated preparation improve tabular traffic event classification compared with raw data and generic feature automation?
+  \item[RQ2:] Can the preparation workflow be operationalised as a reproducible service with measured end-to-end latency and quality reporting?
+  \item[RQ3:] How do neural time-series models perform across forecasting, reconstruction, imputation, and classification tasks under a common temporal hold-out protocol?
+  \item[RQ4:] Does a registry-based Manual/Auto routing policy allow modality-appropriate model selection in a smart-city pipeline?
+\end{description}
+
+\section{Contributions}
+
+The main contributions are:
+\begin{itemize}
+  \item a six-dimensional Data Quality Index and quality-guided preparation pipeline evaluated on Astana and public traffic benchmarks;
+  \item the Flowmatic platform implementing batch preparation and smart-city pipelines in a Docker Compose stack;
+  \item an adaptive core unit with a documented model registry and Manual/Auto routing rules;
+  \item an eight-model neural portfolio with multi-seed held-out test metrics and published Hugging Face checkpoints;
+  \item reproducible platform experiments, including batch upload timing and a live Astana geospatial simulator demo.
+\end{itemize}
+
+\section{Scope and Limitations}
+
+The classical experiments use semi-synthetic Astana data and public benchmarks (METR-LA, PEMS-BAY, PeMSD4). The platform demo uses simulated sensor feeds rather than a production agency deployment. Router oracle ablations and Astana-trained external hold-out transfer are reported as future work.
+
+\section{Thesis Structure}
+
+Chapter~\ref{chap:literature} reviews related work. Chapter~\ref{chap:methodology} describes the preparation methodology and neural evaluation protocol. Chapter~\ref{chap:implementation} presents the Flowmatic implementation. Chapter~\ref{chap:results} reports classical, platform, and neural results. Chapter~\ref{chap:conclusion} summarises findings and future directions. Appendix~\ref{app:repro} lists reproducibility commands and artifacts.
