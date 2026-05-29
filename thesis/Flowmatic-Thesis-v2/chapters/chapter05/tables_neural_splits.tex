@@ -1,0 +1,80 @@
+\begin{table}[H]
+  \centering
+  \caption{Temporal split protocol (all neural runs).}
+  \label{tab:split_protocol}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Split} & \textbf{Share} & \textbf{Use} \\
+    \midrule
+    Train & 70\% earliest & Fitting \\
+    Validation & 15\% & Model selection \\
+    Test & 15\% latest & \textbf{Reported metrics only} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Forecasting and reconstruction: held-out test RMSE (mean $\pm$ 95\% CI, $n{=}3$ seeds). Primary production portfolio only.}
+  \label{tab:multiseed-forecast}
+  \small
+  \begin{tabular}{@{}llcc@{}}
+    \toprule
+    \textbf{Slot} & \textbf{Model} & \textbf{Mean} & \textbf{CI} \\
+    \midrule
+    Astana density & PatchTST & 0.561 & $\pm 0.004$ \\
+    Astana anomaly & TranAD & 0.035 & $\pm 0.004$ \\
+    HF weather & TimesBlock & 0.034 & $\pm 0.002$ \\
+    HF traffic graph & STGCN & 0.479 & $\pm 0.002$ \\
+    HF ETT energy & DLinear & 0.153 & $\pm 0.011$ \\
+    \bottomrule
+  \end{tabular}
+  \thesistablenote{iTransformer on Astana speed reached RMSE $0.999 \pm 0.001$ (mean-level prediction) and is omitted from the primary portfolio.}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Imputation and classification: held-out test metrics (mean $\pm$ 95\% CI).}
+  \label{tab:multiseed-other}
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Task} & \textbf{Model} & \textbf{Test metric} \\
+    \midrule
+    Imputation & SAITS & Masked MSE $0.640 \pm 0.009$ \\
+    Severity & Transformer & Macro-F1 $0.911 \pm 0.017$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Sequence-length ablation (test RMSE).}
+  \label{tab:seq_ablation}
+  \begin{tabular}{@{}llcc@{}}
+    \toprule
+    \textbf{Model} & \textbf{Dataset} & $L{=}24$ & $L{=}96$ \\
+    \midrule
+    PatchTST & Astana & 0.559 & 0.807 \\
+    DLinear & HF ETT & 0.241 & 0.147 \\
+    \bottomrule
+  \end{tabular}
+  \thesistablenote{Default production window length is $L{=}48$; ablation covers $L \in \{24,96\}$ for two representative pairs only.}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Cross-dataset transfer RMSE (zero-shot).}
+  \label{tab:cross_transfer}
+  \small
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    \textbf{Model} & \textbf{Train} & \textbf{Test} & RMSE \\
+    \midrule
+    DLinear & hf\_ett & hf\_weather & 0.165 \\
+    DLinear & hf\_weather & hf\_ett & 0.634 \\
+    PatchTST & hf\_ett & hf\_weather & 0.291 \\
+    PatchTST & hf\_weather & hf\_ett & 0.492 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

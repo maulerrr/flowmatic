@@ -1,0 +1,128 @@
+%
+% Body-only build for plagiarism / similarity checks:
+% Chapters 1--6 + appendices; no title page, front matter, or bibliography.
+%
+\documentclass[a4paper,12pt,oneside,openbib,oldfontcommands]{memoir}
+\RequirePackage[l2tabu]{nag}
+
+\usepackage{datetime}
+\usepackage{ifpdf}
+\ifpdf
+\pdfinfo{
+   /Author (Ramazan Seiitbek)
+   /Title (Flowmatic Thesis — Body Only (Chapters 1--6, Appendices))
+   /Keywords (Data Preparation; Intelligent Transportation Systems; Flowmatic)
+   /CreationDate (D:\pdfdate)
+}
+\fi
+
+\settrimmedsize{297mm}{210mm}{*}
+\setlength{\trimtop}{0pt}
+\setlength{\trimedge}{\stockwidth}
+\addtolength{\trimedge}{-\paperwidth}
+\settypeblocksize{634pt}{448.13pt}{*}
+\setulmargins{4cm}{*}{*}
+\setlrmargins{*}{*}{1.5}
+\setmarginnotes{17pt}{51pt}{\onelineskip}
+\setheadfoot{\onelineskip}{2\onelineskip}
+\setheaderspaces{*}{2\onelineskip}{*}
+\checkandfixthelayout
+
+\frenchspacing
+\OnehalfSpacing
+\setsecnumdepth{subsection}
+\maxsecnumdepth{subsubsection}
+
+\makepagestyle{myvf}
+\makeoddfoot{myvf}{}{\thepage}{}
+\makeevenfoot{myvf}{}{\thepage}{}
+\makeheadrule{myvf}{\textwidth}{\normalrulethickness}
+\makeevenhead{myvf}{\small\textsc{\leftmark}}{}{}
+\makeoddhead{myvf}{}{}{\small\textsc{\rightmark}}
+\pagestyle{myvf}
+
+\newcommand{\clearemptydoublepage}{\newpage{\thispagestyle{empty}\cleardoublepage}}
+\makeindex
+\usepackage{import}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{stmaryrd}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{newlfont}
+\usepackage{layouts}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{fancyvrb}
+\lstset{
+  basicstyle=\small\ttfamily,
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  literate={_}{\_}{1}
+}
+\newcommand{\thesisfigure}[2][]{%
+  \centering
+  \adjustbox{max width=0.92\linewidth,max height=0.72\textheight,keepaspectratio,#1}{%
+    \includegraphics{#2}%
+  }%
+}
+\usepackage[square,numbers,sort&compress]{natbib}
+\usepackage{url}
+\usepackage[english]{babel}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue]{hyperref}
+\usepackage{memhfixc}
+\usepackage{enumerate}
+\usepackage{footnote}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{threeparttable}
+\usepackage{multirow}
+\newcommand{\thesistablenote}[1]{%
+  \par\vspace{0.45em}%
+  \noindent\begin{minipage}{\linewidth}%
+  \footnotesize\raggedright #1%
+  \end{minipage}%
+}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\widowpenalty=1000
+\clubpenalty=1000
+
+\newcommand{\keywords}[1]{\par\noindent{\small{\bf Keywords:} #1}}
+\usepackage{subcaption}
+
+\theoremstyle{plain}
+\newtheorem{theo}{Theorem}[chapter]
+\newtheorem{prop}{Proposition}[chapter]
+\theoremstyle{definition}
+\newtheorem{dfn}{Definition}[chapter]
+\theoremstyle{plain}
+\newtheorem{lema}{Lemma}[chapter]
+\newtheorem{cor}{Corollary}[chapter]
+\newtheorem{resu}{Result}[chapter]
+
+\begin{document}
+\mainmatter
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+\import{chapters/chapter01/}{introduction.tex}
+\import{chapters/chapter02/}{literature.tex}
+\import{chapters/chapter03/}{methodology.tex}
+\import{chapters/chapter04/}{implementation.tex}
+\import{chapters/chapter05/}{results.tex}
+\import{chapters/chapter06/}{conclusion.tex}
+
+\appendix
+\import{chapters/appendices/}{reproducibility.tex}
+\import{chapters/appendices/}{astana_dataset.tex}
+
+% Bibliography intentionally omitted for similarity-check submission.
+\end{document}

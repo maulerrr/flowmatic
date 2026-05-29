@@ -1,0 +1,48 @@
+%% Flowmatic batch upload pipeline. Render: scripts/render-thesis-figures.ps1
+flowchart TB
+  subgraph client["Client tier"]
+    FE["Vue SPA<br/>Browser UI"]
+  end
+
+  subgraph api["API tier — NestJS"]
+    AUTH["Auth and sessions"]
+    ING["Ingestion<br/>CSV / JSON upload"]
+    PIPE["Pipelines and analytics"]
+    EXP["Export orchestration"]
+    INT["Integrations<br/>Hugging Face token"]
+  end
+
+  subgraph async["Async workers"]
+    Q["Queue<br/>RabbitMQ / PgBoss"]
+    WORK["Worker pipeline<br/>parse, quality, clean"]
+    LLM["LLM summary<br/>optional"]
+  end
+
+  subgraph data["Persistence"]
+    PG[("PostgreSQL<br/>runs, orgs, metadata")]
+    S3[("MinIO / S3<br/>raw and cleaned files")]
+  end
+
+  FE --> AUTH
+  FE --> ING
+  FE --> PIPE
+  FE --> EXP
+  ING --> S3
+  ING --> PG
+  ING --> Q
+  Q --> WORK
+  WORK --> S3
+  WORK --> PG
+  WORK --> LLM
+  EXP --> S3
+  EXP --> PG
+  INT --> EXP
+
+  classDef clientStyle fill:#EEF2FF,stroke:#4338CA,stroke-width:2px
+  classDef apiStyle fill:#E8F4FC,stroke:#2563EB,stroke-width:2px
+  classDef asyncStyle fill:#FFF7ED,stroke:#EA580C,stroke-width:2px
+  classDef dataStyle fill:#F0FDF4,stroke:#16A34A,stroke-width:2px
+  class FE clientStyle
+  class AUTH,ING,PIPE,EXP,INT apiStyle
+  class Q,WORK,LLM asyncStyle
+  class PG,S3 dataStyle

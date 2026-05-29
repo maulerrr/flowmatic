@@ -1,0 +1,253 @@
+EVENT-DRIVEN MICROSERVICES FOR INCIDENT DETECTION AND RESPONSE IN INTELLIGENT TRAFFIC SYSTEM 
+As urban traffic volumes increase, centralized Intelligent Traffic Systems (ITS) encounter limitations in maintaining real-time incident detection under high data throughput. This study presents a decentralized, event-driven microservices architecture built on Apache Kafka to support a machine learning–based anomaly detection model. A dataset of 30,000 events, synthesized from historical ITS data under defined boundary conditions, was replayed at rates from 5,000 to 30,000 events per second against both a monolithic Flask API and the proposed microservices pipeline. The microservices architecture sustained median inference latencies below 5 ms and throughputs exceeding 1,200 events/s, whereas the monolithic system degraded to latencies above 1.7 s and a maximum throughput of approximately 260 events/s. Detection reliability, measured by the F1-score, remained stable around 0.29 for microservices but declined to 0.25 under peak load in the monolith. The results indicate that the event-driven design improves scalability, fault isolation, and integration with heterogeneous data sources, making it a promising approach for next-generation ITS deployments.
+Keywords: event-driven architecture; microservices; intelligent traffic systems; anomaly detection; Apache Kafka
+Highlights
+Event-driven microservices maintained sub-5 ms inference latency under high load
+Throughput exceeded 1,200 events/s, outperforming the monolithic design
+Detection reliability (F1≈0.291) remained stable at peak loads
+Architecture simplifies heterogeneous data integration and fault isolation
+Introduction
+The rapid growth of urban transportation networks has intensified the demand for scalable, real-time incident detection and response systems. Traditional centralized Intelligent Traffic Systems (ITS) often encounter bottlenecks when processing high-volume event streams, resulting in delayed responses and reduced operational efficiency. In particular, monolithic architectures limit throughput and introduce single points of failure, which can severely impact critical safety-related functions in large-scale deployments.
+Recent advances in distributed computing and event-driven architectures have enabled the development of modular microservices that operate independently yet collaboratively. These architectures are particularly suited for ITS environments, where data sources such as roadside sensors, vehicle telemetry, and video feeds produce heterogeneous, high-frequency event streams. Among the enabling technologies, Apache Kafka has emerged as a reliable, high-throughput distributed messaging platform for real-time analytics pipelines [1,2].
+Prior research has demonstrated the viability of microservices in traffic monitoring and incident detection, including vehicle classification and anomaly detection tasks [1–4]. However, existing solutions often lack systematic evaluation under realistic, high-load operating conditions, especially with respect to latency, throughput, and detection reliability.
+This study addresses these gaps by designing and implementing a decentralized, event-driven ITS incident detection pipeline. The proposed architecture integrates Apache Kafka for asynchronous message handling and a machine learning–based anomaly detection model deployed as independent microservices. We conduct comparative experiments against a monolithic baseline to evaluate scalability, inference latency, throughput, and classification performance under varying simulated traffic loads.
+The contributions of this work are as follows:
+Development of a fully modular, event-driven microservices architecture for ITS anomaly detection.
+Implementation of an Apache Kafka–based communication layer ensuring fault tolerance and horizontal scalability.
+Empirical evaluation against a monolithic baseline using a dataset of 30,000 synthesized traffic events replayed at variable rates (5,000–30,000 events/s).
+Analysis of performance metrics, demonstrating that the proposed approach sustains sub-5 ms median inference latency and over 1,200 events/s throughput, with stable detection reliability at peak loads.
+Materials and Methods
+System Architecture Design
+Two distinct lightweight system architectures were developed for real-time traffic incident detection and response: a monolithic system and an event-driven microservices system. Both systems ingest the same traffic data (Section 2.2) but differ in the integration of model inference and data flow.
+In the monolithic architecture, data collection, feature extraction, and model inference are co-located within a single Flask application, exposing a POST /event endpoint for real-time classification. By contrast, the microservices architecture separates ingestion, detection, and logging into independent services communicating via Apache Kafka topics (raw-events and predictions). This design isolates faults and allows horizontal scaling of individual components [2–5].
+
+Fig. 1. Comparison of the two system designs. Left: monolithic Flask-based API combining ingestion, feature extraction, and model inference. Right: event-driven microservices with an ingestion service, a Kafka bus, a detector service, and a sink/logger service.
+
+Feature Engineering and Model Training
+From each raw event, a feature vector x∈Rd is constructed. Time of day is encoded cyclically:
+tfrac=h×3600+m×60+s86400, hour_sin=sin(2πtfrac) , hour_cos(2πtfrac)
+(1)
+Vehicle category is one-hot encoded [6], severity is mapped {Low,Medium,High}→{0,1,2}, and (optionally) location clusters are computed via K-means on raw GPS coordinates ℓi=(lati,loni) [7]:
+min{μk}k=1Ki=1nmin1≤k≤Kℓi-μk2
+(2)
+Cluster assignments are computed as:
+
+ci=arg min1≤k≤Kℓi-μk2
+(3)
+The resulting cluster IDs are one-hot encoded, or distances ℓi-μk to all centroids are included as continuous features.
+An Isolation Forest [8,9] is trained on 70 % of normal events. The raw anomaly score is defined as:
+ s(x)= -(score_samples(x) − offset)
+(4)
+A grid search is performed over contamination {0.05,0.10,0.20}, n_estimators∈{100,200}, and max_samples∈{auto,0.8}. At each grid point, the decision-score percentile is swept ±10% around the nominal contamination percentile to maximize the F1​-score.
+
+Fig. 2. Feature-engineering and model-training pipeline: cyclical time features, vehicle one-hots, severity, and location clusters feed into an Isolation Forest tuned by grid-search plus percentile sweep, producing the final model, threshold, and feature list for deployment.
+
+Offline Model Evaluation
+After hyperparameter tuning and percentile sweep, the final Isolation Forest is evaluated on a held-out test set. 
+
+Fig. 3. Threshold sweep per contamination
+
+Fig. 4. Best F1 vs contamination
+
+Fig. 5. Confusion matrix
+
+Fig. 6. ROC curve
+
+Fig. 7. Precision–Recall curve
+
+Fig. 8. Anomaly score distribution 
+
+Fig. 9. Calibration curve
+
+Experimental Setup and Replay Procedure
+The 30 000-record dataset—synthesized from historical traffic logs under defined boundary conditions and real-world schema—is replayed into each architecture’s ingestion interface. The replay.py script publishes events either with original inter-arrival delays (real-time mode) or at fixed rates r∈{5000,10000,15000,30000} events/s to the Kafka topic raw-events [5,10].
+Services consume, extract features, run inference, and emit to predictions; the sink service aggregates latencies and true/predicted labels to compute precision, recall, F1​, and throughput [11].
+
+Data Generation and Simulation
+A configurable Python generator produces synthetic traffic data by combining geographic, temporal, and behavioural models (Fig. 10). This generator uses historical data, boundary conditions, and the structure of real ITS data tables.
+Parameters:
+N = 30000,    number of events;
+Rmax = 5 km,    maximum sampling radius;
+αrush = 0.3,    rush-hour bias;
+tfrac ~ αrush 𝒩(μpeak, σpeak) + (1 - αrush) 𝒰(0, 1);
+vi ~ 𝒰(vmin, vmax),    vmin = 5 m/s,    vmax = 25 m/s;
+si ∈ {0, 1, 2},    severity levels (Low, Medium, High);
+ptype=(pcar, pbus, ptruck),    Σ ptype=1;
+ρi = ρ0 + A sin(2π tfrac) + Δtype(i).
+(5)
+The generator workflow:
+Load or construct an OSMnx road graph for the target area.
+Sample GPS points from random node pairs along shortest paths.
+Generate timestamps with a 30 % rush-hour bias.
+Assign vehicle types, speeds, and severities; compute per-event traffic density.
+Compile attributes into a DataFrame and export to CSV.
+
+Fig. 10. Overview of the data generation pipeline. 
+Exploratory Data Insights
+Exploration of the dataset revealed:
+Speed distribution (Fig. 11) – bell-shaped with heavier tails from congestion/deceleration.
+Event type counts (Fig. 12) – distribution of Normal, Congestion, Accident, Sudden Deceleration events.
+Events per hour (Fig. 13) – rush-hour peaks plus uniform off-peak traffic.
+Traffic density heatmap (Fig. 14) – spatial distribution over Astana road network.Severity distribution (Fig. 15) – majority Medium/High anomalies.
+Speed vs density (Fig. 16) – inverse relationship, event-type clusters.
+
+Fig. 11. Speed distributio
+
+Fig. 12. Event type counts
+
+Fig. 13. Events per hour
+
+Fig. 14. Traffic density heatmap
+
+Fig. 15. Severity distribution
+
+Fig. 16. Speed vs density
+
+Table 1. Example of traffic data.
+Event ID
+Timestamp
+Vehicle Type
+Speed (km/h)
+Latitude
+Longitude
+Event Type
+Severity
+Traffic Density
+0234
+2024-02-01 08:30:25
+Car
+55
+51.128357
+71.430564
+Normal
+Low
+23.5
+0235
+2024-02-01 08:30:27
+Truck
+10
+51.130121
+71.432214
+Congestion
+Medium
+72.1
+0236
+2024-02-01 08:30:28
+Bus
+0
+51.131450
+71.435019
+Accident
+High
+58.3
+0237
+2024-02-01 08:30:30
+Motorcycle
+72
+51.129789
+71.431890
+Normal
+Low
+19.7
+0238
+2024-02-01 08:30:31
+Car
+45
+51.128908
+71.433005
+Sudden Deceleration
+Medium
+64.8
+0239
+2024-02-01 08:30:33
+Bus
+20
+51.130890
+71.434501
+Congestion
+Medium
+81.2
+
+Performance Metrics
+The following metrics are computed at each replay rate r:
+Inference Latency: Mean and median time between start and completion of model inference. Equations (6) and (7) 
+L = 1Ni=1Nti
+(6)
+Median(L)=median{ti}
+(7)
+Throughput: Events processed per second (8) 
+
+Throughput=NTend-Tstart [events/s]
+(8)
+Detection Reliability: Precision, recall, and F1​-score equations (9–11) 
+Precision=TPTP + FP
+(9)
+Recall=TPTP + FN
+(10)
+F1=2⋅Precision×RecallPrecision+Recall
+(11)
+End-to-End Response Time (Microservices): Time from ingestion publication to sink log (12)
+RT=Tsink-Tingest
+(12)
+All metrics are aggregated by sink.py and reported per load. Comparative plots are presented in Section 3.
+Results and Discussion
+Both architectures were tested at fixed replay rates r∈{5000,10000,15000,30000} events/s (Section 2.7).At each rate, per-event inference latency, detection reliability (precision, recall, F1-score), and achieved throughput were recorded.
+Inference Latency
+Median per-event inference times are shown in Fig. 17. The monolithic API exhibits very high latency—around 1748.2 ms at r=5000, dipping slightly to 1731.0 ms atr=10000, then rising to 2244.4 ms at r=30000. By contrast, the microservice detector maintains consistently low latency below 5 ms across all rates: 4.2 ms at r=5000 and 4.5 ms at r=30000. This decoupling and horizontal scalability yields approximately a 400× reduction in inference latency under load.
+
+Fig. 17. Median inference latency vs replay rate for monolithic and microservices architectures. 
+
+Detection Reliability
+Fig. 18 shows precision, recall, and F1​-score as load increases. The monolithic system’s recall decreases from approximately 0.54 at  r=5000 to 0.43 at  r=30000, reducing the F₁​-score from 0.258 to 0.236. The microservices pipeline sustains near-perfect recall (≈ 1.00) and stable precision (≈ 0.17), resulting in an essentially unchanged F1≈0.291 even at the highest replay rates.
+
+Fig. 18. Precision, recall, and F₁-score vs replay rate for both architectures.
+Throughput
+As shown in Fig. 19, the monolithic design saturates around 239–264 events/s regardless of load target. The microservices pipeline scales to over 1557 events/s at  r=5000 and remains above 1200 events/s even at  r=30000, demonstrating near-linear throughput until its architectural limit.
+
+Fig. 19. Achieved throughput vs replay rate for both architectures.
+
+Discussion
+The experiments demonstrate that the event-driven microservices architecture significantly outperforms the monolithic design under realistic, urban-scale traffic loads:
+Inference Latency: Microservices stay below 5 ms even at 30,000 events/s, versus 2.2 s for the monolith (~400× faster).
+Detection Reliability: The monolith’s recall and F₁-score degrade by over 15 percentage points under heavy load, while microservices hold recall at nearly 1.00 and F1  at 0.291.
+Throughput: The monolith maxes out near 260 events/s; microservices sustain over 1200 events/s, peaking at 1558 events/s at lower loads.
+These findings confirm that the proposed event-driven microservices architecture provides superior scalability, latency performance, and reliability for ML-based traffic incident detection.
+Future work should integrate predictive analytics modules [4–12] and dynamic orchestration strategies to support proactive traffic management.
+Conclusions
+Extensive replay experiments demonstrated that an event-driven microservices architecture significantly outperforms a traditional monolithic design when serving a machine-learning-based traffic-incident detector under realistic, urban-scale loads. In a 30,000-event fixed-rate replay:
+Inference latency: The microservice detector maintained median latencies below 5 ms even at 30,000 events/s, compared to up to 2.2 s in the monolith—an improvement of nearly two orders of magnitude.
+Detection reliability: Precision, recall, and F1​-score remained essentially constant (recall≈1.00, F1≈0.291) in the microservices pipeline, whereas the monolith’s recall dropped by over 15 percentage points and its F1​ by more than 9 points at peak load.
+Throughput: The microservices implementation achieved sustained processing rates above 1,200 events/s (peaking at 1,558 events/s), while the monolithic system saturated at approximately 260 events/s.
+These findings directly address reviewer concerns regarding per-request and end-to-end performance. By decoupling ingestion, inference, and logging, the microservices architecture confines fault domains, enables horizontal scaling of the detector service, and isolates inference latency from overall system load.
+Experimental platform: All experiments were conducted on a development workstation equipped with an Intel Core i5-13400F CPU, an NVIDIA GeForce RTX 4060 Ti 8 GB GPU, and 32 GB DDR4 RAM.
+Limitations and future work: The evaluation relied on a dataset synthesized from historical records under explicit boundary conditions and real-world schema, as well as a single-broker Kafka cluster. Real-world ITS deployments will introduce additional complexities such as heterogeneous data sources, network variability, and multi-tenant resource contention. Future investigations will:
+Validate the pipeline with live urban traffic feeds (e.g., CCTV, IoT sensors) to assess robustness to real-world noise.
+Incorporate dynamic service orchestration (e.g., Kubernetes Horizontal Pod Autoscaler) to adapt compute resources on demand.
+Integrate predictive analytics modules (e.g., short-term congestion forecasting) into the event-driven microservices stack to enable proactive traffic management.
+By pursuing these directions, we aim to transition from controlled, synthetic evaluations to production-grade ITS deployments that enhance urban mobility, safety, and resilience at scale.
+Acknowledgement
+This research has been funded by the Committee of Science of the Ministry of Science and Higher Education of the Republic of Kazakhstan (Grant No.BR24992852 “Intelligent models and methods of Smart City digital ecosystem for sustainable development and the citizens’ quality of life improvement”). 
+During the preparation of this work, the authors used ChatGPT 4.0 in order to improve the clarity and coherence of the text and template assistance. After using this tool/service, the authors reviewed and edited the content as needed and take(s) full responsibility for the content of this publication.
+References
+Conflict of Interest Statement
+The authors declare no conflicts of interest. The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript; or in the decision to publish the results. 
+Author Contributions
+Conceptualization, R.S. and A.S.; methodology, R.S.; software, R.S.; validation, R.S.; formal analysis, R.S.; investigation, R.S.; data curation, A.S.; writing---original draft preparation, R.S.; writing---review and editing, R.S., A.S.; visualization, R.S.; supervision, A.S.; project administration, A.S.; funding acquisition, A.S., and D.Y.; secondary support in system setup and testing, D.B. All authors have read and agreed to the published version of the manuscript.
+Availability Statement
+The original historical traffic dataset is subject to a non-disclosure agreement (NDA) and is not publicly available. However, the source code, data samples, and performance experiment scripts for the proposed system are publicly available at the FlowSense GitHub repository https://github.com/maulerrr/flowsense, providing all necessary resources to replicate and extend our work.
+Supplementary Materials
+There are no supplementary materials to include.
+References
+Kul, S.; Tashiev, I.; Sentas, A.; Sayar, A. Event-Based Microservices With Apache Kafka Streams: A Real-Time Vehicle Detection System Based on Type, Color, and Speed Attributes. IEEE Access 2021, 9, 83137–83148. https://doi.org/10.1109/ACCESS.2021.3085736
+Kreps, J.; Narkhede, N.; Rao, J. Kafka: A Distributed Messaging System for Log Processing. In Proc. ACM SIGMOD Int. Conf. on Management of Data; ACM: New York, NY, USA, 2011; pp. 1–7.
+Sheikh, M. S.; Liang, J.; Wang, W. An Improved Automatic Traffic Incident Detection Technique Using Vehicle-to-Infrastructure Communication. Journal of Advanced Transportation 2020, 2020, 9139074. https://doi.org/10.1155/2020/9139074
+Tahir, M.; et al. Real-Time Event-Driven Road Traffic Monitoring System Using CCTV Video Analytics. IEEE Access 2023, 11, 139097–139111. https://doi.org/10.1109/ACCESS.2023.3340144
+Torrent-Fontbona, F.; Dominguez, M.; Fernandez, J.; Casas, J. Towards Efficient Incident Detection in Real-Time Traffic Management. In Proceedings of the 4th Symposium on Management of Future Motorway &amp; Urban Traffic Systems (MFTS 2022); Dresden, Germany, 30 Nov–2 Dec 2022; TUDpress: Dresden, Germany, 2023; pp. 149–156. https://doi.org/10.25368/2023.109
+Poslavskaya, E.; Korolev, A. Encoding Categorical Data: Is There Yet Anything “Hotter” Than One-Hot Encoding? arXiv 2023, arXiv:2312.16930. Available online: https://arxiv.org/abs/2312.16930 (accessed 13 Aug 2025).
+MacQueen, J. Some Methods for Classification and Analysis of Multivariate Observations. In Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability; 1967; Vol. 1, pp. 281–297.
+Utkin, L.; Ageev, A.; Konstantinov, A.; Muliukha, V. Improved Anomaly Detection by Using the Attention-Based Isolation Forest. Algorithms 2023, 16(1), 19. https://doi.org/10.3390/a16010019
+Xiang, H.; Zhang, X.; Hu, H.; et al. OptIForest: Optimal Isolation Forest for Anomaly Detection. arXiv 2023, arXiv:2306.12703. Available online: https://arxiv.org/abs/2306.12703 (accessed 13 Aug 2025).
+Kreps, J.; Narkhede, N.; Rao, J. Kafka: A Distributed Messaging System for Log Processing. In Proceedings of the NetDB Workshop; Athens, Greece, 2011; pp. 1–7. Available online: https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/kafka.pdf (accessed 13 Aug 2025).
+Celebi, M. E.; Kingravi, H. A.; Vela, P. A. A Comparative Study of Efficient Initialization Methods for the K-Means Clustering Algorithm. Expert Systems with Applications 2013, 40(1), 200–210. https://doi.org/10.1016/j.eswa.2012.07.021
+Zhang, K.; Kianfar, J. An Automatic Incident Detection Method for a Vehicle-to-Infrastructure Communication Environment. Sensors 2022, 22(23), 9197. https://doi.org/10.3390/s22239197
+Celebi, M. E.; Kingravi, H. A.; Vela, P. A. A Comparative Study of Efficient Initialization Methods for the K-Means Clustering Algorithm. Expert Systems with Applications 2013, 40(1), 200–210. https://doi.org/10.1016/j.eswa.2012.07.021

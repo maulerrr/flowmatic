@@ -28,6 +28,19 @@ thesis/experiments/continuous_export_test_report.json
 memoirthesis-v5-phase4.pdf
 memoirthesis-v5-condensed.pdf
 
+# Flowmatic thesis v2 LaTeX build artifacts (rebuild via scripts/build-thesis-v2.ps1)
+thesis/Flowmatic-Thesis-v2/*.aux
+thesis/Flowmatic-Thesis-v2/*.log
+thesis/Flowmatic-Thesis-v2/*.toc
+thesis/Flowmatic-Thesis-v2/*.lof
+thesis/Flowmatic-Thesis-v2/*.lot
+thesis/Flowmatic-Thesis-v2/*.out
+thesis/Flowmatic-Thesis-v2/*.idx
+thesis/Flowmatic-Thesis-v2/*.bbl
+thesis/Flowmatic-Thesis-v2/*.blg
+thesis/Flowmatic-Thesis-v2/memoirthesis.pdf
+thesis/Flowmatic-Thesis-v2/memoirthesis-body-only.pdf
+
 # AITU LaTeX build artifacts (rebuild via scripts/build-thesis-laptop.ps1)
 thesis/AITU Thesis Template/memoirthesis.aux
 thesis/AITU Thesis Template/memoirthesis.log

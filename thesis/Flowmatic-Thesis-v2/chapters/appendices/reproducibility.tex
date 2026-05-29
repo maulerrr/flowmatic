@@ -1,0 +1,26 @@
+\chapter{Reproducibility}
+\label{app:repro}
+
+\section{Repository Layout}
+
+The Flowmatic monorepo contains the web platform, inference service, dataset generators, and offline training scripts. Docker Compose starts PostgreSQL, MinIO, RabbitMQ, the backend, frontend, simulator, and inference containers for interactive replication of batch and smart-city demos.
+
+\section{Neural Evaluation}
+
+Multi-seed neural results are reproduced by executing the Phase~2 preparation script followed by the Phase~3 core suite with configuration \texttt{phase3\_multiseed\_suite.yaml}. Outputs include per-run metrics JSON, scaler statistics, and TorchScript exports. Thesis-specific baselines, corruption stress tests, routing evaluation, TranAD AUROC, preparation ablation, and iTransformer retune are reproduced by \texttt{thesis/experiments/v2/run\_thesis\_v2\_experiments.py} (calling \texttt{neural\_quick\_experiments.py}), which writes \texttt{thesis\_v2\_evidence.json} and LaTeX table fragments consumed by Chapter~\ref{chap:results}.
+
+\section{Published Artifacts}
+
+Seven primary checkpoints (plus an auxiliary iTransformer speed slot) are published on Hugging Face under the \texttt{pushthetempo} organisation with names prefixed \texttt{flowmatic-}. Each repository includes model weights, metadata, and evaluation summaries. Citations in the thesis refer to this family collectively; exact repository names appear in Table~\ref{tab:production-portfolio}.
+
+\section{Environment}
+
+Experiments were run on a development workstation with Python~3.11+, Docker for platform tests, and NVIDIA GPU acceleration when available for neural training and streaming latency benchmarks (GPU model and driver version recorded in the project README at build time). Random seeds 42, 7, and 2026 control neural replication; routing evaluation uses a fixed simulator seed (2026) for event generation.
+
+\section{Graph Adjacency for STGCN}
+
+The HF traffic bundle supplies a sensor graph used by the STGCN slot. Adjacency is taken from the bundle metadata (pairwise sensor relations provided with the Hugging Face traffic dataset preparation script \texttt{run\_phase2\_prep.py}), not estimated ad hoc in this thesis. Node count matches the feature dimensionality reported in Table~\ref{tab:phase4_datasets}.
+
+\section{Ethics and Data Handling}
+
+Astana data are a semi-synthetic derivative of an NDA-protected urban traffic corpus (Appendix~\ref{app:astana}); the public CSV contains no personal identifiers. Public Hugging Face bundles follow their respective licences. No live citizen tracking data from municipal agencies were processed in this thesis.

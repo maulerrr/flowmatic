@@ -1,0 +1,52 @@
+\begin{table}[H]
+  \centering
+  \caption{Severity classification baselines on the held-out latest 15\% temporal test partition (Table~\ref{tab:split_protocol}).}
+  \label{tab:baselines-class}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    Method & Macro-F1 \\
+    \midrule
+    
+Majority-class macro-F1 & 0.317 \\
+Logistic regression macro-F1 & 0.449 \\
+Random forest macro-F1 & 0.627 \\
+Transformer (Flowmatic) macro-F1 & 0.911 \\
+
+    \bottomrule
+  \end{tabular}
+  \thesistablenote{Labels are rule-based synthetic attributes (Appendix~\ref{app:astana}); high macro-F1 indicates recovery of the labelling rule, not verified incident severity.}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Forecasting baselines on Astana traffic density (latest 15\% temporal segment). Raw-scale rows are not comparable to z-score neural RMSE.}
+  \label{tab:baselines-forecast}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    Method & RMSE \\
+    \midrule
+    
+Naive last-value RMSE (raw density) & 33.619 \\
+Seasonal naive RMSE (raw density) & 48.823 \\
+Naive last-value RMSE (z-score, same tail) & 1.063 \\
+PatchTST test RMSE (z-score windows) & 0.5609 \\
+
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Imputation baseline versus SAITS on z-score normalised Astana windows.}
+  \label{tab:baselines-imputation}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    Method & Masked MSE \\
+    \midrule
+    
+Mean imputation (analytic, z-score) & 1.000 \\
+SAITS masked MSE (reported) & 0.640 \\
+
+    \bottomrule
+  \end{tabular}
+\end{table}

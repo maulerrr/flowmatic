@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "Consensus": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp.consensus.app/mcp"
+      ]
+    }
+  }
+}

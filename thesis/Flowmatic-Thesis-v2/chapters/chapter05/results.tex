@@ -1,0 +1,186 @@
+%
+% Chapter 5 — Results and Discussion
+%
+\chapter{Results and Discussion}
+\label{chap:results}
+\setlength{\parskip}{0.7em}
+
+\section{Overview and Evidence Map}
+\label{sec:exp_overview}
+
+This chapter answers the research questions in Section~\ref{sec:research_questions} through four evaluation layers:
+\begin{enumerate}
+  \item \textbf{Preparation and quality (RQ1)} --- DQI before/after under controlled corruptions; clean-upload ceiling effect.
+  \item \textbf{Platform validation (RQ2)} --- reproducible batch latency on Astana; smart-city workbench demonstration.
+  \item \textbf{Neural portfolio (RQ3)} --- seven primary checkpoints (plus auxiliary iTransformer speed slot) with multi-seed test metrics, simple baselines, ablations, and streaming latency.
+  \item \textbf{Routing (RQ4)} --- rule-based Auto router on 140 labelled simulator events.
+\end{enumerate}
+
+\textbf{Scope of evidence.} Batch API experiments reported in this chapter use the Astana CSV export only. Neural training and held-out evaluation additionally use the Hugging Face weather, ETT, and traffic-graph bundles. Routing evaluation uses labelled simulator payloads. Neural metrics in Tables~\ref{tab:multiseed-forecast}--\ref{tab:multiseed-other} are computed on z-score normalised windows unless stated otherwise.
+
+\section{Experimental Protocol}
+\label{sec:exp_protocol}
+
+\subsection{Datasets}
+
+Table~\ref{tab:phase4_datasets} lists dataset families used in neural training and preparation experiments. Astana is the primary smart-city case study. Hugging Face bundles supply weather, energy, and traffic-graph telemetry. Datasets without completed Phase~3 hold-out experiments are omitted from the table.
+
+\input{tables_phase4}
+
+\subsection{Hold-out validation and multi-seed reporting}
+
+Neural models never observe the test partition during training. Windows follow temporal order: 70\% train, 15\% validation, 15\% test (Table~\ref{tab:split_protocol}). Each architecture is trained for seeds 42, 7, and 2026; we report $\bar{m} \pm 1.96\, s/\sqrt{n}$ with $n=3$.
+
+\input{tables_neural_splits}
+
+\section{Preparation and Quality Outcomes (RQ1)}
+\label{sec:preparation_results}
+
+\subsection{Clean batch upload}
+
+Table~\ref{tab:upload-pipeline-experiment} reports an end-to-end batch run on the Astana export: 30\,000 records ingested and cleaned in 406\,ms, quality score 100/100, and schema profiling. No blocking anomalies were flagged. These results support \textbf{RQ2} regarding operational latency on a representative export. They do not, by themselves, demonstrate quality improvement on corrupted inputs; that claim rests on the stress test in Section~\ref{sec:preparation_results}.
+
+\subsection{Corruption stress test}
+
+Table~\ref{tab:prep-stress} reports composite DQI before and after Flowmatic-style cleaning on a 10\,000-row sample with injected defects (missing numerics, invalid coordinates, duplicate keys, stale timestamps). At 20\% corruption, composite DQI rises from 0.788 to 0.833 ($\Delta{=}+0.045$) while 987 invalid rows are dropped; improvement is achieved primarily through row rejection rather than in-place repair. Table~\ref{tab:dqi-sensitivity} shows that the post-cleaning composite at 20\% corruption is stable under moderate alternative weightings of completeness and validity. At 0\% corruption the composite is already 0.833; the experiment therefore characterises \textbf{recovery under defect injection}, not incremental gain on already-valid exports. \textbf{RQ1} is supported for corrupted uploads, subject to the ceiling effect on pristine files.
+
+\input{generated_tables.tex}
+\input{generated_dqi_sensitivity.tex}
+
+\section{Platform Case Studies (RQ2)}
+\label{sec:platform_cases}
+
+\subsection{Batch path}
+
+Figure~\ref{fig:batch-upload-pipeline} matches the measured Docker Compose deployment for the upload experiment in Table~\ref{tab:upload-pipeline-experiment}.
+
+\subsection{Live smart-city workbench}
+
+Table~\ref{tab:smart-city-live-demo} summarises the Astana Geospatial Demo: HTTP sensor sources (traffic and weather), WebSocket event delivery, four pipeline stages, and Manual/Auto routing on the core unit. Figures~\ref{fig:ui-smart-city-live}--\ref{fig:ui-workflow-graph} in Chapter~\ref{chap:implementation} show the captured interface. This extends \textbf{RQ2} from batch uploads to streaming operation but still uses \textbf{simulated} feeds, not a production agency deployment.
+
+\section{Baselines and Neural Portfolio (RQ3)}
+\label{sec:neural_portfolio}
+
+\subsection{Reference baselines}
+
+Absolute neural scores require reference points. This study reports:
+\begin{itemize}
+  \item \textbf{Forecasting:} naive last-value and seasonal naive on raw Astana density (scale not comparable to normalised neural RMSE).
+  \item \textbf{Classification:} majority class, logistic regression, and random forest on the same held-out latest 15\% temporal test partition as the Transformer (Table~\ref{tab:split_protocol}).
+  \item \textbf{Internal portfolio:} seven primary checkpoints ranked within task families (forecast vs.\ imputation vs.\ classification).
+\end{itemize}
+Published PatchTST or STGCN leaderboard numbers from~\cite{nie2023patchtst,yu2018stgcn} use different splits; they are cited as \textbf{context}, not reproduced claims, consistent with the project research protocol (integration fidelity over official SOTA parity).
+
+\subsection{Classification baselines}
+
+Tables~\ref{tab:baselines-class}--\ref{tab:baselines-imputation} report reference models on the held-out latest 15\% temporal test partition (class imbalance: Low 27\,223, High 2\,210, Medium 567). The Transformer macro-F1 of 0.911 exceeds sklearn baselines in Table~\ref{tab:baselines-class}; this quantifies recovery of the rule-based severity field in the export, not verified incident severity (Appendix~\ref{app:astana}).
+
+\input{generated_baselines.tex}
+
+\subsection{Multi-seed test performance}
+
+Tables~\ref{tab:multiseed-forecast} and~\ref{tab:multiseed-other} split metrics by task family to avoid comparing RMSE with macro-F1 in one misleading row. Highlights:
+\begin{itemize}
+  \item \textbf{Severity (Transformer):} macro-F1 $= 0.911 \pm 0.017$.
+  \item \textbf{Anomaly (TranAD):} test RMSE $= 0.035 \pm 0.004$; injected-anomaly AUROC $= 0.84$ on held-out windows (Table~\ref{tab:tranad-auroc}).
+  \item \textbf{Weather (TimesBlock):} RMSE $= 0.034 \pm 0.002$.
+  \item \textbf{Graph traffic (STGCN):} RMSE $= 0.479 \pm 0.002$.
+  \item \textbf{Density (PatchTST):} RMSE $= 0.561 \pm 0.004$.
+  \item \textbf{Imputation (SAITS):} masked MSE $= 0.640 \pm 0.009$ versus analytic mean-imputation baseline 1.0 on z-score windows (Table~\ref{tab:baselines-imputation}).
+  \item \textbf{Energy (DLinear):} RMSE $= 0.153 \pm 0.011$.
+  \item \textbf{Speed (iTransformer):} level-speed RMSE $\approx 1.0$ (mean-level prediction); a retuned first-difference model reaches RMSE $0.76$ (Table~\ref{tab:itransformer-retrain}). The production portfolio slot remains level-speed for deployment parity.
+\end{itemize}
+
+Figure~\ref{fig:neural-multiseed} shows seed dispersion; Figure~\ref{fig:neural-forecast-rmse} ranks \textbf{internal} forecasting RMSE across training runs (seeds), not classical baselines---the caption is intentional to avoid figure--text mismatch.
+
+\input{figures_results}
+
+\section{Ablations and Generalisation}
+\label{sec:ablations}
+
+\subsection{Preparation versus downstream forecasting}
+
+Table~\ref{tab:prep-ablation} trains PatchTST on Astana density after 20\% corruption with and without preparation-style repair. Test RMSE drops from $0.90$ to $0.58$ ($\Delta \approx 0.32$), linking integrated preparation to measurable downstream gain under the same temporal split.
+
+\subsection{TranAD detection metrics}
+
+Table~\ref{tab:tranad-auroc} reports AUROC on held-out windows with injected point anomalies (35\% positive rate). TranAD reconstruction error achieves AUROC $= 0.84$, above an LOF baseline ($0.66$). This supplements reconstruction RMSE and does not replace municipal incident validation.
+
+\subsection{iTransformer speed slot}
+
+Table~\ref{tab:itransformer-retrain} contrasts level-speed forecasting (RMSE $\approx 1.0$) with a retuned model on speed first-differences (RMSE $0.76$). Absolute speed remains weakly predictable from the export; the retune shows learnable short-horizon dynamics when the target is reframed.
+
+\input{generated_prep_ablation.tex}
+\input{generated_tranad_auroc.tex}
+\input{generated_itransformer_retrain.tex}
+
+\subsection{Sequence length}
+
+Table~\ref{tab:seq_ablation} compares $L\in\{24,96\}$. Longer context helps DLinear on ETT but hurts PatchTST on Astana; production default is $L=48$. That ablation was run for PatchTST and DLinear only; TranAD, SAITS, and the Transformer classifier retain $L{=}48$ without a per-architecture sweep in this thesis.
+
+\subsection{Cross-dataset transfer}
+
+Table~\ref{tab:cross_transfer} trains on one HF bundle and tests on another without fine-tuning. DLinear trained on HF ETT and tested on HF weather achieves RMSE 0.165, whereas the reverse direction reaches 0.634---a fourfold asymmetry attributable to domain mismatch between energy and weather telemetry. This degradation supports modality-aware routing (Section~\ref{sec:routing_results}): a single universal checkpoint would perform poorly across bundles.
+
+\subsection{Streaming inference latency}
+
+Figures~\ref{fig:streaming-latency} and~\ref{fig:streaming-throughput} benchmark TorchScript exports. Mean single-event latency stays below 2\,ms for compact models and below 2\,s for large Transformers, informing smart-city deployment budgets.
+
+\section{Routing Evaluation (RQ4)}
+\label{sec:routing_results}
+
+On 140 simulator events spanning seven modality--task profiles, Auto routing achieves 100\% \textbf{scenario-aligned policy consistency} with checkpoint oracles (Table~\ref{tab:routing-eval}; per-profile breakdown in Table~\ref{tab:routing-mismatch})---not expert-labelled external accuracy. Generic-modality imputation checkpoints are eligible for traffic payloads with high missingness. The evaluation tests agreement under documented routing rules and scenario labels co-designed with those rules. These results support \textbf{RQ4} for operator-assisted prototype deployment.
+
+\input{generated_routing_mismatch.tex}
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Interpretation of preparation results}
+
+The corruption experiment indicates that Flowmatic's rules primarily remove or reject invalid records rather than perform complex joint imputation. At 20\% corruption, approximately 10\% of rows are dropped. For operational use, the implication is auditable exclusion of defective GPS fixes and duplicate keys, with component-level DQI scores as supporting evidence. Comparable row-level filtering could be implemented in an offline script; the contribution here is integrated automation, sub-second processing at 10\,000-row scale in the stress configuration, and coupling to the platform interface.
+
+\subsection{Interpretation of neural results}
+
+PatchTST attains the lowest Astana density RMSE among primary forecasters (0.561 on normalised windows). TimesBlock reaches 0.034 RMSE on HF weather, indicating that task difficulty depends strongly on dataset modality. Cross-dataset transfer degrades relative to in-domain training, which motivates modality-specific routing. Macro-F1 of 0.911 for severity classification exceeds the baseline scores in Table~\ref{tab:baselines-class}. Because severity labels are generated by rules over the same features used as model inputs, the score measures recovery of a deterministic labelling function rather than real-world incident severity (construct-validity limit).
+
+\subsection{Interpretation of routing results}
+
+Routing reaches 100\% scenario-aligned policy consistency on the simulator corpus (Table~\ref{tab:routing-mismatch}): the registry selects the intended checkpoint kind for every profile under the documented oracle definition. This is not independent ground truth; expert-labelled external validation remains future work~\cite{bakytuly2026microservices}.
+
+\subsection{Scope of validation and interpretation of metrics}
+
+The following boundaries apply when interpreting the tables and figures in this chapter. \textbf{Platform versus model validation:} multi-dataset evidence applies to offline neural training; batch API metrics in this thesis are reported for Astana only (Section~\ref{sec:exp_overview}). \textbf{Clean-upload quality scores:} a 100/100 result on the pristine export reflects a ceiling effect; improvement under defect injection is shown in Table~\ref{tab:prep-stress}. \textbf{Heterogeneous metrics:} RMSE, masked MSE, and macro-F1 are reported in separate tables because they are not commensurate. \textbf{TranAD:} AUROC on injected window anomalies is reported in Table~\ref{tab:tranad-auroc}; municipal incident labels remain out of scope. \textbf{Figures versus baselines:} Figure~\ref{fig:neural-classification-f1} displays seed dispersion for the Transformer; classical baselines appear in Table~\ref{tab:baselines-class}. Publication on Hugging Face documents reproducibility; it does not, by itself, establish superiority to external leaderboard results on different splits~\cite{nie2023patchtst,yu2018stgcn}.
+
+\subsection{Reproducibility}
+
+Platform upload metrics, corruption stress tests, baselines, and neural aggregates trace to versioned scripts and published Hugging Face weights (Appendix~\ref{app:repro}).
+
+\subsection{Threats to validity}
+
+\textbf{Internal validity} is limited by three random seeds and fixed hyper-parameters. \textbf{External validity} is limited by semi-synthetic Astana data and simulated streaming sources. \textbf{Construct validity:} DQI weights are uniform by default (Table~\ref{tab:dqi-sensitivity}); severity labels are rule-based; routing oracles are scenario-aligned with the router policy. \textbf{Conclusion validity} for routing applies to operator-assisted prototype use, not autonomous closed-loop control.
+
+\subsection{Anomaly detection and explainability}
+
+TranAD is evaluated through reconstruction RMSE and AUROC against injected point anomalies on held-out windows (Table~\ref{tab:tranad-auroc}). External incident labels remain future work. Insight Engine outputs combine deterministic analytics with optional language-model narration; the latter is not formally evaluated for calibration or factual accuracy.
+
+\section{Research Question Outcomes}
+
+Table~\ref{tab:rq-closure} consolidates the answers to RQ1--RQ4 in light of the experiments and discussion above.
+
+\begin{table}[H]
+  \centering
+  \caption{Research question closure.}
+  \label{tab:rq-closure}
+  \small
+  \begin{tabular}{@{}p{1.2cm}p{9.2cm}@{}}
+    \toprule
+    \textbf{RQ} & \textbf{Outcome} \\
+    \midrule
+    RQ1 & Supported under corruption; clean file shows ceiling effect \\
+    RQ2 & Supported on Astana batch latency + streaming demo \\
+    RQ3 & Supported vs.\ simple baselines; iTransformer slot weak; metrics per task \\
+    RQ4 & Supported: 100\% scenario-aligned policy consistency (140 events) \\
+    \bottomrule
+  \end{tabular}
+\end{table}

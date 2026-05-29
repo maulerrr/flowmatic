@@ -1,0 +1,61 @@
+% Flowmatic thesis tables — Chapter 4 (platform)
+
+\begin{table}[H]
+  \centering
+  \caption{End-to-end batch upload experiment on \texttt{astana\_synthetic\_data.csv} via Flowmatic production API (May 2026).}
+  \label{tab:upload-pipeline-experiment}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Records ingested / cleaned & 30\,000 / 30\,000 \\
+    Source size & 2.21\,MB \\
+    Processing time & 406\,ms \\
+    Quality score (initial $\rightarrow$ final) & 100 / 100 \\
+    Schema insight & 5 numeric, 4 categorical columns \\
+    Anomalies detected & None (proceed to analytics) \\
+    Total wall-clock (auth + upload + poll) & 2.3\,s \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Production neural portfolio registered in Flowmatic and published on Hugging Face (May 2026).}
+  \label{tab:production-portfolio}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.2cm} l l >{\raggedright\arraybackslash\ttfamily}X@{}}
+    \toprule
+    \textbf{Task slot} & \textbf{Architecture} & \textbf{Dataset} & \textbf{HF repository} \\
+    \midrule
+    Traffic density forecast & PatchTST & Astana & flowmatic-astana-patchtst-density-forecaster \\
+    Speed forecast & iTransformer & Astana & flowmatic-astana-itransformer-speed-forecaster \\
+    Anomaly reconstruction & TranAD & Astana & flowmatic-astana-tranad-anomaly-detector \\
+    Weather forecast & TimesBlock & HF weather & flowmatic-weather-timesblock-forecaster \\
+    Graph traffic forecast & STGCN & HF traffic & flowmatic-traffic-stgcn-forecaster \\
+    Imputation & SAITS & Astana & flowmatic-astana-saits-imputer \\
+    Severity classification & Transformer & Astana & flowmatic-astana-transformer-severity-classifier \\
+    Energy forecast & DLinear & HF ETT & flowmatic-ett-dlinear-energy-forecaster \\
+    \bottomrule
+  \end{tabularx}
+  \thesistablenote{Models are published on Hugging Face (organisation \texttt{pushthetempo}) and loaded by the inference microservice via TorchScript or Hub download.}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Smart-city live demo pipeline (\emph{Astana Live Demo}) with simulated sensor sources.}
+  \label{tab:smart-city-live-demo}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Parameter} & \textbf{Observed value} \\
+    \midrule
+    Running sources & 2 / 2 (IoT + weather, HTTP polling) \\
+    Simulator endpoint & \texttt{sensor-simulator:8091} \\
+    WebSocket status & Connected \\
+    Recent events (UI buffer) & 25+ \\
+    Poll interval (upload experiment) & 1.9\,s \\
+    Federated coordinator & Disconnected (demo optional) \\
+    \bottomrule
+  \end{tabular}
+\end{table}

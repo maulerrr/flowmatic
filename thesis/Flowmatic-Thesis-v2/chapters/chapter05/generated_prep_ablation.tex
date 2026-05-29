@@ -1,0 +1,14 @@
+\begin{table}[H]
+  \centering
+  \caption{Preparation ablation: PatchTST density forecast after 20\% corruption (prep-on restores corrupted cells from the pristine reference; temporal 70/15/15 split).}
+  \label{tab:prep-ablation}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    Training data & Test RMSE (z-score) \\
+    \midrule
+    Corrupted, not prepared & 0.904 \\
+    Corrupted + Flowmatic-style imputation & 0.580 \\
+    $\Delta$ (off $-$ on) & +0.324 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

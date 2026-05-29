@@ -1,0 +1,18 @@
+% Dataset table — evaluated families only (no unused METR/PEMS hold-outs)
+
+\begin{table}[H]
+  \centering
+  \caption{Experimental datasets used in preparation and neural evaluation (May 2026). Neural training uses all four rows; Nest batch API validation in this thesis uses \textbf{astana} only.}
+  \label{tab:phase4_datasets}
+  \small
+  \begin{tabular}{@{}llrrl@{}}
+    \toprule
+    \textbf{Key} & \textbf{Role} & \textbf{Rows} & \textbf{Features} & \textbf{Source} \\
+    \midrule
+    astana & Primary smart-city case & 30\,000 & 9 & Semi-synthetic Astana traffic \\
+    hf\_weather & Weather forecast & 18\,000 & 22 & Hugging Face weather bundle \\
+    hf\_ett & Energy / utility proxy & 16\,000 & 8 & ETTh1 (HF) \\
+    hf\_traffic & Graph traffic & 8\,000 & 863 & HF traffic sensors \\
+    \bottomrule
+  \end{tabular}
+\end{table}

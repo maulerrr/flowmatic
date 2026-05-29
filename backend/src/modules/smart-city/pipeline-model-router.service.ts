@@ -188,7 +188,11 @@ export class PipelineModelRouterService {
 
 	private findBestForTask(models: ModelRegistryEntry[], profile: EventRoutingProfile, task: ModelTask) {
 		const compatible = models
-			.filter(model => model.modality === profile.modality)
+			.filter(
+				model =>
+					model.modality === profile.modality ||
+					(task === 'imputation' && model.modality === 'generic'),
+			)
 			.filter(model => model.sensorKinds.includes(profile.sensorKind) || model.sensorKinds.includes('generic'))
 			.filter(model => !model.requiresGeo || profile.hasGeo)
 			.filter(model => model.tasks.includes(task) || (task !== 'anomaly' && model.tasks.includes('forecast')))

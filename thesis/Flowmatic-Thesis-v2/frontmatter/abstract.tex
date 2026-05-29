@@ -1,0 +1,15 @@
+%
+% Abstract
+%
+\chapter{Abstract}
+\begin{SingleSpace}
+Urban transportation management systems (UTMS) depend on sensor and event data that are often incomplete, duplicated, or schema-inconsistent before any forecasting or anomaly workflow can run. This thesis designs, implements, and evaluates \textbf{Flowmatic}: an intelligent preparation and inference platform that automates quality assessment, routes prepared streams to modality-specific neural checkpoints, and publishes reproducible training artifacts.
+
+Flowmatic implements a six-dimensional Data Quality Index (DQI), automated cleaning, and export in a containerised web stack. On clean Astana batch uploads the pipeline reports composite quality 100/100 in 406\,ms; under controlled corruptions up to 20\%, composite DQI recovers by up to 0.045 while invalid rows are removed. A smart-city workbench connects simulated traffic and weather sources, Manual/Auto routing over a documented registry, and medallion lake export.
+
+Seven primary neural checkpoints are trained under a shared temporal hold-out protocol (70/15/15 split, three seeds). The severity classifier reaches macro-F1 $= 0.911 \pm 0.017$, exceeding sklearn baselines on the same held-out test partition; labels are rule-based synthetic attributes. TranAD achieves AUROC $= 0.84$ on injected window anomalies. A preparation ablation lowers PatchTST density RMSE from $0.90$ to $0.58$ after 20\% corruption when corrupted cells are repaired. Rule-based Auto routing over 140 simulator events achieves 100\% scenario-aligned policy consistency (not expert-labelled external accuracy) with documented oracles.
+
+Artifacts are published on Hugging Face under the \texttt{pushthetempo/flowmatic-*} family. Batch API validation uses the Astana export only; live agency deployment and external routing labels remain future work.
+
+\end{SingleSpace}
+\keywords{Data Preparation; Intelligent Transportation Systems; Smart Cities; Flowmatic; Model Routing; Time Series; Reproducibility}

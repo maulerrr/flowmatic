@@ -33,6 +33,17 @@ describe('PipelineModelRouterService', () => {
 				priority: 1,
 				source: 'manifest',
 			},
+			{
+				id: 'research:q1_astana_saits_imputer_seed42',
+				label: 'saits',
+				kind: 'saits_imputer',
+				dataset: 'astana',
+				modality: 'generic',
+				tasks: ['imputation'],
+				sensorKinds: ['traffic', 'weather', 'air', 'generic'],
+				priority: 8,
+				source: 'manifest',
+			},
 		])
 	})
 
@@ -60,6 +71,19 @@ describe('PipelineModelRouterService', () => {
 
 		expect(decision.modelId).toContain('weather')
 		expect(decision.profile.modality).toBe('weather')
+	})
+
+	it('routes sparse traffic payloads to generic imputation models', () => {
+		const decision = router.resolveModel({
+			mode: 'auto',
+			manualModelId: null,
+			sensorKind: 'traffic',
+			payload: { speedKmh: null, trafficDensity: null, latitude: 51.1, longitude: 71.4 },
+			anomalyDetection: false,
+		})
+
+		expect(decision.modelId).toContain('saits')
+		expect(decision.profile.preferredTask).toBe('imputation')
 	})
 
 	it('uses manual model id in manual mode', () => {
