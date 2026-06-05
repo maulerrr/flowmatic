@@ -3,13 +3,13 @@
 %
 \chapter{Abstract}
 \begin{SingleSpace}
-Urban transportation systems produce heterogeneous traffic and sensor data that must be cleaned, validated, and prepared before analysis. This thesis presents an intelligent assistant for automating that preparation and extends it into \textbf{Flowmatic}, a deployable platform for batch uploads and smart-city pipelines.
+Urban transportation systems produce heterogeneous traffic and sensor data that must be cleaned, validated, and prepared before analysis. This thesis presents \textbf{Flowmatic}, an intelligent preparation and inference platform for batch uploads and smart-city pipelines, evaluated on a semi-synthetic Astana case study and public Hugging Face telemetry bundles.
 
-The classical study combines multi-dimensional data quality assessment, automated feature engineering, ensemble anomaly detection, and gradient-boosted event classification. On semi-synthetic Astana traffic data, the full preparation pipeline reaches 96.83\% accuracy (F1 = 0.968) with XGBoost, clearly above raw-data and generic AutoML baselines.
+Flowmatic implements six-dimensional data quality assessment, automated cleaning, and export in a NestJS/Vue Docker stack. A measured batch experiment ingests 30\,000 Astana records in 406\,ms with quality score 100/100. A smart-city workbench connects an Astana geospatial simulator, Manual/Auto model routing over a documented registry, and medallion lake export.
 
-Flowmatic implements the same preparation logic in a NestJS/Vue stack orchestrated with Docker Compose. Batch uploads pass through quality checks and cleaning workers backed by PostgreSQL and S3-compatible storage. A smart-city workbench connects an Astana geospatial traffic simulator, Manual/Auto model routing, and medallion lake export. Eight neural models covering forecasting, anomaly reconstruction, imputation, graph traffic, and severity classification are evaluated on held-out temporal test splits with three random seeds; the severity classifier reaches macro-F1 = $0.911 \pm 0.017$. Model weights are published on Hugging Face together with reproducible training scripts.
+Eight neural checkpoints---PatchTST, iTransformer, TranAD, TimesBlock, STGCN, SAITS, a Transformer severity classifier, and DLinear---are trained under a shared temporal hold-out protocol (70/15/15 split, three seeds). The severity classifier reaches macro-F1 = $0.911 \pm 0.017$ on the test partition; TranAD reconstruction RMSE is $0.035 \pm 0.004$ on Astana windows. Weights and reproduction scripts are published on Hugging Face (\texttt{@pushthetempo/flowmatic-*}).
 
-The dissertation links classical preparation research with a working multimodal platform, providing auditable quality metrics, modality-aware inference, and open experimental artifacts.
+The dissertation demonstrates that preparation, multimodal inference, and operational deployment can be delivered as one auditable platform with reproducible artifacts.
 
 \end{SingleSpace}
 \keywords{Data Preparation, Intelligent Transportation Systems, Smart Cities, Model Routing, Time Series, Anomaly Detection, Flowmatic}

@@ -1,0 +1,34 @@
+%% Docker Compose topology. Render: scripts/render-thesis-figures.ps1
+flowchart TB
+  subgraph user["Users"]
+    BROWSER["Web browser"]
+  end
+
+  subgraph compose["Docker Compose — app_network"]
+    FE["frontend<br/>Nginx + Vue<br/>:80"]
+    BE["backend<br/>NestJS API<br/>:8080"]
+    PG[("postgres<br/>:5432")]
+    MINIO["minio<br/>:9100 / :9101"]
+    RMQ["rabbitmq<br/>:5672 / :15672"]
+    SIM["sensor-simulator<br/>:8091"]
+    MI["model-inference<br/>:8093"]
+    FCD["federated-coordinator<br/>:8092"]
+  end
+
+  BROWSER -->|"HTTP"| FE
+  FE -->|"/api/v1"| BE
+  BE --> PG
+  BE --> MINIO
+  BE --> RMQ
+  BE --> SIM
+  BE --> MI
+  BE --> FCD
+
+  classDef userStyle fill:#EEF2FF,stroke:#4338CA,stroke-width:2px
+  classDef appStyle fill:#E8F4FC,stroke:#2563EB,stroke-width:2px
+  classDef infraStyle fill:#F0FDF4,stroke:#16A34A,stroke-width:2px
+  classDef mlStyle fill:#FFF7ED,stroke:#EA580C,stroke-width:2px
+  class BROWSER userStyle
+  class FE,BE appStyle
+  class PG,MINIO,RMQ infraStyle
+  class SIM,MI,FCD mlStyle

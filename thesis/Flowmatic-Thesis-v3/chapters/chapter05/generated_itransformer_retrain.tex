@@ -1,0 +1,14 @@
+\begin{table}[H]
+  \centering
+  \caption{iTransformer speed modelling: level target vs.\ retuned first-difference target ($L=48$, multivariate inputs).}
+  \label{tab:itransformer-retrain}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    Configuration & Test RMSE (z-score) \\
+    \midrule
+    Level speed (production-style) & 1.0165 \\
+    Speed first-difference (retuned) & 0.7586 \\
+    \bottomrule
+  \end{tabular}
+  \thesistablenote{Level-speed RMSE $\approx 1$ indicates mean-level prediction; the retuned configuration targets \texttt{Speed\_delta} with density and coordinates as inputs.}
+\end{table}

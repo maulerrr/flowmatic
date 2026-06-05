@@ -1,5 +1,5 @@
 %
-% Chapter 4: Implementation (Phase 4 — Flowmatic stack)
+% Chapter 4: Implementation
 %
 
 \chapter{Implementation}
@@ -7,40 +7,40 @@
 
 \section{System Architecture}
 
-Flowmatic implements the methodology as a TypeScript monorepo: NestJS backend (Prisma/PostgreSQL), Vue~3 frontend, Bun/Python inference sidecar, and Docker Compose orchestration. Figure~\ref{fig:microservices-topology} shows the default deployment profile: PostgreSQL, MinIO, RabbitMQ, \texttt{sensor-simulator}, \texttt{model-inference}, Nest backend, and Nginx-served SPA.
+Flowmatic is a TypeScript monorepo: NestJS backend (Prisma/PostgreSQL), Vue~3 frontend, Bun/Python inference sidecar, and Docker Compose. Figure~\ref{fig:microservices-topology} shows PostgreSQL, MinIO, RabbitMQ, \texttt{sensor-simulator}, \texttt{model-inference}, Nest backend, and Nginx-served SPA.
 
 \section{Batch Preparation Module}
 
-Authenticated clients upload CSV/JSON via \texttt{IngestionController}. Files land in S3-compatible storage; PgBoss/RabbitMQ workers parse, assess quality, clean, and persist run summaries. Export adapters target PostgreSQL, MongoDB, Hugging Face datasets, and flat files. Figure~\ref{fig:batch-upload-pipeline} matches the measured upload experiment (Table~\ref{tab:upload-pipeline-experiment}).
+Clients upload CSV/JSON via \texttt{IngestionController}. Files land in S3-compatible storage; workers parse, score quality, clean, and persist summaries. Export adapters target PostgreSQL, MongoDB, Hugging Face datasets, and flat files. Figure~\ref{fig:batch-upload-pipeline} corresponds to Table~\ref{tab:upload-pipeline-experiment}.
 
 \section{Smart City Module}
 
-Organisation-scoped pipelines bind sensor sources to a four-stage workbench:
+Organisation-scoped pipelines use four stages:
 \begin{enumerate}
   \item \textbf{Sources} --- HTTP/WebSocket simulators or connectors;
-  \item \textbf{Core unit} --- validation, adaptive model routing, inference;
-  \item \textbf{Lake \& export} --- medallion prefixes (bronze/silver/gold) on MinIO (Figure~\ref{fig:medallion-lake});
-  \item \textbf{Federated demo} --- optional coordinator for distributed training metadata.
+  \item \textbf{Core unit} --- validation, Manual/Auto routing, inference;
+  \item \textbf{Lake \& export} --- bronze/silver/gold prefixes on MinIO (Figure~\ref{fig:medallion-lake});
+  \item \textbf{Federated demo} --- optional coordinator metadata.
 \end{enumerate}
 
-Event streams use WebSockets to the UI; asynchronous stage export uses queue workers. This replaces the manuscript's Kafka topic diagram with middleware that matches institutional DevOps practice while preserving event-driven semantics.
+WebSockets stream events to the UI; queue workers handle asynchronous export. Event-driven semantics match ITS practice without mandating a particular message broker.
 
 \section{Model Inference Service}
 
-The \texttt{model-inference} container loads TorchScript checkpoints from the mounted \texttt{models/} directory or Hugging Face Hub using organisation tokens. Requests include checkpoint id, feature window, and task-specific tensors (e.g.\ adjacency for STGCN). Latency benchmarks in Section~\ref{sec:ablations} characterise this path.
+\texttt{model-inference} loads TorchScript checkpoints from \texttt{models/} or Hugging Face Hub (Table~\ref{tab:production-portfolio}). Requests specify checkpoint id, feature window $L{=}48$, and task tensors (e.g.\ $\mathbf{A}$ for STGCN). Latency benchmarks appear in Section~\ref{sec:ablations}.
 
 \section{Research Artifact Pipeline}
 
-Neural training scripts live under \texttt{models/}: \texttt{train.py}, \texttt{paper\_experiments.py}, \texttt{run\_phase2\_prep.py}, and \texttt{run\_phase3\_core.py}. Checkpoints include \texttt{metadata.json}, scaler statistics, metrics, and TorchScript exports. Phase~3 uploads publish weights to Hugging Face; only manifests and small metadata remain in Git.
+Training lives under \texttt{models/}: \texttt{run\_phase2\_prep.py} builds datasets; \texttt{run\_phase3\_core.py} runs the multi-seed suite, streaming benchmarks, and Hub upload. Each checkpoint ships \texttt{metadata.json}, scaler statistics, metrics JSON, and TorchScript exports.
 
 \section{User Interface}
 
-Figures~\ref{fig:ui-smart-city-live}--\ref{fig:ui-workflow-graph} show screenshots captured from the running Docker stack during the Astana Geospatial Demo. Operators configure Manual/Auto routing, inspect simulated traffic and weather sources, and review the workflow graph.
+Figures~\ref{fig:ui-smart-city-live}--\ref{fig:ui-workflow-graph} show the Astana Geospatial Demo: sensor sources, routing mode, pipeline rail, and workflow graph.
 
 \input{figures_implementation}
 
 \section{Implementation Summary}
 
-Table~\ref{tab:gap-analysis} contrasts the original Python/Kafka manuscript with the shipped stack. The implementation preserves the scientific pipeline stages while adding production concerns: multi-tenancy, durable queues, object storage, and modality-safe adaptive inference.
+Flowmatic unifies preparation workers, the eight-model registry, and inference behind authenticated APIs. Table~\ref{tab:production-portfolio} maps each deployed slot to its Hugging Face repository; Table~\ref{tab:upload-pipeline-experiment} anchors the batch path to a measured production run.
 
 \input{tables}

@@ -5,136 +5,51 @@
 \label{chap:intro}
 \setlength{\parskip}{1em}
 
-\section{Background and Motivation}
+\section{Relevance, Problem Statement, and Research Gap}
 
-Urban transportation management systems (UTMS) depend on timely, reliable sensor and event data. In practice, agencies receive CSV exports, API feeds, and streaming telemetry with missing values, inconsistent schemas, duplicate records, and domain-specific anomalies. Manual preparation is slow, difficult to audit, and hard to reproduce when models or analysts change~\cite{wang1996beyond,pipino2002data,sculley2015hidden}.
+Urban transportation management systems rely on heterogeneous data collected from sensors, CSV exports, API feeds, and streaming telemetry~\cite{wang1996beyond,pipino2002data,zanella2014iot}. In practice, these sources often contain missing values, duplicated records, schema inconsistencies, invalid coordinates, delayed timestamps, and domain-specific anomalies. Such defects complicate forecasting, anomaly detection, classification, and other analytical workflows, because the reliability of downstream results depends directly on the quality and reproducibility of the preparation process~\cite{sculley2015hidden}.
 
-Research on automated preprocessing~\cite{liu2022automated,feurer2019auto,feurer2015autosklearn,mahasivam2017dataprep}, intelligent transportation systems~\cite{its_bigdata2018,zanella2014iot}, and neural traffic analytics~\cite{nie2023patchtst,yu2018stgcn,zeng2023transformers} often treats quality assessment, model training, and deployment as separate publications. Operational teams still lack a unified workflow that records quality diagnostics, applies consistent transformations, and serves neural specialists through a single registry with published artifacts~\cite{zaharia2018accelerating,kreutzberger2022mlops}.
+Existing studies on automated preprocessing, intelligent transportation systems, and neural traffic analytics usually address these stages separately~\cite{liu2022automated,feurer2019auto,feurer2015autosklearn,its_bigdata2018,nie2023patchtst,yu2018stgcn,zeng2023transformers}. Data cleaning is often treated as a preliminary technical step, while model training, deployment, and monitoring are evaluated independently~\cite{zaharia2018accelerating,kreutzberger2022mlops}. As a result, transportation analysts and system operators may lack a unified mechanism for measuring data quality, applying consistent transformations, preserving preparation history, and connecting prepared datasets to downstream models.
 
-This thesis designs, implements, and evaluates \textbf{Flowmatic}: a platform that automates quality assessment and cleaning, routes prepared streams to modality-specific neural checkpoints, and publishes reproducible training outputs on Hugging Face. The work extends the author's prior publications on adaptive passenger-flow modelling, automated data preparation, and event-driven traffic microservices~\cite{bakytuly2024hybrid,yedilkhan2025flowmatic,bakytuly2025adaptive,bakytuly2026microservices}.
+The research problem addressed in this thesis is the lack of an auditable and reproducible workflow for automating data preparation in urban transportation management systems while preserving compatibility with downstream analytical models. This thesis investigates how such a workflow can be designed, implemented, and evaluated through the \textbf{Flowmatic} platform. The dissertation builds on supporting articles developed during the master's programme---on adaptive passenger-flow modelling, automated data preparation, cross-city federated forecasting, and event-driven traffic microservices---from which methodological and empirical insights were collected and applied here~\cite{bakytuly2024hybrid,yedilkhan2025flowmatic,bakytuly2025adaptive,bakytuly2026microservices,sakhipov2026xfedformer}.
 
-\section{Scientific Novelty}
-\label{sec:novelty}
+\section{Aim and Objectives of the Research}
+\label{sec:objectives}
 
-The scientific novelty of this thesis is not a new neural architecture. It lies in the following elements, taken together:
+The aim of this research is to develop and evaluate an intelligent software platform for automating data preparation in urban transportation management systems, with support for measurable data quality assessment, reproducible preprocessing, and integration with downstream analytical models.
+
+To achieve this aim, the following objectives are defined:
 \begin{enumerate}
-  \item \textbf{Integrated quality--inference lifecycle.} A six-dimensional Data Quality Index is coupled to automated cleaning, batch export, and downstream neural inference under one auditable protocol, whereas prior works typically treat preparation, training, and deployment separately~\cite{wang1996beyond,liu2022automated,zaharia2018accelerating}.
-  \item \textbf{Evidence-linked preparation under controlled defects.} Measurable DQI recovery is reported for injected corruptions on urban traffic uploads, not only for pristine exports~\cite{yedilkhan2025flowmatic}.
-  \item \textbf{Unified multi-task evaluation.} Seven primary checkpoints plus one auxiliary iTransformer speed slot are compared under a single temporal hold-out design with reference baselines on identical or commensurate splits~\cite{nie2023patchtst,yu2018stgcn}.
-  \item \textbf{Quantified registry routing.} Rule-based Auto routing is evaluated on a labelled simulator corpus with scenario-aligned oracles (density forecast without geolocation, graph forecast with geolocation, anomaly preference, severity classification)~\cite{bakytuly2026microservices}.
-  \item \textbf{Reproducible artifact publication.} Training outputs, scaler statistics, and evaluation tables are published for independent verification~\cite{kreutzberger2022mlops,wolf2020transformers}.
+  \item To analyze existing approaches to data quality assessment, automated preprocessing, and model lifecycle management in intelligent transportation systems.
+  \item To design the architecture of a platform that supports batch and streaming data preparation workflows for urban transportation data.
+  \item To implement mechanisms for data quality assessment, cleaning, transformation, storage, and export.
+  \item To integrate the preparation workflow with a model registry and inference service for transportation-related analytical tasks.
+  \item To evaluate the proposed platform using data quality metrics, latency measurements, controlled corruption experiments, baseline comparisons, and routing validation.
+  \item To define the limitations of the proposed approach and identify directions for future deployment in real urban transportation environments.
 \end{enumerate}
+
+The object of the research is the data preparation process in urban transportation management systems. The subject of the research is the set of methods and software mechanisms for automated quality assessment, preprocessing, routing, and preparation of transportation data for analytical models.
+
+\section{Scientific Novelty and Practical Significance}
+
+The scientific novelty of the research lies in the integrated evaluation of data preparation, quality assessment, and model-oriented processing within a single reproducible workflow for urban transportation data.
+
+The main elements of novelty are:
+\begin{enumerate}
+  \item An integrated preparation-to-inference lifecycle that combines data quality assessment, automated cleaning, export, model registry usage, and downstream inference in one workflow.
+  \item A six-dimensional Data Quality Index applied to urban transportation data and evaluated under controlled data corruption scenarios~\cite{yedilkhan2025flowmatic}.
+  \item A reproducible evaluation protocol linking preparation quality, batch-processing latency, baseline comparisons, neural model performance, and routing validation.
+  \item A model-oriented routing mechanism that connects prepared traffic and sensor streams to task-specific analytical models~\cite{bakytuly2026microservices}.
+  \item Published artifacts and evaluation outputs that support reproducibility of the experimental results~\cite{kreutzberger2022mlops,wolf2020transformers}.
+\end{enumerate}
+
+The practical significance of the research is represented by the implemented Flowmatic platform, which provides authenticated data upload, automated quality assessment, cleaning, storage, export, smart-city simulation workflows, model registry integration, and inference support. The platform can be used as a research prototype for preparing transportation datasets and demonstrating how data preparation can be connected with downstream analytics in urban transportation management systems.
 
 \section{Author's Prior Publications}
 \label{sec:author-pubs}
 
-The present dissertation consolidates and extends the author's earlier peer-reviewed and presented work. The principal publications are cited in APA style below and referenced throughout the thesis.
-
-\begin{enumerate}
-  \item Begisbayev, D., Sakhipov, A., Seiitbek, R., Mansurova, A., \& Mansurova, A. (2024). Investigation of hybrid models and architectures for real-time adaptive passenger flow prediction. In \emph{2024 7th International Conference on Data Science and Information Technology (DSIT)}, pp.\ 1--5. IEEE. \url{https://doi.org/10.1109/DSIT61374.2024.10880981}
-  \item Yedilkhan, D., Sakhipov, A., Seitbek, R., Mektepayeva, A., \& Begisbayev, D. (2025). Intelligent assistant for data preparation automation in urban transportation management systems. \emph{KazATC Bulletin}, 137(2), 310--324. \url{https://doi.org/10.52167/1609-1817-2025-137-2-310-324}
-  \item Mektepbayeva, A., Begisbayev, D., Seiitbek, R., Khaimuldin, N., Sakhipov, A., \& Rakhimzhanov, D. (2025). Adaptive machine learning algorithms for data processing in transportation systems. In \emph{2025 IEEE 5th International Conference on Smart Information Systems and Technologies (SIST)}, pp.\ 1--8. IEEE. \url{https://doi.org/10.1109/SIST61657.2025.11139286}
-  \item Bakytuly, R. (2025). Real-time passenger flow prediction using automated data preparation. Paper presented at the 10th International Conference on Digital Technologies in Education, Science and Industry (DTESI), 2025.
-  \item Sakhipov, A., \& Seiitbek, R. (2026). Event-driven microservices for incident detection and response in intelligent traffic systems. \emph{International Journal of Information and Communication Technologies}, 7(1), 218--230. \url{https://doi.org/10.54309/IJICT.2026.25.1.014}
-\end{enumerate}
-
-\noindent The thesis author (Ramazan Seiitbek) is listed as \emph{Seiitbek, R.} on the IEEE and IJICT items above and as \emph{Bakytuly, R.} on the DTESI 2025 entry, matching each publisher's author metadata.
-
-\noindent A companion manuscript on architectural patterns for Astana smart-traffic incident management (2026, \emph{in preparation}) documents the semi-synthetic data generator used in Appendix~\ref{app:astana}; it is cited as unpublished work~\cite{bakytuly2026architectural} and is not listed above because it is not yet published.
-
-\section{Research Funding}
-\label{sec:funding}
-
-This research was conducted as part of the project ``Intelligent models and methods of Smart City digital ecosystem for sustainable development and the citizens' quality of life improvement,'' funded by the Committee of Science of the Ministry of Science and Higher Education of the Republic of Kazakhstan (Grant No.\ BR24992852).
-
-\section{Problem Statement}
-
-The central problem is how to automate data preparation for urban traffic data while preserving auditability and connecting prepared data to downstream models in both batch and streaming modes. Three sub-problems structure the investigation:
-\begin{enumerate}
-  \item \textbf{Preparation credibility.} Can measurable quality improve when uploads are corrupted, not only when files are already clean?
-  \item \textbf{Inference credibility.} Do deployed neural models outperform simple baselines under a shared temporal protocol, and are metrics reported per task rather than as a single incomparable leaderboard?
-  \item \textbf{Routing credibility.} Does Auto mode select checkpoint families that match labelled simulator events, and where does geo-priority policy diverge from oracle Astana forecast slots?
-\end{enumerate}
-
-\section{Research Objectives}
-
-The thesis pursues five objectives aligned with completed work:
-\begin{enumerate}
-  \item Implement and measure an automated preparation workflow with six-dimensional quality assessment, schema validation, and cleaning on urban traffic uploads.
-  \item Deliver that workflow as a containerised web platform with authenticated upload, asynchronous processing, durable storage, and export to common destinations.
-  \item Extend the platform with a smart-city pipeline that ingests simulated sensor streams, routes events through an adaptive core unit, and persists outputs in a medallion-style data lake~\cite{mazzetto2024urban}.
-  \item Train and evaluate a portfolio of seven primary neural models (plus an auxiliary iTransformer speed slot) for forecasting, anomaly reconstruction, imputation, and severity classification on held-out temporal test splits with multi-seed replication.
-  \item Validate the system through reproducible batch experiments, controlled corruption stress tests, baseline comparisons, and a quantitative routing pilot.
-\end{enumerate}
-
-\section{Research Questions}
-\label{sec:research_questions}
-
-\begin{description}
-  \item[RQ1:] Does the Flowmatic preparation workflow improve measurable data quality on corrupted urban traffic uploads (DQI before/after, rows dropped, latency)?
-  \item[RQ2:] Can preparation be operationalised as a reproducible batch service with reported end-to-end latency and quality scores on the Astana case study?
-  \item[RQ3:] How do deployed neural models perform against majority-class, logistic regression, random forest, naive, and seasonal baselines under a common temporal hold-out protocol?
-  \item[RQ4:] To what extent does rule-based Auto routing select scenario-aligned checkpoints on a labelled simulator corpus covering forecast, anomaly, classification, imputation, and weather profiles?
-\end{description}
-
-\section{Scientific versus Engineering Contribution}
-\label{sec:sci-vs-eng}
-
-Table~\ref{tab:sci-vs-eng} separates claims. The \textbf{engineering} contribution is the Flowmatic prototype (Docker stack, web UI, inference sidecar, Hub publication). The \textbf{scientific} contribution is the linked evaluation protocol: preparation stress tests, per-task neural tables with baselines, and routing metrics on published artifacts. Flowmatic does not introduce a new neural architecture; it demonstrates an auditable preparation-to-inference lifecycle for UTMS data with explicit limitations.
-
-\begin{table}[H]
-  \centering
-  \caption{Scientific versus engineering contributions.}
-  \label{tab:sci-vs-eng}
-  \small
-  \begin{tabular}{@{}p{2.8cm}p{3.6cm}p{4.4cm}p{2.6cm}@{}}
-    \toprule
-    \textbf{Component} & \textbf{Existing alternatives} & \textbf{What Flowmatic adds} & \textbf{Evidence} \\
-    \midrule
-    Six-D DQI & Composite indices~\cite{pipino2002data} & Automated rules + dashboard & Table~\ref{tab:prep-stress} \\
-    Batch platform & ETL tools, AutoML & ITS-facing API + latency & Table~\ref{tab:upload-pipeline-experiment} \\
-    Neural portfolio & Published PatchTST/STGCN & Unified split + Hub publish & Tables~\ref{tab:multiseed-forecast},~\ref{tab:baselines-class} \\
-    Auto routing & Manual model pick & Priority + modality rules & Table~\ref{tab:routing-eval} \\
-    Reproducibility & MLflow-style tracking~\cite{zaharia2018accelerating} & Scripts + manifests & Appendix~\ref{app:repro} \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\section{Contributions}
-
-The main contributions are:
-\begin{itemize}
-  \item a six-dimensional Data Quality Index with documented weights and corruption stress evaluation;
-  \item the Flowmatic platform (batch preparation, smart-city workbench, model-inference service) in a Docker Compose stack;
-  \item an adaptive core unit with a documented model registry and Manual/Auto routing rules;
-  \item a seven-primary-checkpoint neural portfolio (plus auxiliary iTransformer speed slot) with multi-seed held-out test metrics and published Hugging Face checkpoints;
-  \item reproducible preparation, neural, and routing experiments with baseline comparisons.
-\end{itemize}
-
-\begin{table}[H]
-  \centering
-  \caption{Contribution matrix: claim, evidence artifact, and research question.}
-  \label{tab:contribution_matrix}
-  \small
-  \begin{tabular}{@{}p{2.8cm}p{4.0cm}cp{3.4cm}@{}}
-    \toprule
-    \textbf{Contribution} & \textbf{Evidence} & \textbf{RQ} & \textbf{Limit} \\
-    \midrule
-    DQI + batch prep & Tables~\ref{tab:prep-stress},~\ref{tab:upload-pipeline-experiment} & RQ1, RQ2 & Semi-synthetic Astana \\
-    Smart-city pipeline & Figs.~\ref{fig:ui-smart-city-live}--\ref{fig:ui-workflow-graph} & RQ2, RQ4 & Simulated sensors \\
-    Neural portfolio & Tables~\ref{tab:multiseed-forecast},~\ref{tab:baselines-class} & RQ3 & Normalised windows \\
-    Model registry + routing & Table~\ref{tab:routing-eval}; Algorithm~1 & RQ4 & Scenario corpus only \\
-    Reproducibility & Appendix~\ref{app:repro} & All & Three seeds ($n{=}3$) \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\section{Scope, Validation Layers, and Limitations}
-
-\textbf{Two validation layers must not be conflated.} (1)~\emph{Batch platform validation} is demonstrated on the Astana CSV export through the Nest ingestion API (latency, quality score, cleaning). (2)~\emph{Neural training validation} uses Astana plus Hugging Face weather, ETT, and traffic-graph bundles prepared offline; those bundles are not all re-uploaded through the Nest API in this thesis. METR-LA and PEMS datasets are excluded from the evaluated dataset table (Table~\ref{tab:phase4_datasets}) because hold-out experiments were not completed for them in this study.
-
-Experiments use semi-synthetic Astana data derived from an NDA-protected source (Appendix~\ref{app:astana}; generator rules in the unpublished companion study~\cite{bakytuly2026architectural}, continuing the published microservices work~\cite{bakytuly2026microservices}) with rule-based severity labels. The smart-city demo uses simulated feeds. \textbf{External municipal incident-label AUROC} and expert-labelled routing accuracy remain future work; injected-window TranAD AUROC is reported in Chapter~\ref{chap:results}. Live agency deployment and probabilistic forecast scores (CRPS) remain future work.
+\input{author_publications}
 
 \section{Thesis Structure}
 
-Chapter~\ref{chap:literature} reviews related work. Chapter~\ref{chap:methodology} describes preparation, routing, and neural evaluation. Chapter~\ref{chap:implementation} presents Flowmatic architecture and deployment. Chapter~\ref{chap:results} reports experiments, baselines, and discussion. Chapter~\ref{chap:conclusion} summarises findings. Appendices document reproducibility and Astana dataset construction.
+The thesis is organized as follows. Chapter~\ref{chap:literature} reviews related work on data quality, automated preprocessing, intelligent transportation systems, forecasting, anomaly detection, model registries, and reproducibility. Chapter~\ref{chap:methodology} describes the research methodology, including the data quality assessment approach, preparation workflow, routing logic, evaluation protocols, and research questions. Chapter~\ref{chap:implementation} presents the implementation of the Flowmatic platform. Chapter~\ref{chap:results} reports experimental results and discusses preparation quality, latency, baseline comparisons, neural evaluation, and routing validation. Chapter~\ref{chap:conclusion} summarizes the findings, limitations, and future research directions. Appendices document reproducibility commands and Astana dataset construction.

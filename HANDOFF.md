@@ -117,8 +117,9 @@ Production smart-city + data-prep platform:
 | Q1 review document | ✅ `paper-review-q1.md` |
 | Classical baseline reproducibility | ❌ Numbers cited from prior manuscript; no script in repo |
 | RQ4 routing metrics | ❌ Implemented in UI only; not quantified |
-| Abstract vs Table 4.2 (96.83% vs 96.62%) | ❌ Not harmonized |
-| Stale text in conclusion §6.4 (screenshots pending) | ❌ Remove on PC |
+| Legacy XGBoost / archival narrative | ✅ Removed entirely; thesis = Flowmatic + HF portfolio only |
+| Stale text in conclusion §6.4 (screenshots pending) | ✅ Removed |
+| Tier 0–1 thesis narrative (two tracks) | ✅ AITU Template updated May 2026 |
 
 **Legacy sources (keep for reference, not primary build):**
 
@@ -142,7 +143,7 @@ From `models/paper/tables/multi_seed_aggregate.md` (n=3 seeds, held-out test):
 | DLinear (ETT) | RMSE | 0.153 ± 0.011 |
 | iTransformer (speed) | RMSE | 0.999 ± 0.001 |
 
-**Classical baseline (prior study, not re-run on laptop):** XGBoost **0.9683 accuracy** on prepared Astana tabular features. Abstract also mentions 96.83%; Table 4.2 lists RF/XGBoost at 96.62% — **needs harmonization** (see review).
+**Production classifier:** Transformer severity **0.911 ± 0.017** macro-F1 (HF, `run_phase3_core.py`). No legacy tabular baselines in thesis text.
 
 **Platform batch experiment (Table 4.1):** 30,000 records, 406 ms processing, quality 100/100.
 

@@ -1,0 +1,46 @@
+%
+% Chapter 4 — Implementation
+%
+\chapter{Implementation}
+\label{chap:implementation}
+\setlength{\parskip}{0.7em}
+
+\section{System Architecture}
+
+Flowmatic is implemented as a TypeScript monorepo: a NestJS backend with Prisma and PostgreSQL, a Vue~3 single-page application, a Python/Bun inference sidecar, and Docker Compose orchestration. Figure~\ref{fig:microservices-topology} shows PostgreSQL, MinIO object storage, RabbitMQ, the sensor simulator, the model-inference service, the Nest backend, and Nginx-served frontend. This architecture follows event-driven ITS practice~\cite{event_driven2025,kreps2011kafka} while remaining a research prototype.
+
+\section{Batch Preparation Module}
+
+Clients upload CSV or JSON through authenticated REST endpoints. Files land in S3-compatible storage; workers parse records, compute the six-dimensional DQI, apply cleaning rules (imputation, duplicate removal, range checks), and persist summaries for the dashboard. Export adapters target relational databases, document stores, Hugging Face datasets, and flat files. Figure~\ref{fig:batch-upload-pipeline} corresponds to the measured upload experiment in Table~\ref{tab:upload-pipeline-experiment}.
+
+\section{Smart City Module}
+
+Organisation-scoped pipelines comprise four stages:
+\begin{enumerate}
+  \item \textbf{Sources} --- HTTP or WebSocket simulators and external connectors;
+  \item \textbf{Core unit} --- validation, Manual/Auto routing, and inference invocation;
+  \item \textbf{Lake and export} --- bronze, silver, and gold prefixes on object storage (Figure~\ref{fig:medallion-lake});
+  \item \textbf{Federated demo} --- optional coordinator metadata for multi-site experiments.
+\end{enumerate}
+
+WebSockets stream events to the operator interface; queue workers handle asynchronous export. The Astana Geospatial Demo exercises traffic and weather sources with Manual/Auto routing visible in Figures~\ref{fig:ui-smart-city-live}--\ref{fig:ui-workflow-graph}.
+
+\section{Model Inference Service}
+
+The inference microservice loads TorchScript checkpoints from local storage or Hugging Face Hub using the portfolio in Table~\ref{tab:production-portfolio}. Requests specify checkpoint identity, window length $L{=}48$, and task-specific tensors (for example graph adjacency for the traffic-graph model). Latency benchmarks in Section~\ref{sec:ablations} inform smart-city budgets.
+
+\section{Research Artifact Pipeline}
+
+Offline training prepares windowed datasets and runs the multi-seed evaluation suite. Each checkpoint ships metadata, scaler statistics, metrics JSON, and TorchScript exports. Publication under the \texttt{pushthetempo} Hub namespace supports third-party reproduction without relying on proprietary training notebooks.
+
+\section{User Interface}
+
+The web interface provides login, batch upload with quality dashboards, pipeline run history, and the smart-city workbench. Operators configure routing mode, inspect recent events, and open the workflow graph for the Astana simulator pipeline.
+
+\input{figures_implementation}
+
+\section{Implementation Summary}
+
+Flowmatic unifies preparation workers, the seven-primary-checkpoint registry (plus auxiliary iTransformer speed slot), and inference behind authenticated APIs. Table~\ref{tab:production-portfolio} maps each deployed slot to its published repository; Table~\ref{tab:upload-pipeline-experiment} anchors the batch path to a measured production run. Neural evidence uses the same checkpoints but is produced through the offline suite described in Appendix~\ref{app:repro}.
+
+\input{tables}

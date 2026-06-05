@@ -1,0 +1,21 @@
+\begin{table}[H]
+  \centering
+  \caption{DQI dimension weights and score definitions (classical study and platform QC analogue).}
+  \label{tab:dqi_weights}
+  \small
+  \begin{tabular}{@{}clcc@{}}
+    \toprule
+    \textbf{Dim.} & \textbf{Criterion} & \textbf{Weight $w_i$} & \textbf{Score $Q_i$} \\
+    \midrule
+    1 & Completeness & $1/6$ & $1 - |M|/|D|$ \\
+    2 & Consistency & $1/6$ & Rule-pass rate on schema checks \\
+    3 & Accuracy & $1/6$ & Valid-range compliance \\
+    4 & Timeliness & $1/6$ & $\exp(-\lambda \bar{a})$ on arrival lag \\
+    5 & Uniqueness & $1/6$ & $1 -$ duplicate-row fraction \\
+    6 & Validity & $1/6$ & Type and constraint satisfaction \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.5em}
+
+  \raggedright\footnotesize Equal weights are the default in the archival classical pilot; the deployed \texttt{QualityService} applies the same six dimensions with operational thresholds rather than re-tuning $w_i$ per agency.
+\end{table}

@@ -7,18 +7,18 @@
 
 \section{Summary of Contributions}
 
-This dissertation moved from a classical automated preparation assistant to a deployable \textbf{Flowmatic} platform with:
+This dissertation connects an archival automated preparation pilot to a deployable \textbf{Flowmatic} platform:
 \begin{itemize}
-  \item multi-dimensional DQI and tabular preparation baselines (XGBoost F1 = 0.968 on Astana);
+  \item six-dimensional DQI methodology and classical preparation \emph{design} (June 2025 offline pilot; not re-run in-repo);
   \item Dockerised batch and smart-city pipelines with reproducible API evidence;
-  \item an eight-model neural portfolio with multi-seed held-out test metrics;
+  \item an eight-model neural portfolio with multi-seed held-out test metrics on Hugging Face;
   \item adaptive Manual/Auto core-unit routing over a documented model registry;
-  \item public Hugging Face artifacts for reproducibility without large binary commits in Git.
+  \item open Phase~2--3 scripts (\texttt{run\_phase2\_prep.py}, \texttt{run\_phase3\_core.py}) without embedding classical XGBoost in production inference.
 \end{itemize}
 
 \section{Key Findings}
 
-Domain-aware preparation improves tabular classification over raw and generic AutoML features. Neural specialists add forecasting, imputation, and reconstruction-anomaly capabilities across Astana and HF benchmarks; severity classification reaches macro-F1 = $0.911 \pm 0.017$. The platform processes 30\,000 upload records in 406\,ms with full quality scoring.
+Platform preparation on 30\,000 Astana upload records completes in 406\,ms with full quality scoring. The neural severity classifier reaches macro-F1 = $0.911 \pm 0.017$ under a shared temporal hold-out protocol. Archival tabular preparation gains (XGBoost pilot) motivated the workflow but are not merged into the HF checkpoint line.
 
 \section{Limitations}
 
@@ -26,13 +26,14 @@ Domain-aware preparation improves tabular classification over raw and generic Au
   \item Astana data remain semi-synthetic; live agency validation is limited to the workbench demo.
   \item External graph benchmarks (METR-LA, PEMS-BAY) are ingested but not yet evaluated as hold-out targets for Astana-trained models.
   \item Router oracle ablations, CRPS, and AUROC event metrics are not yet reported.
-  \item LLM copilot summaries are optional and not formally calibrated; SHAP applies only to classical baselines.
+  \item LLM copilot summaries are optional and not formally calibrated; SHAP applies only to the archival classical pilot.
+  \item iTransformer speed forecasting under the current training budget is not production-ready (RMSE $\approx 1.0$).
 \end{itemize}
 
 \section{Future Work}
 
-Planned extensions include Astana$\rightarrow$PeMS transfer experiments, auto-router confusion analysis, probabilistic forecasting metrics, and operator-facing calibration studies. Federated coordination remains a demonstration path pending production hardening. Final UI screenshots of the main platform workflows will be added after validation runs.
+Planned extensions include Astana$\rightarrow$PeMS transfer experiments, auto-router confusion analysis, probabilistic forecasting metrics, operator-facing calibration studies, and retraining or retiring underperforming registry slots. Federated coordination remains a demonstration path pending production hardening.
 
 \section{Concluding Remarks}
 
-Automated preparation remains the foundation of trustworthy ITS analytics. Flowmatic shows that the same scientific stages can be implemented as an adaptive, multimodal platform whose classical, neural, and operational results are reproducible from open scripts and published checkpoints.
+Automated preparation remains the foundation of trustworthy ITS analytics. Flowmatic shows that preparation stages can be implemented as an adaptive, multimodal platform whose \textbf{neural and operational} results are reproducible from open scripts and published checkpoints, while classical tabular experiments remain an explicitly scoped archival line documented in Table~\ref{tab:gap-analysis}.

@@ -7,32 +7,33 @@
 
 \section{Summary of Contributions}
 
-This dissertation moved from a classical automated preparation assistant to a deployable \textbf{Flowmatic} platform with:
+This dissertation presents \textbf{Flowmatic}, an intelligent preparation and inference platform for urban transportation data:
 \begin{itemize}
-  \item multi-dimensional DQI and tabular preparation baselines (XGBoost F1 = 0.968 on Astana);
-  \item Dockerised batch and smart-city pipelines with reproducible API evidence;
-  \item an eight-model neural portfolio with multi-seed held-out test metrics;
-  \item adaptive Manual/Auto core-unit routing over a documented model registry;
-  \item public Hugging Face artifacts for reproducibility without large binary commits in Git.
+  \item six-dimensional DQI and automated batch cleaning with measured latency;
+  \item Dockerised batch and smart-city pipelines with WebSocket event delivery;
+  \item eight Hugging Face neural checkpoints under a shared temporal hold-out protocol;
+  \item Manual/Auto routing over a documented production registry;
+  \item open reproduction scripts (\texttt{run\_phase2\_prep.py}, \texttt{run\_phase3\_core.py}).
 \end{itemize}
 
 \section{Key Findings}
 
-Domain-aware preparation improves tabular classification over raw and generic AutoML features. Neural specialists add forecasting, imputation, and reconstruction-anomaly capabilities across Astana and HF benchmarks; severity classification reaches macro-F1 = $0.911 \pm 0.017$. The platform processes 30\,000 upload records in 406\,ms with full quality scoring.
+Batch preparation on 30\,000 Astana records completes in 406\,ms with quality score 100/100. The Transformer severity model reaches macro-F1 = $0.911 \pm 0.017$; TranAD anomaly reconstruction RMSE is $0.035 \pm 0.004$ on Astana test windows. Compact forecasters (TimesBlock, DLinear) pair with low streaming latency; iTransformer speed forecasting requires retraining or registry retirement.
 
 \section{Limitations}
 
 \begin{itemize}
-  \item Astana data remain semi-synthetic; live agency validation is limited to the workbench demo.
-  \item External graph benchmarks (METR-LA, PEMS-BAY) are ingested but not yet evaluated as hold-out targets for Astana-trained models.
-  \item Router oracle ablations, CRPS, and AUROC event metrics are not yet reported.
-  \item LLM copilot summaries are optional and not formally calibrated; SHAP applies only to classical baselines.
+  \item Semi-synthetic Astana data; no live agency deployment.
+  \item METR-LA and PEMS-BAY ingested but not yet used as external hold-outs.
+  \item Router match-rate and probabilistic forecast metrics (CRPS) not reported.
+  \item TranAD evaluated on reconstruction RMSE, not event AUROC.
+  \item LLM copilot summaries lack formal calibration.
 \end{itemize}
 
 \section{Future Work}
 
-Planned extensions include Astana$\rightarrow$PeMS transfer experiments, auto-router confusion analysis, probabilistic forecasting metrics, and operator-facing calibration studies. Federated coordination remains a demonstration path pending production hardening. Final UI screenshots of the main platform workflows will be added after validation runs.
+Priorities include METR-LA/PEMS hold-out rows, auto-router confusion analysis, AUROC for injected anomalies, extended training for weak slots, and operator studies on Insight Engine outputs. Federated coordination remains a demonstration path.
 
 \section{Concluding Remarks}
 
-Automated preparation remains the foundation of trustworthy ITS analytics. Flowmatic shows that the same scientific stages can be implemented as an adaptive, multimodal platform whose classical, neural, and operational results are reproducible from open scripts and published checkpoints.
+Trustworthy ITS analytics requires auditable preparation connected to deployed models. Flowmatic demonstrates that quality assessment, multimodal neural inference, and smart-city orchestration can be delivered as one reproducible platform with published checkpoints and measured operational behaviour.

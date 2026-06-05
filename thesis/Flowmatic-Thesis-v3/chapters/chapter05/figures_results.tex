@@ -1,0 +1,49 @@
+% Results figures — Chapter 5 (neural evaluation)
+
+\begin{figure}[H]
+  \thesisfigure[max width=0.95\linewidth]{figures/results/forecast_rmse_leaderboard.png}
+  \caption{Forecasting and reconstruction leaderboard (test RMSE).}
+  \label{fig:neural-forecast-rmse}
+\end{figure}
+
+\begin{figure}[H]
+  \thesisfigure[max width=0.95\linewidth]{figures/results/multi_seed_rmse_boxplot.png}
+  \caption{Multi-seed test RMSE dispersion for production portfolio models.}
+  \label{fig:neural-multiseed}
+\end{figure}
+
+\begin{figure}[H]
+  \thesisfigure[max width=0.95\linewidth]{figures/results/sequence_length_ablation.png}
+  \caption{Sequence-length ablation ($L=24$ vs $L=96$).}
+  \label{fig:seq-ablation}
+\end{figure}
+
+\begin{figure}[H]
+  \thesisfigure[max width=0.95\linewidth]{figures/results/cross_dataset_transfer.png}
+  \caption{Cross-dataset transfer (train source $\rightarrow$ test target).}
+  \label{fig:cross-transfer}
+\end{figure}
+
+\begin{figure}[H]
+  \thesisfigure[max width=0.95\linewidth]{figures/results/streaming_latency.png}
+  \caption{Streaming inference latency vs batch size (TorchScript, GPU).}
+  \label{fig:streaming-latency}
+\end{figure}
+
+\begin{figure}[H]
+  \thesisfigure[max width=0.95\linewidth]{figures/results/streaming_throughput.png}
+  \caption{Streaming throughput (events/s) for production checkpoints.}
+  \label{fig:streaming-throughput}
+\end{figure}
+
+\begin{figure}[H]
+  \thesisfigure[max width=0.95\linewidth]{figures/results/validation_curves_training.png}
+  \caption{Validation loss curves during neural model training (representative runs).}
+  \label{fig:validation-curves}
+\end{figure}
+
+\begin{figure}[H]
+  \thesisfigure[max width=0.95\linewidth]{figures/results/classification_macro_f1.png}
+  \caption{Severity classifier macro-F1 across Transformer training runs (seeds). Reference baselines appear in Table~\ref{tab:baselines-class}.}
+  \label{fig:neural-classification-f1}
+\end{figure}

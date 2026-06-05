@@ -1,35 +1,5 @@
 %
-% Chapter 1 — Introduction addendum (Flowmatic platform phase)
-% Paste into introduction.tex before \section{Thesis Organization}, or replace
-% the legacy Objectives / Research Questions blocks with this section.
+% Chapter 1 — Introduction addendum (deprecated)
+% Superseded by the compact four-section Introduction in
+% thesis/AITU Thesis Template/chapters/chapter01/introduction.tex
 %
-
-\section{Platform Evolution}
-\label{sec:platform_evolution}
-
-The original dissertation defined an intelligent assistant for urban traffic data preparation: quality assessment, feature generation, anomaly screening, and tabular classification on semi-synthetic Astana data. That work is extended here into \textbf{Flowmatic}---a deployable platform that keeps the same preparation stages while adding organisation-scoped smart-city pipelines, an adaptive core unit with Manual/Auto model routing, and a reproducible eight-model neural portfolio with published checkpoints. Chapters~\ref{chap:methodology}--\ref{chap:results} report the classical study, the implemented platform, and the neural evaluation together.
-
-\section{Research Objectives}
-\label{sec:objectives}
-
-The thesis pursues five objectives that match the work completed in this repository:
-\begin{enumerate}
-  \item To design and evaluate an automated data preparation workflow for urban traffic data, including multi-dimensional quality assessment, feature generation, ensemble anomaly screening, and tabular event classification.
-  \item To implement that workflow as a containerised web platform with authenticated upload, asynchronous processing, durable storage, and export to common destinations.
-  \item To extend the platform with a smart-city pipeline that ingests simulated or external sensor streams, routes events through an adaptive core unit, and persists outputs in a medallion-style data lake.
-  \item To train and evaluate a portfolio of neural models for forecasting, anomaly reconstruction, imputation, and severity classification on held-out temporal test splits with multi-seed replication.
-  \item To validate the deployed system through reproducible API experiments and a live Astana smart-city demonstration.
-\end{enumerate}
-
-\section{Research Questions}
-\label{sec:research_questions}
-
-The evaluation programme in Chapter~\ref{chap:results} addresses the following questions:
-\begin{description}
-  \item[RQ1:] Does domain-aware automated preparation improve tabular traffic event classification compared with raw data and generic feature automation?
-  \item[RQ2:] Can the preparation workflow be operationalised as a reproducible service with measured end-to-end latency and quality reporting?
-  \item[RQ3:] How do neural time-series models perform across forecasting, reconstruction, imputation, and classification tasks under a common temporal hold-out protocol?
-  \item[RQ4:] Does a registry-based Manual/Auto routing policy allow modality-appropriate model selection in a smart-city pipeline?
-\end{description}
-
-RQ1 is answered by the classical Astana preparation study (Section~\ref{sec:classical_results}). RQ2 is answered by the batch upload experiment and live workbench demo (Section~\ref{sec:platform_cases}). RQ3 is answered by the eight-model portfolio with multi-seed test metrics (Section~\ref{sec:neural_portfolio}). RQ4 is supported by the implemented routing rules and workbench configuration; formal router ablations remain future work (Section~\ref{sec:discussion}).

@@ -1,0 +1,41 @@
+%
+% Chapter 6 — Conclusion
+%
+\chapter{Conclusion and Future Directions}
+\label{chap:conclusion}
+\setlength{\parskip}{0.8em}
+
+\section{Summary of Contributions}
+
+This dissertation presents \textbf{Flowmatic}, an intelligent preparation and inference platform for urban transportation data. The work integrates six-dimensional quality assessment, containerised batch and smart-city pipelines, seven primary neural checkpoints with published Hugging Face weights (plus an auxiliary iTransformer speed slot), and rule-based Auto routing evaluated on labelled simulator events.
+
+The scientific contribution is an auditable \textbf{preparation-to-inference evaluation protocol}: corruption stress tests for RQ1, measured batch latency for RQ2, per-task neural metrics with simple baselines for RQ3, and routing accuracy with documented geo-policy effects for RQ4. The engineering contribution is the operational prototype demonstrated through architecture figures, interface screenshots, and reproduction appendices.
+
+\section{Key Findings by Research Question}
+
+\textbf{RQ1 (preparation under corruption).} Composite DQI recovers by up to 0.045 at 20\% injected defects while invalid rows are dropped; clean uploads already sit at the composite ceiling, so claims about ``improvement'' must be scoped to corrupted inputs.
+
+\textbf{RQ2 (operationalisation).} A 30\,000-row Astana batch completes in 406\,ms with quality score 100/100; the smart-city workbench streams simulated traffic and weather with WebSocket delivery. Multi-dataset evidence at the \textbf{API layer} is limited to Astana in this thesis.
+
+\textbf{RQ3 (neural portfolio and baselines).} The Transformer severity model reaches macro-F1 $= 0.911 \pm 0.017$, above sklearn baselines on the held-out test partition; the result reflects rule-based labels in the export. SAITS improves over an analytic mean-imputation baseline (Table~\ref{tab:baselines-imputation}). TranAD reports reconstruction RMSE $0.035 \pm 0.004$ and AUROC $0.84$ on injected anomalies (Table~\ref{tab:tranad-auroc}). Preparation improves PatchTST density RMSE under corruption (Table~\ref{tab:prep-ablation}). The level-speed iTransformer slot remains weak; a first-difference retune is documented in Table~\ref{tab:itransformer-retrain}.
+
+\textbf{RQ4 (routing).} Auto routing achieves 100\% scenario-aligned policy consistency on 140 simulator events.
+
+\section{Limitations}
+
+\begin{itemize}
+  \item Semi-synthetic Astana data with rule-based severity labels limits external validity.
+  \item No live municipal agency deployment or operator study.
+  \item Batch Nest validation on Astana only; neural multi-dataset training does not imply each bundle was uploaded through the API.
+  \item TranAD AUROC uses injected window anomalies, not municipal incident reports.
+  \item Three seeds provide intervals, not definitive statistical power.
+  \item Optional language-model narration lacks formal calibration.
+\end{itemize}
+
+\section{Future Work}
+
+Priorities include METR-LA/PEMS external hold-outs, municipal incident labels for TranAD, live prep-off ablations on API-uploaded corpora, and operator studies on Insight Engine outputs. Federated coordination remains a demonstration path.
+
+\section{Concluding Remarks}
+
+Trustworthy ITS analytics requires auditable preparation connected to deployed models. Flowmatic demonstrates that quality assessment, multimodal neural inference, and smart-city orchestration can be integrated in one reproducible platform. The empirical chapters distinguish measured outcomes (corruption stress tests, reference baselines, routing evaluation) from components implemented but not fully validated in this study (municipal deployment, event-level anomaly metrics, batch ingestion of every neural training dataset). The work is offered as a master's thesis in computer science and engineering with explicit scope boundaries stated in Chapters~\ref{chap:intro} and~\ref{chap:results}.

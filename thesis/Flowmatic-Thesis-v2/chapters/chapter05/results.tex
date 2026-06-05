@@ -18,6 +18,46 @@ This chapter answers the research questions in Section~\ref{sec:research_questio
 
 \textbf{Scope of evidence.} Batch API experiments reported in this chapter use the Astana CSV export only. Neural training and held-out evaluation additionally use the Hugging Face weather, ETT, and traffic-graph bundles. Routing evaluation uses labelled simulator payloads. Neural metrics in Tables~\ref{tab:multiseed-forecast}--\ref{tab:multiseed-other} are computed on z-score normalised windows unless stated otherwise.
 
+\subsection{Scientific versus engineering contributions}
+
+Table~\ref{tab:sci-vs-eng} separates claims. The \textbf{engineering} contribution is the Flowmatic prototype (Docker stack, web UI, inference sidecar, Hub publication). The \textbf{scientific} contribution is the linked evaluation protocol: preparation stress tests, per-task neural tables with baselines, and routing metrics on published artifacts.
+
+\begin{table}[H]
+  \centering
+  \caption{Scientific versus engineering contributions.}
+  \label{tab:sci-vs-eng}
+  \small
+  \begin{tabular}{@{}p{2.8cm}p{3.6cm}p{4.4cm}p{2.6cm}@{}}
+    \toprule
+    \textbf{Component} & \textbf{Existing alternatives} & \textbf{What Flowmatic adds} & \textbf{Evidence} \\
+    \midrule
+    Six-D DQI & Composite indices~\cite{pipino2002data} & Automated rules + dashboard & Table~\ref{tab:prep-stress} \\
+    Batch platform & ETL tools, AutoML & ITS-facing API + latency & Table~\ref{tab:upload-pipeline-experiment} \\
+    Neural portfolio & Published PatchTST/STGCN & Unified split + Hub publish & Tables~\ref{tab:multiseed-forecast},~\ref{tab:baselines-class} \\
+    Auto routing & Manual model pick & Priority + modality rules & Table~\ref{tab:routing-eval} \\
+    Reproducibility & MLflow-style tracking~\cite{zaharia2018accelerating} & Scripts + manifests & Appendix~\ref{app:repro} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Contribution matrix: claim, evidence artifact, and research question.}
+  \label{tab:contribution_matrix}
+  \small
+  \begin{tabular}{@{}p{2.8cm}p{4.0cm}cp{3.4cm}@{}}
+    \toprule
+    \textbf{Contribution} & \textbf{Evidence} & \textbf{RQ} & \textbf{Limit} \\
+    \midrule
+    DQI + batch prep & Tables~\ref{tab:prep-stress},~\ref{tab:upload-pipeline-experiment} & RQ1, RQ2 & Semi-synthetic Astana \\
+    Smart-city pipeline & Figs.~\ref{fig:ui-smart-city-live}--\ref{fig:ui-workflow-graph} & RQ2, RQ4 & Simulated sensors \\
+    Neural portfolio & Tables~\ref{tab:multiseed-forecast},~\ref{tab:baselines-class} & RQ3 & Normalised windows \\
+    Model registry + routing & Table~\ref{tab:routing-eval}; Algorithm~1 & RQ4 & Scenario corpus only \\
+    Reproducibility & Appendix~\ref{app:repro} & All & Three seeds ($n{=}3$) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \section{Experimental Protocol}
 \label{sec:exp_protocol}
 

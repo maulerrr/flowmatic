@@ -1,0 +1,44 @@
+%% Flowmatic smart-city pipeline. Render: scripts/render-thesis-figures.ps1
+flowchart LR
+  subgraph edge["Edge / demo"]
+    SIM["sensor-simulator<br/>HTTP ingest"]
+  end
+
+  subgraph core["Smart City core — NestJS"]
+    API["Pipeline API<br/>and event store"]
+    EV["Sensor events<br/>and run history"]
+    ROUTE["Adaptive core unit<br/>Manual / Auto routing"]
+    INF["model-inference<br/>TorchScript / HF"]
+    Q2["Stage export queue"]
+  end
+
+  subgraph lake["Medallion lake"]
+    BRZ["Bronze<br/>raw events"]
+    SLV["Silver<br/>validated streams"]
+    GLD["Gold<br/>ML-ready exports"]
+    ADP["Export adapters<br/>HF, Postgres, Mongo"]
+  end
+
+  subgraph opt["Optional demo"]
+    FED["federated-coordinator"]
+  end
+
+  SIM -->|"poll / push"| API
+  API --> EV
+  API --> ROUTE
+  ROUTE --> INF
+  API --> Q2
+  Q2 --> BRZ
+  BRZ --> SLV
+  SLV --> GLD
+  GLD --> ADP
+  API <-->|metadata| FED
+
+  classDef edgeStyle fill:#EEF2FF,stroke:#4338CA,stroke-width:2px
+  classDef coreStyle fill:#E8F4FC,stroke:#2563EB,stroke-width:2px
+  classDef lakeStyle fill:#F0FDF4,stroke:#16A34A,stroke-width:2px
+  classDef optStyle fill:#FFF7ED,stroke:#EA580C,stroke-width:2px
+  class SIM edgeStyle
+  class API,EV,ROUTE,INF,Q2 coreStyle
+  class BRZ,SLV,GLD,ADP lakeStyle
+  class FED optStyle

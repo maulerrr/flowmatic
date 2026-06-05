@@ -13,6 +13,26 @@ The methodology covers the \textbf{Flowmatic} preparation pipeline, the \textbf{
 
 The study follows a \textbf{design--build--evaluate} pattern common in software engineering theses~\cite{sculley2015hidden,kreutzberger2022mlops}. Artifacts are: (1)~the platform prototype; (2)~published neural checkpoints; (3)~evaluation tables binding RQ1--RQ4 to metrics. Internal validity comes from fixed seeds, held-out temporal test partitions, and scripted reproduction. External validity is limited by semi-synthetic Astana data and simulated streaming; threats are listed in Section~\ref{sec:discussion}.
 
+\section{Research Questions}
+\label{sec:research_questions}
+
+The evaluation programme in Chapter~\ref{chap:results} addresses the following research questions:
+\begin{description}
+  \item[RQ1:] Does the Flowmatic preparation workflow improve measurable data quality on corrupted urban traffic uploads (DQI before/after, rows dropped, latency)?
+  \item[RQ2:] Can preparation be operationalised as a reproducible batch service with reported end-to-end latency and quality scores on the Astana case study?
+  \item[RQ3:] How do deployed neural models perform against majority-class, logistic regression, random forest, naive, and seasonal baselines under a common temporal hold-out protocol?
+  \item[RQ4:] To what extent does rule-based Auto routing select scenario-aligned checkpoints on a labelled simulator corpus covering forecast, anomaly, classification, imputation, and weather profiles?
+\end{description}
+
+The research focuses on three connected aspects: whether data preparation improves measurable data quality, whether the prepared data can be operationalised through a reproducible platform workflow, and whether downstream model selection can be supported through a documented routing mechanism.
+
+\section{Evaluation Scope and Validity}
+\label{sec:evaluation_scope}
+
+Two validation layers must not be conflated. \emph{Batch platform validation} is demonstrated on the Astana CSV export through the Nest ingestion API (latency, quality score, cleaning). \emph{Neural training validation} uses Astana plus Hugging Face weather, ETT, and traffic-graph bundles prepared offline; those bundles are not all re-uploaded through the Nest API in this thesis. METR-LA and PEMS datasets are excluded from the evaluated dataset table (Table~\ref{tab:phase4_datasets}) because hold-out experiments were not completed for them in this study.
+
+Experiments use semi-synthetic Astana data derived from an NDA-protected source (Appendix~\ref{app:astana}; generator rules in the unpublished companion study~\cite{bakytuly2026architectural}, continuing the published microservices work~\cite{bakytuly2026microservices}) with rule-based severity labels. The smart-city demo uses simulated feeds. External municipal incident-label AUROC and expert-labelled routing accuracy remain future work; injected-window TranAD AUROC is reported in Chapter~\ref{chap:results}. Live agency deployment and probabilistic forecast scores (CRPS) remain future work.
+
 \section{Non-Functional Requirements}
 
 Operators require sub-second feedback on batch uploads (RQ2), authenticated multi-tenant organisation scoping, and export to both relational and object storage. Inference requires TorchScript latency compatible with smart-city polling (Section~\ref{sec:ablations}). Reproducibility requires versioned manifests: dataset hashes, scaler statistics, metrics JSON, and Hub repository identifiers referenced in Table~\ref{tab:production-portfolio}.

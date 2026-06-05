@@ -1,4 +1,4 @@
-% Flowmatic thesis table blocks
+% Flowmatic thesis tables — Chapter 4 (platform)
 
 \begin{table}[H]
   \centering
@@ -21,25 +21,26 @@
 
 \begin{table}[H]
   \centering
-  \caption{Comparison of classical baselines and Flowmatic neural checkpoints on Astana traffic data.}
-  \label{tab:classical-vs-neural}
+  \caption{Production neural portfolio registered in Flowmatic and published on Hugging Face (May 2026).}
+  \label{tab:production-portfolio}
   \small
-  \begin{tabular}{@{}llcc@{}}
+  \begin{tabular}{@{}llll@{}}
     \toprule
-    \textbf{Task} & \textbf{Model family} & \textbf{Metric} & \textbf{Score} \\
+    \textbf{Task slot} & \textbf{Architecture} & \textbf{Dataset} & \textbf{HF repository} \\
     \midrule
-    Event classification & Random Forest (thesis abstract) & Accuracy & 96.62\% \\
-    Event classification & XGBoost (thesis Ch.\,5) & Accuracy & 96.62\% \\
-    Event classification & Transformer severity (seed 7) & Accuracy & 99.09\% \\
-    Event classification & Transformer severity (seed 7) & Macro-F1 & 0.925 \\
-    Anomaly / reconstruction & Ensemble IF/LOF/OCSVM (thesis) & Anomaly rate & 3.92\% \\
-    Anomaly / reconstruction & TranAD (seed 42) & Test RMSE & 0.0308 \\
-    Forecasting & PatchTST density (seed 2026) & Test RMSE & 0.5593 \\
-    Imputation & SAITS (seed 2026) & Masked MSE & 0.6307 \\
-    Data quality index & Six-dimension DQI (thesis) & Composite & 0.957 \\
-    Upload QC (platform) & Automated pipeline summary & Score & 100/100 \\
+    Traffic density forecast & PatchTST & Astana & \texttt{flowmatic-astana-patchtst-density-forecaster} \\
+    Speed forecast & iTransformer & Astana & \texttt{flowmatic-astana-itransformer-speed-forecaster} \\
+    Anomaly reconstruction & TranAD & Astana & \texttt{flowmatic-astana-tranad-anomaly-detector} \\
+    Weather forecast & TimesBlock & HF weather & \texttt{flowmatic-weather-timesblock-forecaster} \\
+    Graph traffic forecast & STGCN & HF traffic & \texttt{flowmatic-traffic-stgcn-forecaster} \\
+    Imputation & SAITS & Astana & \texttt{flowmatic-astana-saits-imputer} \\
+    Severity classification & Transformer & Astana & \texttt{flowmatic-astana-transformer-severity-classifier} \\
+    Energy forecast & DLinear & HF ETT & \texttt{flowmatic-ett-dlinear-energy-forecaster} \\
     \bottomrule
   \end{tabular}
+  \vspace{0.4em}
+
+  \raggedright\footnotesize Namespace prefix: \texttt{pushthetempo/}. Served by \texttt{model-inference} via TorchScript or Hub download.
 \end{table}
 
 \begin{table}[H]
@@ -54,27 +55,8 @@
     Simulator endpoint & \texttt{sensor-simulator:8091} \\
     WebSocket status & Connected \\
     Recent events (UI buffer) & 25+ \\
-    Throughput (UI estimate) & 1.88\,GB/s \\
+    Poll interval (upload experiment) & 1.9\,s \\
     Federated coordinator & Disconnected (demo optional) \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{table}[H]
-  \centering
-  \caption{Manuscript versus implementation coverage (selected dimensions).}
-  \label{tab:gap-analysis}
-  \small
-  \begin{tabular}{@{}p{3.2cm}p{4.8cm}p{4.8cm}@{}}
-    \toprule
-    \textbf{Topic} & \textbf{Thesis PDF} & \textbf{Flowmatic codebase} \\
-    \midrule
-    Runtime & Python + scikit-learn & NestJS, Vue, Prisma, Docker \\
-    Streaming Fig.\,4.2 & Kafka topic graph & HTTP simulator + WebSocket + queues \\
-    Classifier & RF/XGBoost tabular & + Transformer neural checkpoints \\
-    Anomaly & IF/LOF/OCSVM ensemble & + TranAD neural reconstruction \\
-    Explainability & SHAP & LLM narrative summaries \\
-    Export & Conceptual & PostgreSQL, MongoDB, HF, files \\
     \bottomrule
   \end{tabular}
 \end{table}

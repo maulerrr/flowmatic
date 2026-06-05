@@ -1,0 +1,50 @@
+This is BibTeX, Version 0.99e (TeX Live 2026)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: memoirthesis.aux
+The style file: unsrt.bst
+Database file #1: thesisbiblio.bib
+Warning--can't use both volume and number fields in zeng2023transformers
+Warning--can't use both volume and number fields in wu2021graph
+Warning--can't use both volume and number fields in guo2019attention
+You've used 63 entries,
+            1791 wiz_defined-function locations,
+            790 strings with 16720 characters,
+and the built_in function-call counts, 19045 in all, are:
+= -- 1679
+> -- 936
+< -- 24
++ -- 334
+- -- 271
+* -- 1396
+:= -- 2850
+add.period$ -- 191
+call.type$ -- 63
+change.case$ -- 63
+chr.to.int$ -- 0
+cite$ -- 66
+duplicate$ -- 832
+empty$ -- 1788
+format.name$ -- 271
+if$ -- 4296
+int.to.chr$ -- 0
+int.to.str$ -- 63
+missing$ -- 64
+newline$ -- 318
+num.names$ -- 63
+pop$ -- 195
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 470
+stack$ -- 0
+substring$ -- 1555
+swap$ -- 281
+text.length$ -- 24
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 3
+while$ -- 187
+width$ -- 65
+write$ -- 696
+(There were 3 warnings)

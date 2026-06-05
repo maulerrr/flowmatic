@@ -1,0 +1,19 @@
+\begin{table}[H]
+  \centering
+  \caption{Archival classical experiment protocol (June 2025 memoir pilot; not shipped in Flowmatic).}
+  \label{tab:classical_protocol}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Item} & \textbf{Setting} \\
+    \midrule
+    Runtime & Offline Python (pandas, scikit-learn, XGBoost) \\
+    Data & Semi-synthetic Astana tabular export \\
+    Split & Stratified $k$-fold CV (manuscript; folds not re-exported) \\
+    Classifier & XGBoost vs.\ RF/SVM/LR/NN on prepared features \\
+    Anomaly ensemble & IF + LOF + OCSVM, fixed $\beta_k = 1/3$ \\
+    Artifact in repo & None (numbers cited from prior manuscript only) \\
+    Platform parity & Batch QC/cleaning only; no XGBoost training in Nest/HF \\
+    \bottomrule
+  \end{tabular}
+\end{table}

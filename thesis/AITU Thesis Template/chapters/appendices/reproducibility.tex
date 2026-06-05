@@ -7,16 +7,20 @@
 \section{Repository Commands}
 
 \begin{Verbatim}[fontsize=\small]
-# Phase 2 - datasets + production portfolio
+# Phase 2 - datasets + production portfolio bundles
 python models/paper/run_phase2_prep.py
 
 # Phase 3 - multi-seed tables + streaming + HF upload
 python models/paper/run_phase3_core.py
 
-# Full paper experiments (ablation + transfer)
+# Ablations and cross-dataset transfer
 python models/paper_experiments.py
 \end{Verbatim}
 
+\section{Published Checkpoints}
+
+Eight models are listed in \texttt{models/reports/huggingface\_model\_manifest.json} and Table~\ref{tab:production-portfolio}. Metrics aggregate in \texttt{models/paper/tables/multi\_seed\_aggregate.md}. Figures under \texttt{thesis/figures/results/} are regenerated via \texttt{scripts/render-thesis-figures.ps1}.
+
 \section{Model Objectives}
 
-The forecast, anomaly, imputation, and classification objectives used in Phase~3 are defined in Section~\ref{sec:neural_formulations}. Checkpoints and metrics reside under \texttt{models/checkpoints/}; Hugging Face repos are listed in \texttt{models/reports/huggingface\_model\_manifest.json}.
+Forecast, anomaly, imputation, and classification losses are defined in Section~\ref{sec:neural_formulations}. Local checkpoints reside under \texttt{models/checkpoints/}; Hub URLs use the \texttt{pushthetempo/flowmatic-*} namespace.

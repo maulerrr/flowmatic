@@ -845,7 +845,7 @@ SAITS masked MSE (reported) & {imp.get('saits_masked_mse_reported', 0.64):.3f} \
     {routing_rows} \\\\
     \\bottomrule
   \\end{{tabular}}
-  \\thesistablenote{{{r['top1_kind_accuracy']*100:.1f}\\% scenario-aligned policy consistency (not expert-labelled external accuracy); task-family accuracy: {r['task_slot_accuracy']*100:.1f}\\%.}}
+  \\thesistablenote{{{r['top1_kind_accuracy']*100:.1f}\\% scenario-aligned policy consistency; task-family accuracy: {r['task_slot_accuracy']*100:.1f}\\%.}}
 \\end{{table}}
 """,
         encoding="utf-8",

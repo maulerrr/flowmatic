@@ -1,0 +1,116 @@
+%
+% Chapter 3: Methodology
+%
+
+\chapter{Methodology}
+\label{chap:methodology}
+
+\section{Overview}
+
+The methodology covers the \textbf{Flowmatic} preparation pipeline, the \textbf{production model registry}, and the \textbf{neural evaluation protocol} used in Chapter~\ref{chap:results}. Batch upload and smart-city deployment modes are illustrated in Chapter~\ref{chap:implementation} (Figures~\ref{fig:batch-upload-pipeline} and~\ref{fig:smart-city-streaming}).
+
+\section{Research Design}
+
+The study follows a \textbf{design--build--evaluate} pattern common in software engineering theses~\cite{sculley2015hidden,kreutzberger2022mlops}. Artifacts are: (1)~the platform prototype; (2)~published neural checkpoints; (3)~evaluation tables binding RQ1--RQ4 to metrics. Internal validity comes from fixed seeds, held-out temporal test partitions, and scripted reproduction. External validity is limited by semi-synthetic Astana data and simulated streaming; threats are listed in Section~\ref{sec:discussion}.
+
+\section{Research Questions}
+\label{sec:research_questions}
+
+The evaluation programme in Chapter~\ref{chap:results} addresses the following research questions:
+\begin{description}
+  \item[RQ1:] Does the Flowmatic preparation workflow improve measurable data quality on corrupted urban traffic uploads (DQI before/after, rows dropped, latency)?
+  \item[RQ2:] Can preparation be operationalised as a reproducible batch service with reported end-to-end latency and quality scores on the Astana case study?
+  \item[RQ3:] How do deployed neural models perform against majority-class, logistic regression, random forest, naive, and seasonal baselines under a common temporal hold-out protocol?
+  \item[RQ4:] To what extent does rule-based Auto routing select scenario-aligned checkpoints on a labelled simulator corpus covering forecast, anomaly, classification, imputation, and weather profiles?
+\end{description}
+
+The research focuses on three connected aspects: whether data preparation improves measurable data quality, whether the prepared data can be operationalised through a reproducible platform workflow, and whether downstream model selection can be supported through a documented routing mechanism.
+
+\section{Evaluation Scope and Validity}
+\label{sec:evaluation_scope}
+
+Two validation layers must not be conflated. \emph{Batch platform validation} is demonstrated on the Astana CSV export through the Nest ingestion API (latency, quality score, cleaning). \emph{Neural training validation} uses Astana plus Hugging Face weather, ETT, and traffic-graph bundles prepared offline; those bundles are not all re-uploaded through the Nest API in this thesis. METR-LA and PEMS datasets are excluded from the evaluated dataset table (Table~\ref{tab:phase4_datasets}) because hold-out experiments were not completed for them in this study.
+
+Experiments use semi-synthetic Astana data derived from an NDA-protected source (Appendix~\ref{app:astana}; generator rules in the unpublished companion study~\cite{bakytuly2026architectural}, continuing the published microservices work~\cite{bakytuly2026microservices}) with rule-based severity labels. The smart-city demo uses simulated feeds. Municipal incident labels, live agency deployment, and probabilistic forecast scores (CRPS) remain future work; injected-window TranAD AUROC is reported in Chapter~\ref{chap:results}.
+
+\section{Non-Functional Requirements}
+
+Operators require sub-second feedback on batch uploads (RQ2), authenticated multi-tenant organisation scoping, and export to both relational and object storage. Inference requires TorchScript latency compatible with smart-city polling (Section~\ref{sec:ablations}). Reproducibility requires versioned manifests: dataset hashes, scaler statistics, metrics JSON, and Hub repository identifiers referenced in Table~\ref{tab:production-portfolio}.
+
+\section{Data Quality Assessment}
+
+Flowmatic computes a weighted Data Quality Index (DQI) for each upload and pipeline run:
+\begin{equation}
+\label{eq:dqi}
+\mathrm{DQI} = \frac{\sum_{i=1}^{6} w_i Q_i}{\sum_{i=1}^{6} w_i}, \quad Q_i \in [0,1],
+\end{equation}
+over completeness, consistency, accuracy, timeliness, uniqueness, and validity~\cite{wang1996beyond,pipino2002data,heinrich2007assessing}. Completeness follows $C = 1 - |M|/|D|$; timeliness uses exponential decay $T = \exp(-\lambda \bar{a})$. Table~\ref{tab:dqi_weights} lists default weights $w_i = 1/6$; Table~\ref{tab:dqi-sensitivity} in Chapter~\ref{chap:results} reports sensitivity of the composite score at 20\% corruption under alternative weightings. The batch quality module implements these dimensions through schema typing, duplicate detection, valid-range checks, and Z-score outlier flags.
+
+\input{table_dqi_weights}
+
+\section{Preparation and Feature Windows}
+
+After quality assessment, workers apply imputation for missing numeric fields, duplicate removal, and type coercion. For neural training and inference, each sensor stream is windowed into tensors $\mathbf{X} \in \mathbb{R}^{L \times d}$ with $L=48$ by default. Cyclical time encodings
+\begin{equation}
+f_{\sin}(t) = \sin(2\pi t/P), \quad f_{\cos}(t) = \cos(2\pi t/P)
+\end{equation}
+and traffic-derived channels (density, speed, severity labels) are materialised in Phase~2 dataset bundles. Graph models additionally receive adjacency $\mathbf{A}$ for STGCN.
+
+\section{Adaptive Core Unit and Model Registry}
+
+\subsection{Registry}
+
+Each production checkpoint $m$ exposes metadata: model kind (anomaly, classifier, forecaster variants), dataset affinity, tasks, sensor kinds, optional geographic requirement, and priority score. The registry loads from local metadata files and the Hugging Face manifest (Table~\ref{tab:production-portfolio}).
+
+\subsection{Routing policy}
+
+For sensor kind $k$ and payload features $\mathbf{f}$, the router builds an event profile (modality, preferred task, geo flag). In \textbf{Manual} mode the operator selects model $m^{*}$. In \textbf{Auto} mode:
+\begin{equation}
+m^{*} = \arg\min_{m \in \mathcal{M}_k} \pi(m \mid \mathbf{f}),
+\end{equation}
+where $\mathcal{M}_k$ filters incompatible modalities/tasks and $\pi$ is a priority score (lower is better). Anomaly-capable tasks receive precedence when anomaly detection is enabled.
+
+\begin{algorithm}[H]
+\caption{Rule-based model routing (Auto mode)}
+\label{alg:routing}
+\begin{algorithmic}[1]
+\State \textbf{Input:} sensor kind $k$, payload $\mathbf{f}$, registry $\mathcal{M}$, anomaly flag $a$
+\State $\mathit{profile} \gets \textsc{Classify}(k, \mathbf{f})$
+\If{$a$ \textbf{and} $\exists m \in \mathcal{M}$ with task anomaly matching $\mathit{profile}$}
+  \State \Return best-priority anomaly model (TranAD slot)
+\EndIf
+\State $\mathcal{C} \gets \{ m \in \mathcal{M} : \mathit{modality}(m)=\mathit{profile.modality} \land \mathit{task}(m)\supseteq \mathit{profile.task}\}$
+\State \Return $\arg\min_{m\in\mathcal{C}} \mathit{priority}(m)$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Neural Task Formulations}
+\label{sec:neural_formulations}
+
+\input{model_formulas}
+
+\section{Neural Evaluation Methodology}
+
+Seven primary checkpoints and one auxiliary iTransformer speed slot share temporal splitting (Table~\ref{tab:split_protocol} in Chapter~\ref{chap:results}), z-score standardisation fit on training windows only, and seed-controlled training. Objectives are defined in Section~\ref{sec:neural_formulations}. Reported metrics use only the held-out 15\% test partition; multi-seed aggregation is $\bar{m} \pm 1.96\,s/\sqrt{n}$ with $n=3$.
+
+\subsection{Baseline protocols}
+
+\textbf{Forecasting.} Naive last-value and seasonal naive predictors operate on raw Astana density series aligned to the same temporal test windows as neural models, but without z-score normalisation. Reported naive RMSE values therefore illustrate scale and difficulty; they are not subtracted from neural RMSE on normalised tensors.
+
+\textbf{Classification.} Majority-class, logistic regression, and random forest models are trained on the earliest 85\% of chronologically ordered Astana rows and evaluated on the latest 15\% test partition defined in Table~\ref{tab:split_protocol}---the same held-out temporal segment used for the Transformer severity checkpoint. Macro-F1 is the primary metric because classes are imbalanced~\cite{breiman2001random}.
+
+\textbf{Imputation.} Mean imputation on z-score normalised windows provides an analytic masked-MSE baseline of 1.0 (predicting zero for missing values); SAITS is compared against this reference in Table~\ref{tab:baselines-imputation}.
+
+\textbf{Anomaly.} TranAD is evaluated using reconstruction RMSE on held-out windows and AUROC against injected point anomalies (Table~\ref{tab:tranad-auroc}). External municipal incident labels and full LOF/Isolation Forest threshold-matched comparisons remain future work~\cite{breunig2000lof,liu2008isolation,pang2021deep}.
+
+\subsection{Preparation stress protocol}
+
+For RQ1, defects are injected into a 10\,000-row Astana sample at rates $\{0,1,5,10,20\}\%$. Composite DQI is computed before and after the same cleaning rules used in production (duplicate removal, invalid coordinate rejection, missing numeric handling). Rows dropped are counted explicitly to distinguish record repair from record deletion.
+
+\subsection{Routing evaluation protocol}
+
+For RQ4, 140 simulator events carry \emph{scenario-aligned} oracle checkpoint kinds: non-geolocated density forecast (PatchTST), geolocated graph forecast (STGCN), anomaly (TranAD), weather (TimesBlock), severity classification (Transformer), and sparse imputation (SAITS). The rule-based router in the production codebase is replayed offline. Generic-modality imputation checkpoints may serve traffic payloads when missingness exceeds the imputation threshold. Accuracy is the fraction of events for which the selected checkpoint kind equals the scenario oracle.
+
+\section{Insight Engine and Copilot}
+
+The Insight Engine composes deterministic analytics (hotspots, drift, correlation) with optional LLM narration constrained to retrieved pipeline context. Neural models provide primary diagnostics: reconstruction residuals (TranAD, Equation~\ref{eq:tranad_score}), imputation masks (SAITS), and classification logits (Transformer severity).

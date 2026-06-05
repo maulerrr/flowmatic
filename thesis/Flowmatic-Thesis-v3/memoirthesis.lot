@@ -1,0 +1,40 @@
+\babel@toc {english}{}\relax 
+\addvspace {10pt}
+\addvspace {10pt}
+\addvspace {10pt}
+\addvspace {10pt}
+\par \nobreak \textbf {{\scshape Table} \hfill Page}\par \nobreak 
+\addvspace {10pt}
+\addvspace {10pt}
+\contentsline {table}{\numberline {2.1}{\ignorespaces Related systems versus Flowmatic (high-level comparison).}}{9}{table.caption.12}%
+\addvspace {10pt}
+\contentsline {table}{\numberline {3.1}{\ignorespaces DQI dimension weights and score definitions (Flowmatic \texttt {QualityService}).}}{14}{table.caption.13}%
+\addvspace {10pt}
+\contentsline {table}{\numberline {4.1}{\ignorespaces End-to-end batch upload experiment on \texttt {astana\_synthetic\_data.csv} via Flowmatic production API (May 2026).}}{26}{table.caption.22}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Production neural portfolio registered in Flowmatic and published on Hugging Face (May 2026).}}{27}{table.caption.23}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Smart-city live demo pipeline (\emph {Astana Live Demo}) with simulated sensor sources.}}{27}{table.caption.24}%
+\addvspace {10pt}
+\contentsline {table}{\numberline {5.1}{\ignorespaces Scientific versus engineering contributions.}}{29}{table.caption.25}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Contribution matrix: claim, evidence artifact, and research question.}}{29}{table.caption.26}%
+\contentsline {table}{\numberline {5.3}{\ignorespaces Experimental datasets used in preparation and neural evaluation (May 2026). Neural training uses all four rows; Nest batch API validation in this thesis uses \textbf {astana} only.}}{30}{table.caption.27}%
+\contentsline {table}{\numberline {5.4}{\ignorespaces Temporal split protocol (all neural runs).}}{30}{table.caption.28}%
+\contentsline {table}{\numberline {5.5}{\ignorespaces Forecasting and reconstruction: held-out test RMSE (mean $\pm $ 95\% CI, $n{=}3$ seeds). Primary production portfolio only.}}{30}{table.caption.29}%
+\contentsline {table}{\numberline {5.6}{\ignorespaces Imputation and classification: held-out test metrics (mean $\pm $ 95\% CI).}}{30}{table.caption.30}%
+\contentsline {table}{\numberline {5.7}{\ignorespaces Sequence-length ablation (test RMSE).}}{31}{table.caption.31}%
+\contentsline {table}{\numberline {5.8}{\ignorespaces Cross-dataset transfer RMSE (zero-shot).}}{31}{table.caption.32}%
+\contentsline {table}{\numberline {5.9}{\ignorespaces Preparation stress test on Astana CSV (10\,000-row sample; DQI composite before/after Flowmatic-style cleaning).}}{32}{table.caption.33}%
+\contentsline {table}{\numberline {5.10}{\ignorespaces Auto routing evaluation on 140 synthetic sensor events (rule-based router; production registry).}}{32}{table.caption.34}%
+\contentsline {table}{\numberline {5.11}{\ignorespaces Composite DQI after cleaning at 20\% corruption under alternative dimension weights.}}{32}{table.caption.35}%
+\contentsline {table}{\numberline {5.12}{\ignorespaces Severity classification baselines on the held-out latest 15\% temporal test partition (Table~\ref {tab:split_protocol}).}}{34}{table.caption.36}%
+\contentsline {table}{\numberline {5.13}{\ignorespaces Forecasting baselines on Astana traffic density (latest 15\% temporal segment). Raw-scale rows are not comparable to z-score neural RMSE.}}{34}{table.caption.37}%
+\contentsline {table}{\numberline {5.14}{\ignorespaces Imputation baseline versus SAITS on z-score normalised Astana windows.}}{34}{table.caption.38}%
+\contentsline {table}{\numberline {5.15}{\ignorespaces Preparation ablation: PatchTST density forecast after 20\% corruption (prep-on restores corrupted cells from the pristine reference; temporal 70/15/15 split).}}{40}{table.caption.47}%
+\contentsline {table}{\numberline {5.16}{\ignorespaces TranAD anomaly detection on held-out Astana windows with injected point anomalies ($n=400$ windows).}}{40}{table.caption.48}%
+\contentsline {table}{\numberline {5.17}{\ignorespaces iTransformer speed modelling: level target vs.\ retuned first-difference target ($L=48$, multivariate inputs).}}{40}{table.caption.49}%
+\contentsline {table}{\numberline {5.18}{\ignorespaces Routing accuracy by simulator scenario profile (140 events).}}{41}{table.caption.50}%
+\contentsline {table}{\numberline {5.19}{\ignorespaces Research question closure.}}{43}{table.caption.51}%
+\addvspace {10pt}
+\addvspace {10pt}
+\addvspace {10pt}
+\addvspace {10pt}
+\contentsline {table}{\numberline {C.1}{\ignorespaces Astana CSV schema (30\,000 rows).}}{52}{table.caption.52}%

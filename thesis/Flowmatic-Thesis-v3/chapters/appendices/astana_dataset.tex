@@ -1,0 +1,61 @@
+\chapter{Astana Semi-Synthetic Dataset}
+\label{app:astana}
+
+\section{Provenance}
+
+The Astana export (\texttt{astana\_synthetic\_data.csv}, 30\,000 rows) is the primary case study for batch preparation (RQ1--RQ2) and Astana-facing neural slots (RQ3). It is \textbf{not} open municipal data.
+
+\textbf{NDA source.} The generator is calibrated on an urban traffic dataset provided under a \textbf{non-disclosure agreement (NDA)} to the research group. Raw records cannot be published or redistributed. The CSV in the Flowmatic repository is a \textbf{semi-synthetic derivative}: it preserves the real schema, field domains, and aggregate behaviour while replacing identifiable values so that thesis and platform experiments remain reproducible without breaching the NDA.
+
+\textbf{Generator specification.} The rules below reproduce the data-generation formulae from a companion manuscript (2026, \textbf{unpublished}, in preparation)~\cite{bakytuly2026architectural}, which continues the published Astana microservices study~\cite{bakytuly2026microservices}. The thesis does not rely on that manuscript for external verification: all equations and schema in this appendix are self-contained for reproducibility.
+
+\section{Schema}
+
+Table~\ref{tab:astana-schema} lists fields. Coordinates lie within the Astana envelope ($51.08$--$51.26$°N, $71.32$--$71.54$°E).
+
+\begin{table}[H]
+  \centering
+  \caption{Astana CSV schema (30\,000 rows).}
+  \label{tab:astana-schema}
+  \small
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    \textbf{Field} & \textbf{Type} & \textbf{Domain} & \textbf{Role} \\
+    \midrule
+    Event\_ID & string & unique & Uniqueness \\
+    Timestamp & datetime & UTC-like & Timeliness \\
+    Vehicle\_Type & categorical & Car, Truck, \ldots & Consistency \\
+    Speed\_kmh & numeric & 0--120 & Forecast / validity \\
+    Latitude, Longitude & numeric & Astana bbox & Geo routing \\
+    Event\_Type & categorical & Normal, Congestion, \ldots & Analytics \\
+    Severity & categorical & Low--Critical & Classification label \\
+    Traffic\_Density & numeric & vehicles/km/lane & Forecast target \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Generation rules (summary)}
+
+Fixed parameters: $N = 30\,000$; rush-hour mixture $\alpha_{\mathrm{rush}} = 0.3$; speed bounds $v_{\min}, v_{\max}$ mapped to \texttt{Speed\_kmh}; vehicle-type probabilities $\mathbf{p}_{\mathrm{type}}$ with $\sum p = 1$.
+
+\textbf{Time.} Fractional day position
+\begin{equation}
+  t_{\mathrm{frac}} = \frac{h \cdot 3600 + m \cdot 60 + s}{86400}
+\end{equation}
+is drawn from a peak-biased mixture (weight $\alpha_{\mathrm{rush}}$ on $\mathcal{N}(\mu_{\mathrm{peak}}, \sigma_{\mathrm{peak}})$, otherwise $\mathcal{U}(0,1)$), producing rush-hour elevation in hourly counts.
+
+\textbf{Space.} $(\mathrm{lat}_i, \mathrm{lon}_i)$ are sampled inside the Astana bounding box (road-network sampling in the full specification; the export uses uniform draws inside the bbox subject to Flowmatic validity checks).
+
+\textbf{Density and speed.} $v_i \sim \mathcal{U}(v_{\min}, v_{\max})$; traffic density
+\begin{equation}
+  \rho_i = \rho_0 + A \sin(2\pi t_{\mathrm{frac},i}) + \Delta_{\mathrm{type}(i)}
+\end{equation}
+with baseline $\rho_0$, diurnal amplitude $A$, and event-type offset $\Delta_{\mathrm{type}(i)}$. Event types are categorical draws with higher congestion and accident rates in peak bands.
+
+\textbf{Severity.} $s_i$ is assigned by rule from $(\rho_i, v_i, \text{event type})$, not from confirmed incident reports (approx.\ 91\% Low, 7\% High, 2\% Medium in the export). Classifiers measure recoverable structure in the synthetic label, not field-verified injury severity.
+
+\textbf{Preparation stress only.} Table~\ref{tab:prep-stress} injects defects offline on a 10\,000-row subsample (missing values, invalid coordinates, duplicates, stale timestamps at 0--20\%); the pristine 30\,000-row export is unchanged.
+
+\section{Other datasets}
+
+Weather, ETT, and traffic-graph bundles are prepared separately (Appendix~\ref{app:repro}). Only Astana is uploaded through the Nest batch API in the platform validation layer of this thesis.

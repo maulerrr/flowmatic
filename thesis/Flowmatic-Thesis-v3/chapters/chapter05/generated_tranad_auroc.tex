@@ -1,0 +1,14 @@
+\begin{table}[H]
+  \centering
+  \caption{TranAD anomaly detection on held-out Astana windows with injected point anomalies ($n=400$ windows).}
+  \label{tab:tranad-auroc}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    Method & AUROC / AUPRC \\
+    \midrule
+    TranAD (reconstruction MSE score) & 0.841 / 0.843 \\
+    LOF baseline (flattened window) & 0.661 / --- \\
+    \bottomrule
+  \end{tabular}
+  \thesistablenote{Labels: random multiplicative spikes on 35\% of evaluation windows; model trained on uncorrupted temporal splits (6 epochs).}
+\end{table}

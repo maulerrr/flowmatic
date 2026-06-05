@@ -1,0 +1,112 @@
+%
+% Chapter 2 — Literature Review (expanded)
+%
+\chapter{Literature Review}
+\label{chap:literature}
+\setlength{\parskip}{0.8em}
+
+\section{Scope and Organisation}
+
+This chapter positions Flowmatic against four research streams: (i)~data quality and automated preparation; (ii)~urban ITS platforms, streaming, and digital-twin deployments; (iii)~classical and neural time-series methods for traffic analytics; and (iv)~MLOps registries and reproducible model lifecycles. The goal is not to catalogue every related paper but to show where prior work stops short of an \emph{auditable preparation-to-inference workflow} with measured baselines, routing behaviour, and published checkpoints---the gap this thesis addresses at master's level.
+
+\section{Data Quality and Fitness for Use}
+
+Early information-systems research defines data quality as fitness for use rather than abstract correctness~\cite{wang1996beyond,pipino2002data}. Rahm and Do~\cite{rahm2000data} classify cleaning problems (missing values, duplicates, inconsistencies) that appear routinely in transportation exports. Heinrich et al.~\cite{heinrich2007assessing} show that composite indices help operational teams prioritise dimensions when weights remain application dependent.
+
+Flowmatic adopts six dimensions---completeness, consistency, accuracy, timeliness, uniqueness, and validity---with equal default weights. This follows composite-index practice but does \emph{not} claim a new quality theory; the contribution is operational measurement tied to automated remediation and reported latency on urban traffic uploads.
+
+\section{Automated Preprocessing and AutoML Pipelines}
+
+Manual notebook pipelines are difficult to audit when analysts or models change~\cite{sculley2015hidden}. Automated preprocessing adapts operations to schema and downstream tasks~\cite{liu2022automated,sharma2022scenario}. AutoML systems such as auto-sklearn integrate hyperparameter search with preprocessing~\cite{feurer2015autosklearn,feurer2019auto,kumar2021automl}. Mahasivam et al.~\cite{mahasivam2017dataprep} describe preparation-as-a-service back-ends for scalable ingestion.
+
+These systems optimise model accuracy on static tables. They rarely expose six-dimensional diagnostics to transportation operators, connect preparation scores to streaming smart-city pipelines, or publish TorchScript checkpoints with routing metadata. Flowmatic therefore complements AutoML research with an ITS-facing batch and streaming prototype rather than competing on search efficiency.
+
+\section{Missing Data, Imputation, and Traffic Streams}
+
+Traffic streams are spatially distributed and time ordered~\cite{tang2024missing,chan2023missing}. Variational and deep imputation models exploit temporal structure~\cite{boquet2020vae}. SAITS-style masked reconstruction is widely used for multivariate gaps~\cite{chan2023missing}. Flowmatic deploys SAITS within its production portfolio and reports masked MSE on held-out windows (Chapter~\ref{chap:results}), separate from batch DQI cleaning.
+
+\section{Feature Engineering and Spatiotemporal Representation}
+
+Hand-crafted cyclical time features, rolling statistics, and graph adjacency remain standard precursors to deep traffic models~\cite{cai2022feature,luo2024spatiotemporal,wu2021graph,mu2024spatiotemporal}. Graph convolutional and adaptive embedding Transformers improve forecasting on road networks~\cite{yu2018stgcn,guo2019attention,liu2023transformer,yan2021dynamic,wang2023adaptive}. Flowmatic materialises windowed tensors and adjacency for STGCN while keeping schema-level features auditable in batch uploads.
+
+\section{Forecasting Baselines and Neural Architectures}
+
+Classical forecasting---ARIMA/Box--Jenkins~\cite{box2015time}, exponential smoothing, and Prophet-style decompositions~\cite{taylor2018forecasting,hyndman2021forecasting}---remains the reference line for transportation agencies. Neural surveys emphasise that Transformers are not uniformly superior; linear decompositions can match or beat attention on many benchmarks~\cite{zeng2023transformers,benidis2022neural}. Patch-based Transformers~\cite{nie2023patchtst}, Informer-style long-sequence models~\cite{zhou2021informer}, and LSTM baselines~\cite{hochreiter1997lstm} motivate the deployed portfolio. Attention foundations~\cite{vaswani2017attention} underpin the severity classifier.
+
+The thesis reports naive last-value and seasonal naive RMSE on raw density, plus logistic regression and majority-class predictors for severity, on identical temporal splits. Neural scores are computed on z-score normalised windows; the baselines clarify scale and task difficulty rather than claiming leaderboard parity with published PatchTST results on ETT, which rely on different splits~\cite{nie2023patchtst}.
+
+\section{Anomaly Detection: Classical and Deep}
+
+Surveys distinguish point, contextual, and collective anomalies~\cite{chandola2009anomaly}. Classical methods include LOF~\cite{breunig2000lof} and Isolation Forest~\cite{liu2008isolation}. Deep reviews cover reconstruction and generative approaches~\cite{pang2021deep,ding2024variational,kim2024autoencoder,xu2021anomaly}. Urban traffic management increasingly couples real-time anomaly screening with load balancing~\cite{laanaoui2024realtime,wang2023federatedtrajectory}.
+
+Flowmatic deploys TranAD-style reconstruction on Astana windows. The thesis reports reconstruction RMSE and injected-window AUROC on held-out splits; municipal incident labels are out of scope, so reconstruction quality is not conflated with field-verified detection performance.
+
+\section{Classification and Tree Ensembles}
+
+Severity and incident typing historically relied on tree ensembles and SVMs~\cite{breiman2001random,cortes1995svm,chen2016xgboost}. The Transformer classifier slot provides a neural upper bound under class imbalance (Low 91\%, High 7\%, Medium 2\% in the Astana export). Comparing against majority-class, logistic regression, and random forest baselines contextualises classifier performance on the \emph{same} held-out temporal test partition.
+
+\section{Intelligent Transportation Systems and Event-Driven Platforms}
+
+Smart-city architectures combine sensing, edge processing, and analytics~\cite{zanella2014iot,its_bigdata2018}. Event-driven middleware supports publish/subscribe ITS pipelines~\cite{event_driven2025,kreps2011kafka}. Digital-twin surveys describe city-scale coupling of simulation and live feeds~\cite{mazzetto2024urban}. Diffusion and graph recurrent models remain influential traffic forecasters~\cite{li2018diffusion,guo2019attention}.
+
+Flowmatic uses HTTP/WebSocket ingestion, queue workers, and a dedicated inference microservice---aligned with ITS practice but implemented as a research prototype, not a certified safety-critical deployment.
+
+\section{Explainability and Operator Trust}
+
+Transportation agencies require traceable diagnostics~\cite{lundberg2017unified,lundberg2020local,lipton2018mythos,ribeiro2016should}. Flowmatic emphasises deterministic Insight Engine metrics and neural residuals; optional large-language-model narration is constrained to pipeline context and is not formally evaluated.
+
+\section{MLOps, Registries, and Reproducibility}
+
+MLflow~\cite{zaharia2018accelerating} and MLOps guidance~\cite{kreutzberger2022mlops} standardise experiment tracking and model registry patterns. Hugging Face tooling democratises dataset and model publication~\cite{wolf2020transformers}. Flowmatic adapts registry ideas with per-checkpoint metadata (modality, task, geo requirement, priority) and public Hub weights; the scientific claim is the \textbf{linked evaluation protocol}, not a new registry standard.
+
+\section{Comparative Positioning}
+
+Table~\ref{tab:related-systems} contrasts adjacent systems. Notebook ETL and AutoML optimise static tables; MLflow-centric stacks rarely integrate six-dimensional QC with live routing demos. None of the listed alternatives jointly report preparation stress tests, routing accuracy, and multi-task neural artifacts under one reproducible script bundle in this thesis.
+
+\begin{table}[H]
+  \centering
+  \caption{Related systems versus Flowmatic (high-level comparison).}
+  \label{tab:related-systems}
+  \footnotesize
+  \begin{tabular}{@{}p{2.6cm}ccccp{2.4cm}@{}}
+    \toprule
+    \textbf{System class} & \textbf{Prep QC} & \textbf{Streaming} & \textbf{Registry} & \textbf{Multi-task eval} & \textbf{Gap vs.\ Flowmatic} \\
+    \midrule
+    Notebook / pandas ETL & Ad hoc & Rare & No & Ad hoc & No unified routing or Hub publish \\
+    Auto-sklearn / AutoML & Yes & No & Partial & CV only & No ITS streaming or DQI dashboard \\
+    MLflow + microservices & Partial & Yes & Yes & Per model & No six-D QC + routing pilot in one study \\
+    Digital-twin platforms & Simulation & Yes & Varies & Scenario-based & Rarely publish neural prep baselines \\
+    \textbf{Flowmatic (this thesis)} & Yes (6-D) & Yes (demo) & Yes & Yes (8 slots) & Closes prep--route--eval loop \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Research Gap and Thesis Positioning}
+
+Earlier publications by the author and collaborators addressed passenger-flow hybrids, preparation automation, and event-driven traffic microservices~\cite{bakytuly2024hybrid,yedilkhan2025flowmatic,bakytuly2025adaptive,bakytuly2026microservices}.
+
+\subsection{Comparable systems}
+
+\textbf{auto-sklearn}~\cite{feurer2015autosklearn,feurer2019auto} optimises preprocessing and model choice inside cross-validation on static tables. It reports accuracy and runtime but not six-dimensional QC traces tied to transportation uploads, streaming smart-city routing, or published TorchScript checkpoints with per-task metrics on identical temporal splits.
+
+\textbf{Flowmatic (prior platform paper)}~\cite{yedilkhan2025flowmatic} documents preparation automation and a neural portfolio but does not, in that venue, report corruption stress tests with before/after DQI, sklearn baselines on the same held-out tail, or routing accuracy on labelled simulator events. This thesis closes that measurement gap while reusing the same engineering stack.
+
+Prior work in the wider literature rarely connects three measurable layers in one master's study: (i)~controlled preparation on corrupted traffic uploads with before/after DQI; (ii)~downstream neural evaluation with simple baselines on identical temporal splits; and (iii)~quantified routing over a modality-aware registry. Flowmatic targets that integration gap. It does \textbf{not} claim a new learning algorithm; the scientific contribution is the \textbf{evaluation protocol and honest scope boundaries} (semi-synthetic Astana, batch API validation on one CSV family, neural multi-dataset training without claiming each dataset was uploaded through Nest).
+
+\section{Automated Machine Learning and Pipeline Search}
+
+Auto-sklearn and related systems treat preprocessing as a search problem inside cross-validation~\cite{feurer2015autosklearn,feurer2019auto,kumar2021automl}. Hyperparameter optimisation surveys document the cost of nested model selection~\cite{feurer2019auto}. For transportation agencies, the limiting factor is often not AUC on a static table but \textbf{traceability}: which rows were dropped, which rules fired, and whether the same pipeline can be replayed after an analyst change. Flowmatic therefore emphasises logged DQI dimensions and export manifests rather than claiming superior AutoML search.
+
+\section{Traffic Forecasting Surveys and Graph Models}
+
+Diffusion convolutional recurrent networks~\cite{li2018diffusion} and attention graph models~\cite{guo2019attention} remain influential baselines in traffic forecasting competitions. Recent surveys catalogue missing-data imputation and deep forecasting hybrids~\cite{tang2024missing,benidis2022neural}. Adaptive spatiotemporal Inception-style networks~\cite{wang2023adaptive} and transformer embeddings for traffic~\cite{liu2023transformer,yan2021dynamic} illustrate rapid architectural churn. This thesis does not reproduce every leaderboard configuration; instead it trains a fixed portfolio under one temporal split to enable fair comparison across slots.
+
+\section{Digital Twins and Smart-City Operations}
+
+Digital-twin frameworks couple simulation, live feeds, and decision support~\cite{mazzetto2024urban}. They rarely publish both preparation QC under corruption and neural routing pilots in the same study. Flowmatic's smart-city module is a \textbf{research demonstrator}: simulated HTTP sensors, WebSocket UI updates, and medallion exports illustrate operational shape without claiming municipal certification.
+
+\section{Synthesis: Where Flowmatic Sits}
+
+Conceptually, prior systems form three clusters: disconnected notebooks; MLflow-style tracking without ITS QC; and Flowmatic's closed loop from upload $\rightarrow$ DQI $\rightarrow$ registry $\rightarrow$ inference $\rightarrow$ published metrics. The gap is \textbf{measurement linkage}, not a single new layer type.
+
+Chapter~\ref{chap:methodology} formalises DQI, routing, and metrics. Chapter~\ref{chap:results} reports experiments and discussion. Appendix~\ref{app:astana} documents dataset construction.
