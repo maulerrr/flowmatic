@@ -13,7 +13,7 @@ This chapter answers the research questions in Section~\ref{sec:research_questio
   \item \textbf{Preparation and quality (RQ1)} --- DQI before/after under controlled corruptions; clean-upload ceiling effect.
   \item \textbf{Platform validation (RQ2)} --- reproducible batch latency on Astana; smart-city workbench demonstration.
   \item \textbf{Neural portfolio (RQ3)} --- seven primary checkpoints (plus auxiliary iTransformer speed slot) with multi-seed test metrics, simple baselines, ablations, and streaming latency.
-  \item \textbf{Routing (RQ4)} --- rule-based Auto router on 140 labelled simulator events.
+  \item \textbf{Routing (RQ4)} --- rule-based Auto router policy conformance on 140 labelled simulator events.
 \end{enumerate}
 
 \textbf{Scope of evidence.} Batch API experiments reported in this chapter use the Astana CSV export only. Neural training and held-out evaluation additionally use the Hugging Face weather, ETT, and traffic-graph bundles. Routing evaluation uses labelled simulator payloads. Neural metrics in Tables~\ref{tab:multiseed-forecast}--\ref{tab:multiseed-other} are computed on z-score normalised windows unless stated otherwise.
@@ -169,7 +169,7 @@ Figures~\ref{fig:streaming-latency} and~\ref{fig:streaming-throughput} benchmark
 \section{Routing Evaluation (RQ4)}
 \label{sec:routing_results}
 
-On 140 simulator events spanning seven modality--task profiles, Auto routing achieves 100\% \textbf{scenario-aligned policy consistency} with checkpoint oracles (Table~\ref{tab:routing-eval}; per-profile breakdown in Table~\ref{tab:routing-mismatch}). Generic-modality imputation checkpoints are eligible for traffic payloads with high missingness. The evaluation tests agreement under documented routing rules and scenario labels co-designed with those rules. These results support \textbf{RQ4} for operator-assisted prototype deployment.
+On 140 simulator events spanning seven modality--task profiles, Auto routing achieves 100\% \textbf{scenario-aligned policy conformance} with checkpoint oracles (Table~\ref{tab:routing-eval}; per-profile breakdown in Table~\ref{tab:routing-mismatch}). Generic-modality imputation checkpoints are eligible for traffic payloads with high missingness. The evaluation tests agreement under documented routing rules and scenario labels co-designed with those rules; it should be read as implementation verification, not independent expert-labelled routing accuracy. These results support \textbf{RQ4} for operator-assisted prototype deployment.
 
 \input{generated_routing_mismatch.tex}
 
@@ -186,7 +186,7 @@ PatchTST attains the lowest Astana density RMSE among primary forecasters (0.561
 
 \subsection{Interpretation of routing results}
 
-Routing reaches 100\% scenario-aligned policy consistency on the simulator corpus (Table~\ref{tab:routing-mismatch}): the registry selects the intended checkpoint kind for every profile under the documented oracle definition~\cite{bakytuly2026microservices}.
+Routing reaches 100\% scenario-aligned policy conformance on the simulator corpus (Table~\ref{tab:routing-mismatch}): the registry selects the intended checkpoint kind for every profile under the documented oracle definition~\cite{bakytuly2026microservices}. Since the oracle definition is co-designed with the routing policy, this is evidence of rule implementation consistency rather than autonomous model-selection generalisation.
 
 \subsection{Scope of validation and interpretation of metrics}
 
@@ -220,7 +220,7 @@ Table~\ref{tab:rq-closure} consolidates the answers to RQ1--RQ4 in light of the 
     RQ1 & Supported under corruption; clean file shows ceiling effect \\
     RQ2 & Supported on Astana batch latency + streaming demo \\
     RQ3 & Supported vs.\ simple baselines; iTransformer slot weak; metrics per task \\
-    RQ4 & Supported: 100\% scenario-aligned policy consistency (140 events) \\
+    RQ4 & Supported as policy conformance: 100\% agreement with scenario oracles co-designed with the routing policy (140 events) \\
     \bottomrule
   \end{tabular}
 \end{table}

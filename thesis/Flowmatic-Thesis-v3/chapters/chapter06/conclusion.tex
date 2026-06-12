@@ -7,9 +7,9 @@
 
 \section{Summary of Contributions}
 
-This dissertation presents \textbf{Flowmatic}, an intelligent preparation and inference platform for urban transportation data. The work integrates six-dimensional quality assessment, containerised batch and smart-city pipelines, seven primary neural checkpoints with published Hugging Face weights (plus an auxiliary iTransformer speed slot), and rule-based Auto routing evaluated on labelled simulator events.
+This dissertation presents \textbf{Flowmatic}, an intelligent preparation and inference platform for urban transportation data. The work integrates six-dimensional quality assessment, containerised batch and smart-city pipelines, seven primary neural checkpoints with published Hugging Face weights (plus an auxiliary iTransformer speed slot), and rule-based Auto routing evaluated for policy conformance on labelled simulator events.
 
-The scientific contribution is an auditable \textbf{preparation-to-inference evaluation protocol}: corruption stress tests for RQ1, measured batch latency for RQ2, per-task neural metrics with simple baselines for RQ3, and routing accuracy with documented geo-policy effects for RQ4. The engineering contribution is the operational prototype demonstrated through architecture figures, interface screenshots, and reproduction appendices.
+The scientific contribution is an auditable \textbf{preparation-to-inference evaluation protocol}: corruption stress tests for RQ1, measured batch latency for RQ2, per-task neural metrics with simple baselines for RQ3, and routing policy-conformance checks with documented geo-policy effects for RQ4. The engineering contribution is the operational prototype demonstrated through architecture figures, interface screenshots, and reproduction appendices.
 
 \section{Key Findings by Research Question}
 
@@ -19,7 +19,7 @@ The scientific contribution is an auditable \textbf{preparation-to-inference eva
 
 \textbf{RQ3 (neural portfolio and baselines).} The Transformer severity model reaches macro-F1 $= 0.911 \pm 0.017$, above sklearn baselines on the held-out test partition; the result reflects rule-based labels in the export. SAITS improves over an analytic mean-imputation baseline (Table~\ref{tab:baselines-imputation}). TranAD reports reconstruction RMSE $0.035 \pm 0.004$ and AUROC $0.84$ on injected anomalies (Table~\ref{tab:tranad-auroc}). Preparation improves PatchTST density RMSE under corruption (Table~\ref{tab:prep-ablation}). The level-speed iTransformer slot remains weak; a first-difference retune is documented in Table~\ref{tab:itransformer-retrain}.
 
-\textbf{RQ4 (routing).} Auto routing achieves 100\% scenario-aligned policy consistency on 140 simulator events.
+\textbf{RQ4 (routing).} Auto routing achieves 100\% scenario-aligned policy conformance on 140 simulator events whose oracles are co-designed with the documented routing policy. This verifies implementation consistency for the prototype rather than independent expert-labelled routing accuracy.
 
 \section{Limitations}
 

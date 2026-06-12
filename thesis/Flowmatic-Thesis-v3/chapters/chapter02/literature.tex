@@ -61,7 +61,7 @@ MLflow~\cite{zaharia2018accelerating} and MLOps guidance~\cite{kreutzberger2022m
 
 \section{Comparative Positioning}
 
-Table~\ref{tab:related-systems} contrasts adjacent systems. Notebook ETL and AutoML optimise static tables; MLflow-centric stacks rarely integrate six-dimensional QC with live routing demos. None of the listed alternatives jointly report preparation stress tests, routing accuracy, and multi-task neural artifacts under one reproducible script bundle in this thesis.
+Table~\ref{tab:related-systems} contrasts adjacent systems. Notebook ETL and AutoML optimise static tables; MLflow-centric stacks rarely integrate six-dimensional QC with live routing demos. None of the listed alternatives jointly report preparation stress tests, routing policy-conformance checks, and multi-task neural artifacts under one reproducible script bundle in this thesis.
 
 \begin{table}[H]
   \centering
@@ -89,7 +89,7 @@ Earlier publications by the author and collaborators addressed passenger-flow hy
 
 \textbf{auto-sklearn}~\cite{feurer2015autosklearn,feurer2019auto} optimises preprocessing and model choice inside cross-validation on static tables. It reports accuracy and runtime but not six-dimensional QC traces tied to transportation uploads, streaming smart-city routing, or published TorchScript checkpoints with per-task metrics on identical temporal splits.
 
-\textbf{Flowmatic (prior platform paper)}~\cite{yedilkhan2025flowmatic} documents preparation automation and a neural portfolio but does not, in that venue, report corruption stress tests with before/after DQI, sklearn baselines on the same held-out tail, or routing accuracy on labelled simulator events. This thesis closes that measurement gap while reusing the same engineering stack.
+\textbf{Flowmatic (prior platform paper)}~\cite{yedilkhan2025flowmatic} documents preparation automation and a neural portfolio but does not, in that venue, report corruption stress tests with before/after DQI, sklearn baselines on the same held-out tail, or routing policy conformance on labelled simulator events. This thesis closes that measurement gap while reusing the same engineering stack.
 
 Prior work in the wider literature rarely connects three measurable layers in one master's study: (i)~controlled preparation on corrupted traffic uploads with before/after DQI; (ii)~downstream neural evaluation with simple baselines on identical temporal splits; and (iii)~quantified routing over a modality-aware registry. Flowmatic targets that integration gap. It does \textbf{not} claim a new learning algorithm; the scientific contribution is the \textbf{evaluation protocol and honest scope boundaries} (semi-synthetic Astana, batch API validation on one CSV family, neural multi-dataset training without claiming each dataset was uploaded through Nest).
 

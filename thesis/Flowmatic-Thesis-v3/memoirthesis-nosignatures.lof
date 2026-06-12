@@ -1,0 +1,29 @@
+\babel@toc {english}{}\relax 
+\addvspace {10pt}
+\addvspace {10pt}
+\par \nobreak \textbf {{\scshape Figure} \hfill Page}\par \nobreak 
+\addvspace {10pt}
+\addvspace {10pt}
+\addvspace {10pt}
+\addvspace {10pt}
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Batch upload pipeline (NestJS + Vue).}}{21}{figure.caption.10}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Smart-city pipeline with adaptive core unit and medallion lake.}}{21}{figure.caption.11}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Docker Compose deployment topology.}}{22}{figure.caption.12}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Medallion data lake layout (bronze, silver, gold).}}{23}{figure.caption.13}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Flowmatic login interface.}}{24}{figure.caption.14}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Astana Geospatial Demo workbench with simulated traffic and weather sources.}}{25}{figure.caption.15}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Adaptive core unit configuration with Manual/Auto routing and Hugging Face model catalogue.}}{25}{figure.caption.16}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Workflow graph for the Astana geospatial simulator pipeline.}}{26}{figure.caption.17}%
+\addvspace {10pt}
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Forecasting and reconstruction leaderboard (test RMSE).}}{35}{figure.caption.35}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Multi-seed test RMSE dispersion for production portfolio models.}}{36}{figure.caption.36}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Sequence-length ablation ($L=24$ vs $L=96$).}}{36}{figure.caption.37}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Cross-dataset transfer (train source $\rightarrow $ test target).}}{37}{figure.caption.38}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Streaming inference latency vs batch size (TorchScript, GPU).}}{37}{figure.caption.39}%
+\contentsline {figure}{\numberline {5.6}{\ignorespaces Streaming throughput (events/s) for production checkpoints.}}{38}{figure.caption.40}%
+\contentsline {figure}{\numberline {5.7}{\ignorespaces Validation loss curves during neural model training (representative runs).}}{38}{figure.caption.41}%
+\contentsline {figure}{\numberline {5.8}{\ignorespaces Severity classifier macro-F1 across Transformer training runs (seeds). Reference baselines appear in Table~\ref {tab:baselines-class}.}}{39}{figure.caption.42}%
+\addvspace {10pt}
+\addvspace {10pt}
+\addvspace {10pt}
+\addvspace {10pt}

@@ -21,7 +21,7 @@ The evaluation programme in Chapter~\ref{chap:results} addresses the following r
   \item[RQ1:] Does the Flowmatic preparation workflow improve measurable data quality on corrupted urban traffic uploads (DQI before/after, rows dropped, latency)?
   \item[RQ2:] Can preparation be operationalised as a reproducible batch service with reported end-to-end latency and quality scores on the Astana case study?
   \item[RQ3:] How do deployed neural models perform against majority-class, logistic regression, random forest, naive, and seasonal baselines under a common temporal hold-out protocol?
-  \item[RQ4:] To what extent does rule-based Auto routing select scenario-aligned checkpoints on a labelled simulator corpus covering forecast, anomaly, classification, imputation, and weather profiles?
+  \item[RQ4:] To what extent does rule-based Auto routing conform to documented scenario policies on a labelled simulator corpus covering forecast, anomaly, classification, imputation, and weather profiles?
 \end{description}
 
 The research focuses on three connected aspects: whether data preparation improves measurable data quality, whether the prepared data can be operationalised through a reproducible platform workflow, and whether downstream model selection can be supported through a documented routing mechanism.
@@ -109,7 +109,7 @@ For RQ1, defects are injected into a 10\,000-row Astana sample at rates $\{0,1,5
 
 \subsection{Routing evaluation protocol}
 
-For RQ4, 140 simulator events carry \emph{scenario-aligned} oracle checkpoint kinds: non-geolocated density forecast (PatchTST), geolocated graph forecast (STGCN), anomaly (TranAD), weather (TimesBlock), severity classification (Transformer), and sparse imputation (SAITS). The rule-based router in the production codebase is replayed offline. Generic-modality imputation checkpoints may serve traffic payloads when missingness exceeds the imputation threshold. Accuracy is the fraction of events for which the selected checkpoint kind equals the scenario oracle.
+For RQ4, 140 simulator events carry \emph{scenario-aligned} oracle checkpoint kinds: non-geolocated density forecast (PatchTST), geolocated graph forecast (STGCN), anomaly (TranAD), weather (TimesBlock), severity classification (Transformer), and sparse imputation (SAITS). The rule-based router in the production codebase is replayed offline. Generic-modality imputation checkpoints may serve traffic payloads when missingness exceeds the imputation threshold. Policy conformance is the fraction of events for which the selected checkpoint kind equals the scenario oracle; because these oracles are aligned with the documented routing policy, the metric verifies implementation consistency rather than independent routing generalisation.
 
 \section{Insight Engine and Copilot}
 

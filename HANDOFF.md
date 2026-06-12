@@ -1,5 +1,7 @@
 # Flowmatic Agent Handoff
 
+> Current continuation note: read `CURRENT_STATE_HANDOFF.md` first. This older handoff is historical context from the May 2026 thesis/platform pass.
+
 **Date:** 2026-05-27  
 **Repository:** [github.com/maulerrr/flowmatic](https://github.com/maulerrr/flowmatic)  
 **Branch:** `main`  

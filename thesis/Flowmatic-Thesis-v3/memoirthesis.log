@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.31)  5 JUN 2026 12:30
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.31)  12 JUN 2026 06:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -6,6 +6,7 @@ entering extended mode
 (./memoirthesis.tex
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-05-26>
+(./thesis-preamble.tex
 (/usr/local/texlive/2026/texmf-dist/tex/latex/memoir/memoir.cls
 Document Class: memoir 2025/11/04 v3.8.4b configurable book, report, article do
 cument class
@@ -1046,37 +1047,37 @@ Package caption Info: New subtype `subtable' on input line 238.
 \c@lema=\count473
 \c@cor=\count474
 \c@resu=\count475
-
+)
 (./memoirthesis.aux)
 \openout1 = `memoirthesis.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 111.
-LaTeX Font Info:    ... okay on input line 111.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 111.
-LaTeX Font Info:    ... okay on input line 111.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 111.
-LaTeX Font Info:    ... okay on input line 111.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 111.
-LaTeX Font Info:    ... okay on input line 111.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 111.
-LaTeX Font Info:    ... okay on input line 111.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 111.
-LaTeX Font Info:    ... okay on input line 111.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 111.
-LaTeX Font Info:    ... okay on input line 111.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 111.
-LaTeX Font Info:    ... okay on input line 111.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 111.
-LaTeX Font Info:    ... okay on input line 111.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
 
 
 Class memoir Warning: \addtodef is marked deprecated and will be
 (memoir)              removed in 2026, use instead \patchcmd,
 (memoir)              \pretocmd or \apptocmd from the etoolbox package
-(memoir)              (which is autoloaded by the class) on input line 111.
+(memoir)              (which is autoloaded by the class) on input line 6.
 
 
-Package layouts Warning: Layout scale set to 0.5 on input line 111.
+Package layouts Warning: Layout scale set to 0.5 on input line 6.
 
 (/usr/local/texlive/2026/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -1111,7 +1112,7 @@ File: color.cfg 2016/01/02 v1.6 sample color configuration
 Package color Info: Driver file: pdftex.def on input line 149.
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/graphics/mathcolor.ltx))
-Package hyperref Info: Link coloring ON on input line 111.
+Package hyperref Info: Link coloring ON on input line 6.
 
 (./memoirthesis.out) (./memoirthesis.out)
 \@outlinefile=\write6
@@ -1120,13 +1121,13 @@ Package hyperref Info: Link coloring ON on input line 111.
 Package microtype Info: Patching varwidth to enable character protrusion.
 \MT@vwid@leftmargin=\dimen300
 \MT@vwid@rightmargin=\dimen301
-LaTeX Info: Redefining \microtypecontext on input line 111.
-Package microtype Info: Applying patch `item' on input line 111.
-Package microtype Info: Applying patch `toc' on input line 111.
-Package microtype Info: Applying patch `eqnum' on input line 111.
-Package microtype Info: Applying patch `footnote' on input line 111.
-Package microtype Info: Applying patch `verbatim' on input line 111.
-LaTeX Info: Redefining \microtypesetup on input line 111.
+LaTeX Info: Redefining \microtypecontext on input line 6.
+Package microtype Info: Applying patch `item' on input line 6.
+Package microtype Info: Applying patch `toc' on input line 6.
+Package microtype Info: Applying patch `eqnum' on input line 6.
+Package microtype Info: Applying patch `footnote' on input line 6.
+Package microtype Info: Applying patch `verbatim' on input line 6.
+LaTeX Info: Redefining \microtypesetup on input line 6.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -1145,21 +1146,22 @@ File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
 Package nag Info: Command \captionabove not defined, skipping amendment on inpu
-t line 111.
+t line 6.
 Package nag Info: Command \captionbelow not defined, skipping amendment on inpu
-t line 111.
+t line 6.
 Package nag Info: Command \hc@caption not defined, skipping amendment on input 
-line 111.
+line 6.
 Package nag Info: Command \topcaption not defined, skipping amendment on input 
-line 111.
+line 6.
 
-(./frontmatter/title.tex
+(./thesis-document.tex (./thesis-frontmatter.tex
+(./frontmatter/title-no-supervisor.tex
 <logos/AITU.png, id=458, 137.01187pt x 78.2925pt>
 File: logos/AITU.png Graphic file (type png)
 <use logos/AITU.png>
-Package pdftex.def Info: logos/AITU.png  used on input line 31.
+Package pdftex.def Info: logos/AITU.png  used on input line 28.
 (pdftex.def)             Requested size: 164.41342pt x 93.95052pt.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 32.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 29.
 
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsa.fd
@@ -1168,7 +1170,7 @@ File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 (/usr/local/texlive/2026/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 32.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 29.
 
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsb.fd
@@ -1177,11 +1179,11 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 (/usr/local/texlive/2026/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+stmry on input line 3
-2.
+LaTeX Font Info:    Trying to load font information for U+stmry on input line 2
+9.
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/stmaryrd/Ustmry.fd)
-LaTeX Font Info:    Trying to load font information for U+lasy on input line 32
+LaTeX Font Info:    Trying to load font information for U+lasy on input line 29
 .
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/base/ulasy.fd
@@ -1191,14 +1193,27 @@ File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 
 {/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map} <./logos
 /AITU.png>])
-(./frontmatter/abstract.tex) [1
+(./frontmatter/title.tex
+File: logos/AITU.png Graphic file (type png)
+<use logos/AITU.png>
+Package pdftex.def Info: logos/AITU.png  used on input line 31.
+(pdftex.def)             Requested size: 164.41342pt x 93.95052pt.
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
+been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.40 \end{adjustwidth*}
+                        [1
+
+]) (./frontmatter/abstract.tex) [1
 
 
-] (./frontmatter/dedication.tex [2
+]
+(./frontmatter/dedication.tex [2
 
 
-])
-(./frontmatter/declaration.tex
+]) (./frontmatter/declaration.tex
 Overfull \hbox (42.67477pt too wide) in paragraph at lines 13--15
  \OT1/cmr/m/sc/12 (-20) SIGNED: ...............................................
 ..... DATE: .......................................... 
@@ -1239,7 +1254,7 @@ Overfull \hbox (1.73586pt too wide) in paragraph at lines 45--45
 r, Times-Block, STGCN)[][] []  
  []
 
-[9] [10]) [11] (./chapters/chapter01/introduction.tex
+[9] [10]) [11]) (./chapters/chapter01/introduction.tex
 Chapter 1.
 
 pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
@@ -1299,7 +1314,7 @@ Chapter 4.
 [19
 
 ] (./chapters/chapter04/figures_implementation.tex
-<figures/architecture/01-batch-upload-pipeline.png, id=1046, 1487.5575pt x 871.
+<figures/architecture/01-batch-upload-pipeline.png, id=1049, 1487.5575pt x 871.
 255pt>
 File: figures/architecture/01-batch-upload-pipeline.png Graphic file (type png)
 
@@ -1308,14 +1323,14 @@ Package pdftex.def Info: figures/architecture/01-batch-upload-pipeline.png  use
 d on input line 4.
 (pdftex.def)             Requested size: 1487.55388pt x 871.25288pt.
  [20]
-<figures/architecture/02-smart-city-streaming.png, id=1054, 2188.175pt x 548.04
+<figures/architecture/02-smart-city-streaming.png, id=1057, 2188.175pt x 548.04
 75pt>
 File: figures/architecture/02-smart-city-streaming.png Graphic file (type png)
 <use figures/architecture/02-smart-city-streaming.png>
 Package pdftex.def Info: figures/architecture/02-smart-city-streaming.png  used
  on input line 10.
 (pdftex.def)             Requested size: 2188.1697pt x 548.04616pt.
-<figures/architecture/03-microservices-topology.png, id=1055, 1360.08125pt x 70
+<figures/architecture/03-microservices-topology.png, id=1058, 1360.08125pt x 70
 2.625pt>
 File: figures/architecture/03-microservices-topology.png Graphic file (type png
 )
@@ -1325,7 +1340,7 @@ ed on input line 16.
 (pdftex.def)             Requested size: 1360.07794pt x 702.62328pt.
  [21 <./figures/architecture/01-batch-upload-pipeline.png> <./figures/architect
 ure/02-smart-city-streaming.png>]
-<figures/architecture/04-medallion-data-lake.png, id=1062, 351.3125pt x 861.217
+<figures/architecture/04-medallion-data-lake.png, id=1065, 351.3125pt x 861.217
 5pt>
 File: figures/architecture/04-medallion-data-lake.png Graphic file (type png)
 <use figures/architecture/04-medallion-data-lake.png>
@@ -1333,7 +1348,7 @@ Package pdftex.def Info: figures/architecture/04-medallion-data-lake.png  used
 on input line 22.
 (pdftex.def)             Requested size: 351.31163pt x 861.2154pt.
  [22 <./figures/architecture/03-microservices-topology.png>]
-<figures/screenshots/00-login.png, id=1068, 1174.3875pt x 928.46875pt>
+<figures/screenshots/00-login.png, id=1071, 1174.3875pt x 928.46875pt>
 File: figures/screenshots/00-login.png Graphic file (type png)
 <use figures/screenshots/00-login.png>
 Package pdftex.def Info: figures/screenshots/00-login.png  used on input line 2
@@ -1341,7 +1356,7 @@ Package pdftex.def Info: figures/screenshots/00-login.png  used on input line 2
 (pdftex.def)             Requested size: 1174.38464pt x 928.46649pt.
 
 [23 <./figures/architecture/04-medallion-data-lake.png>]
-<figures/screenshots/08-smart-city-live-workbench.png, id=1074, 1927.2pt x 1084
+<figures/screenshots/08-smart-city-live-workbench.png, id=1077, 1927.2pt x 1084
 .05pt>
 File: figures/screenshots/08-smart-city-live-workbench.png Graphic file (type p
 ng)
@@ -1350,7 +1365,7 @@ Package pdftex.def Info: figures/screenshots/08-smart-city-live-workbench.png
 used on input line 34.
 (pdftex.def)             Requested size: 1927.19533pt x 1084.04736pt.
  [24 <./figures/screenshots/00-login.png (PNG copy)>]
-<figures/screenshots/09-core-unit-huggingface-modal.png, id=1079, 1927.2pt x 10
+<figures/screenshots/09-core-unit-huggingface-modal.png, id=1083, 1927.2pt x 10
 84.05pt>
 File: figures/screenshots/09-core-unit-huggingface-modal.png Graphic file (type
  png)
@@ -1358,7 +1373,7 @@ File: figures/screenshots/09-core-unit-huggingface-modal.png Graphic file (type
 Package pdftex.def Info: figures/screenshots/09-core-unit-huggingface-modal.png
   used on input line 40.
 (pdftex.def)             Requested size: 1927.19533pt x 1084.04736pt.
-<figures/screenshots/10-workflow-graph.png, id=1080, 1927.2pt x 1084.05pt>
+<figures/screenshots/10-workflow-graph.png, id=1084, 1927.2pt x 1084.05pt>
 File: figures/screenshots/10-workflow-graph.png Graphic file (type png)
 <use figures/screenshots/10-workflow-graph.png>
 Package pdftex.def Info: figures/screenshots/10-workflow-graph.png  used on inp
@@ -1413,26 +1428,26 @@ Underfull \hbox (badness 10000) in paragraph at lines 53--53
 e/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
 (./chapters/chapter05/generated_baselines.tex) [34]
 (./chapters/chapter05/figures_results.tex
-<figures/results/forecast_rmse_leaderboard.png, id=1182, 794.97pt x 505.89pt>
+<figures/results/forecast_rmse_leaderboard.png, id=1186, 794.97pt x 505.89pt>
 File: figures/results/forecast_rmse_leaderboard.png Graphic file (type png)
 <use figures/results/forecast_rmse_leaderboard.png>
 Package pdftex.def Info: figures/results/forecast_rmse_leaderboard.png  used on
  input line 4.
 (pdftex.def)             Requested size: 794.96806pt x 505.88875pt.
-<figures/results/multi_seed_rmse_boxplot.png, id=1183, 867.24pt x 505.89pt>
+<figures/results/multi_seed_rmse_boxplot.png, id=1187, 867.24pt x 505.89pt>
 File: figures/results/multi_seed_rmse_boxplot.png Graphic file (type png)
 <use figures/results/multi_seed_rmse_boxplot.png>
 Package pdftex.def Info: figures/results/multi_seed_rmse_boxplot.png  used on i
 nput line 10.
 (pdftex.def)             Requested size: 867.2379pt x 505.88875pt.
  [35 <./figures/results/forecast_rmse_leaderboard.png>]
-<figures/results/sequence_length_ablation.png, id=1189, 650.43pt x 361.35pt>
+<figures/results/sequence_length_ablation.png, id=1193, 650.43pt x 361.35pt>
 File: figures/results/sequence_length_ablation.png Graphic file (type png)
 <use figures/results/sequence_length_ablation.png>
 Package pdftex.def Info: figures/results/sequence_length_ablation.png  used on 
 input line 16.
 (pdftex.def)             Requested size: 650.4284pt x 361.34912pt.
-<figures/results/cross_dataset_transfer.png, id=1190, 650.43pt x 361.35pt>
+<figures/results/cross_dataset_transfer.png, id=1194, 650.43pt x 361.35pt>
 File: figures/results/cross_dataset_transfer.png Graphic file (type png)
 <use figures/results/cross_dataset_transfer.png>
 Package pdftex.def Info: figures/results/cross_dataset_transfer.png  used on in
@@ -1440,13 +1455,13 @@ put line 22.
 (pdftex.def)             Requested size: 650.4284pt x 361.34912pt.
  [36 <./figures/results/multi_seed_rmse_boxplot.png> <./figures/results/sequenc
 e_length_ablation.png>]
-<figures/results/streaming_latency.png, id=1197, 794.97pt x 433.62pt>
+<figures/results/streaming_latency.png, id=1202, 794.97pt x 433.62pt>
 File: figures/results/streaming_latency.png Graphic file (type png)
 <use figures/results/streaming_latency.png>
 Package pdftex.def Info: figures/results/streaming_latency.png  used on input l
 ine 28.
 (pdftex.def)             Requested size: 794.96806pt x 433.61894pt.
-<figures/results/streaming_throughput.png, id=1198, 794.97pt x 433.62pt>
+<figures/results/streaming_throughput.png, id=1203, 794.97pt x 433.62pt>
 File: figures/results/streaming_throughput.png Graphic file (type png)
 <use figures/results/streaming_throughput.png>
 Package pdftex.def Info: figures/results/streaming_throughput.png  used on inpu
@@ -1454,13 +1469,13 @@ t line 34.
 (pdftex.def)             Requested size: 794.96806pt x 433.61894pt.
  [37 <./figures/results/cross_dataset_transfer.png> <./figures/results/streamin
 g_latency.png>]
-<figures/results/validation_curves_training.png, id=1206, 867.24pt x 505.89pt>
+<figures/results/validation_curves_training.png, id=1210, 867.24pt x 505.89pt>
 File: figures/results/validation_curves_training.png Graphic file (type png)
 <use figures/results/validation_curves_training.png>
 Package pdftex.def Info: figures/results/validation_curves_training.png  used o
 n input line 40.
 (pdftex.def)             Requested size: 867.2379pt x 505.88875pt.
-<figures/results/classification_macro_f1.png, id=1207, 650.43pt x 289.08pt>
+<figures/results/classification_macro_f1.png, id=1211, 650.43pt x 289.08pt>
 File: figures/results/classification_macro_f1.png Graphic file (type png)
 <use figures/results/classification_macro_f1.png>
 Package pdftex.def Info: figures/results/classification_macro_f1.png  used on i
@@ -1500,7 +1515,7 @@ Appendix C.
 
 
 ] [55] [56] [57] [58] [59] [60] [61])
-[62]
+[62])
 No complaints by nag.
 \tf@lot=\write7
 \openout7 = `memoirthesis.lot'.
@@ -1524,13 +1539,13 @@ Package rerunfilecheck Info: File `memoirthesis.out' has not changed.
 (rerunfilecheck)             Checksum: 85590EFEB803314EF00557634EE66B3D;21907.
  ) 
 Here is how much of TeX's memory you used:
- 25209 strings out of 467337
- 411866 string characters out of 5415293
- 923359 words of memory out of 5000000
- 53174 multiletter control sequences out of 15000+600000
+ 25241 strings out of 467337
+ 412758 string characters out of 5415293
+ 924421 words of memory out of 5000000
+ 53194 multiletter control sequences out of 15000+600000
  656726 words of font info for 272 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 85i,13n,131p,1214b,1035s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,13n,134p,1242b,1035s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb>
@@ -1551,10 +1566,10 @@ ive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/local/texlive/2026/
 texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2
 026/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on memoirthesis.pdf (74 pages, 4244277 bytes).
+Output written on memoirthesis.pdf (75 pages, 4246358 bytes).
 PDF statistics:
- 1548 PDF objects out of 1728 (max. 8388607)
- 1386 compressed objects within 14 object streams
+ 1552 PDF objects out of 1728 (max. 8388607)
+ 1389 compressed objects within 14 object streams
  332 named destinations out of 1000 (max. 500000)
  71646 words of extra memory for PDF output out of 74296 (max. 10000000)
 

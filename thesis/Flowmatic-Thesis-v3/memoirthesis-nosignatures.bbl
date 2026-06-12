@@ -1,0 +1,408 @@
+\begin{thebibliography}{10}
+
+\bibitem{wang1996beyond}
+Richard~Y. Wang and Diane~M. Strong.
+\newblock Beyond accuracy: What data quality means to data consumers.
+\newblock {\em Journal of Management Information Systems}, 12(4):5--33, 1996.
+
+\bibitem{pipino2002data}
+Leo~L. Pipino, Yang~W. Lee, and Richard~Y. Wang.
+\newblock Data quality assessment.
+\newblock {\em Communications of the ACM}, 45(4):211--218, 2002.
+
+\bibitem{zanella2014iot}
+Andrea Zanella, Nicola Bui, Angelo Castellani, Lorenzo Vangelista, and Michele
+  Zorzi.
+\newblock Internet of things for smart cities.
+\newblock {\em IEEE Internet of Things Journal}, 1(1):22--32, 2014.
+
+\bibitem{sculley2015hidden}
+David Sculley, Gary Holt, Daniel Golze, Eugene Davydov, Todd Phillips, Dan
+  Ebner, Vinay Chaudhary, Michael Young, JeanFrancois Crespo, and Dan Dennison.
+\newblock Hidden technical debt in machine learning systems.
+\newblock In {\em Advances in Neural Information Processing Systems 28
+  (NeurIPS)}, pages 2503--2511, 2015.
+
+\bibitem{liu2022automated}
+Joseph Giovanelli, Besim Bilalli, and Alberto Abell{\'o}.
+\newblock Data pre-processing pipeline generation for {AutoETL}.
+\newblock {\em Information Systems}, 108:101957, 2022.
+
+\bibitem{feurer2019auto}
+Matthias Feurer and Frank Hutter.
+\newblock Hyperparameter optimization.
+\newblock In {\em Automated Machine Learning: Methods, Systems, Challenges},
+  pages 3--33. Springer, 2019.
+
+\bibitem{feurer2015autosklearn}
+Matthias Feurer, Aaron Klein, Katharina Eggensperger, Jost~Tobias Springenberg,
+  Manuel Blum, and Frank Hutter.
+\newblock Efficient and robust automated machine learning.
+\newblock In {\em Advances in Neural Information Processing Systems 28
+  (NeurIPS)}, pages 2962--2970, 2015.
+
+\bibitem{its_bigdata2018}
+Li~Zhu, F.~Richard Yu, Yige Wang, Bin Ning, and Tao Tang.
+\newblock Big data analytics in intelligent transportation systems: A survey.
+\newblock {\em IEEE Transactions on Intelligent Transportation Systems},
+  20(1):383--398, 2019.
+
+\bibitem{nie2023patchtst}
+Yuqi Nie, Nam~H. Nguyen, Phanwadee Sinthong, and Jayant Kalagnanam.
+\newblock A time series is worth 64 words: Long-term forecasting with
+  transformers.
+\newblock In {\em International Conference on Learning Representations (ICLR)},
+  2023.
+
+\bibitem{yu2018stgcn}
+Bing Yu, Haoteng Yin, and Zhanxing Zhu.
+\newblock Spatio-temporal graph convolutional networks: A deep learning
+  framework for traffic forecasting.
+\newblock In {\em Proceedings of the 27th International Joint Conference on
+  Artificial Intelligence (IJCAI)}, pages 3634--3640, 2018.
+
+\bibitem{zeng2023transformers}
+Ailing Zeng, Muxi Chen, Lei Zhang, and Qiang Xu.
+\newblock Are transformers effective for time series forecasting?
+\newblock In {\em Proceedings of the AAAI Conference on Artificial
+  Intelligence}, volume~37, pages 11121--11128, 2023.
+
+\bibitem{zaharia2018accelerating}
+Matei Zaharia, Andrew Chen, Aaron Davidson, Ali Ghodsi, Sue Hong, Andy
+  Konwinski, Siddharth Murching, Tomas Nykodym, Paul Ogilvie, Mani Parkhe,
+  et~al.
+\newblock Accelerating the machine learning lifecycle with {MLflow}.
+\newblock {\em IEEE Data Engineering Bulletin}, 41(4):39--45, 2018.
+
+\bibitem{kreutzberger2022mlops}
+Dominik Kreutzberger, Michael H{\"u}lsmann, Robin Hirt, and Boris Otto.
+\newblock Mlops -- a guide to its adoption in the context of responsible {AI}.
+\newblock {\em International Journal of Information Management}, 66:102470,
+  2022.
+
+\bibitem{bakytuly2024hybrid}
+Diar Begisbayev, Aivar Sakhipov, Ramazan Seiitbek, Aiganym Mansurova, and
+  Aigerim Mansurova.
+\newblock Investigation of hybrid models and architectures for real-time
+  adaptive passenger flow prediction.
+\newblock In {\em 2024 7th International Conference on Data Science and
+  Information Technology (DSIT)}, pages 1--5, 2024.
+
+\bibitem{yedilkhan2025flowmatic}
+Didar Yedilkhan, Aivar Sakhipov, Ramazan Seiitbek, Aruzhan Mektepayeva, and
+  Diar Begisbayev.
+\newblock Intelligent assistant for data preparation automation in urban
+  transportation management systems.
+\newblock {\em KazATC Bulletin}, 137(2):310--324, 2025.
+
+\bibitem{bakytuly2025adaptive}
+Aruzhan Mektepbayeva, Diar Begisbayev, Ramazan Seiitbek, Nursultan Khaimuldin,
+  Aivar Sakhipov, and Daniyar Rakhimzhanov.
+\newblock Adaptive machine learning algorithms for data processing in
+  transportation systems.
+\newblock In {\em 2025 IEEE 5th International Conference on Smart Information
+  Systems and Technologies (SIST)}, pages 1--8, 2025.
+
+\bibitem{bakytuly2026microservices}
+Aivar Sakhipov and Ramazan Seiitbek.
+\newblock Event-driven microservices for incident detection and response in
+  intelligent traffic systems.
+\newblock {\em International Journal of Information and Communication
+  Technologies}, 7(1):218--230, 2026.
+
+\bibitem{sakhipov2026xfedformer}
+Aivar Sakhipov, Zhanbai Uzdenbayev, Diar Begisbayev, Aruzhan Mektepbayeva,
+  Ramazan Seiitbek, and Didar Yedilkhan.
+\newblock Deep heterogeneity learning for cross-city transit forecasting: A
+  differentially private federated framework with mixture-of-experts and
+  seasonal decomposition.
+\newblock {\em Frontiers in Future Transportation}, 7:1644979, 2026.
+
+\bibitem{wolf2020transformers}
+Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Clement Delangue,
+  Anthony Moi, Pierric Cistac, Tim Rault, R{\'e}mi Louf, Morgan Funtowicz,
+  et~al.
+\newblock Transformers: State-of-the-art natural language processing.
+\newblock In {\em Proceedings of the 2020 Conference on Empirical Methods in
+  Natural Language Processing: System Demonstrations}, pages 38--45, 2020.
+
+\bibitem{rahm2000data}
+Erhard Rahm and Hong~Hai Do.
+\newblock Data cleaning: Problems and current approaches.
+\newblock {\em IEEE Data Engineering Bulletin}, 23(4):3--13, 2000.
+
+\bibitem{heinrich2007assessing}
+Bernd Heinrich, Mathias Klier, and Michael M{\"u}ller.
+\newblock Assessing data quality in {CRM} databases.
+\newblock {\em Information \& Management}, 44(7):559--572, 2007.
+
+\bibitem{sharma2022scenario}
+K.~Ko{\c{c}} and A.~P. G{\"u}rg{\"u}n.
+\newblock Scenario-based automated data preprocessing to predict severity of
+  construction accidents.
+\newblock {\em Automation in Construction}, 140:104351, 2022.
+
+\bibitem{kumar2021automl}
+Vraj Shah, Jonathan Lacanlale, Premanand Kumar, Kevin Yang, and Arun Kumar.
+\newblock Towards benchmarking feature type inference for {AutoML} platforms.
+\newblock In {\em Proceedings of the 2021 International Conference on
+  Management of Data (SIGMOD)}, pages 1584--1596, 2021.
+
+\bibitem{mahasivam2017dataprep}
+Nivethika Mahasivam, Nikolay Nikolov, Dina Sukhobok, and Dumitru Roman.
+\newblock Data preparation as a service based on {Apache Spark}.
+\newblock In {\em Service-Oriented and Cloud Computing: 6th {IFIP} {WG} 2.14
+  European Conference on Service-Oriented and Cloud Computing ({ESOCC} 2017)},
+  pages 125--139. Springer, 2017.
+
+\bibitem{tang2024missing}
+Yimei Zhang, Xiangjie Kong, Wenfeng Zhou, Jin Liu, Yanjie Fu, and Guojiang
+  Shen.
+\newblock A comprehensive survey on traffic missing data imputation.
+\newblock {\em IEEE Transactions on Intelligent Transportation Systems},
+  25(12):19252--19275, 2024.
+
+\bibitem{chan2023missing}
+Robin Kuok~Cheong Chan, Joanne Mun-Yee Lim, and Rajendran Parthiban.
+\newblock Missing traffic data imputation for artificial intelligence in
+  intelligent transportation systems: Review of methods, limitations, and
+  challenges.
+\newblock {\em IEEE Access}, 11:34080--34093, 2023.
+
+\bibitem{boquet2020vae}
+Guillem Boquet, Antoni Morell, Javier Serrano, and Jose~L. Vicario.
+\newblock A variational autoencoder solution for road traffic forecasting
+  systems: Missing data imputation, dimension reduction, model selection and
+  anomaly detection.
+\newblock {\em Transportation Research Part C: Emerging Technologies},
+  115:102622, 2020.
+
+\bibitem{cai2022feature}
+Mingfei Cai, Yanbo Pang, and Yoshihide Sekimoto.
+\newblock Spatial attention based grid representation learning for predicting
+  origin--destination flow.
+\newblock In {\em 2022 IEEE International Conference on Big Data (Big Data)},
+  pages 485--494, 2022.
+
+\bibitem{luo2024spatiotemporal}
+Qinyao Luo, Silu He, Xing Han, Yuhan Wang, and Haifeng Li.
+\newblock {LSTTN}: A long-short term transformer-based spatiotemporal neural
+  network for traffic flow forecasting.
+\newblock {\em Knowledge-Based Systems}, 293:111637, 2024.
+
+\bibitem{wu2021graph}
+Yuankai Wu, Dingyi Zhuang, Aur{\'e}lie Labbe, and Lijun Sun.
+\newblock Inductive graph neural networks for spatiotemporal kriging.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial
+  Intelligence}, volume~35, pages 4478--4485, 2021.
+
+\bibitem{mu2024spatiotemporal}
+Hongfan Mu, Noura Aljeri, and Azzedine Boukerche.
+\newblock Spatio-temporal feature engineering for deep learning models in
+  traffic flow forecasting.
+\newblock {\em IEEE Access}, 12:76555--76578, 2024.
+
+\bibitem{guo2019attention}
+Shengnan Guo, Youfang Lin, Ning Feng, Chao Song, and Huaiyu Wan.
+\newblock Attention based spatial-temporal graph convolutional networks for
+  traffic flow forecasting.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial
+  Intelligence}, volume~33, pages 922--929, 2019.
+
+\bibitem{liu2023transformer}
+Hangchen Liu, Zheng Dong, Renhe Jiang, Jiewen Deng, Jinliang Deng, Quanjun
+  Chen, and Xuan Song.
+\newblock Spatio-temporal adaptive embedding makes vanilla transformer {SOTA}
+  for traffic forecasting.
+\newblock In {\em Proceedings of the 32nd ACM International Conference on
+  Information and Knowledge Management (CIKM)}, pages 4125--4129, 2023.
+
+\bibitem{yan2021dynamic}
+Haoyang Yan, Xiaolei Ma, and Ziyuan Pu.
+\newblock Learning dynamic and hierarchical traffic spatiotemporal features
+  with transformer.
+\newblock {\em IEEE Transactions on Intelligent Transportation Systems},
+  23(11):22386--22399, 2022.
+
+\bibitem{wang2023adaptive}
+Yi~Wang, Changfeng Jing, Wei Huang, Shiyuan Jin, and Xiang Lv.
+\newblock Adaptive spatiotemporal {InceptionNet} for traffic flow forecasting.
+\newblock {\em IEEE Transactions on Intelligent Transportation Systems},
+  24(4):3882--3907, 2023.
+
+\bibitem{box2015time}
+George E.~P. Box, Gwilym~M. Jenkins, Gregory~C. Reinsel, and Greta~M. Ljung.
+\newblock {\em Time Series Analysis: Forecasting and Control}.
+\newblock Wiley, 5 edition, 2015.
+
+\bibitem{taylor2018forecasting}
+Sean~J. Taylor and Benjamin Letham.
+\newblock Forecasting at scale.
+\newblock {\em The American Statistician}, 72(1):37--45, 2018.
+
+\bibitem{hyndman2021forecasting}
+Rob~J. Hyndman and George Athanasopoulos.
+\newblock {\em Forecasting: Principles and Practice}.
+\newblock OTexts, 3 edition, 2021.
+
+\bibitem{benidis2022neural}
+Konstantinos Benidis, Syama~Sundar Rangapuram, Valentin Flunkert, Yuyang Wang,
+  Danielle~C. Maddix, Ali~Caner T{\"u}rkmen, Jan Gasthaus, Michael
+  Bohlke-Schneider, David Salinas, Lorenzo Stella, Fran{\c{c}}ois-Xavier Aubet,
+  Laurent Callot, and Tim Januschowski.
+\newblock Deep learning for time series forecasting: Tutorial and literature
+  survey.
+\newblock {\em ACM Computing Surveys}, 55(6):121:1--121:36, 2023.
+
+\bibitem{zhou2021informer}
+Haoyi Zhou, Shanghang Zhang, Jieqi Peng, Shuai Zhang, Jianxin Li, Hui Xiong,
+  and Wancai Zhang.
+\newblock Informer: Beyond efficient transformer for long sequence time-series
+  forecasting.
+\newblock {\em Proceedings of the AAAI Conference on Artificial Intelligence},
+  35(12):11106--11115, 2021.
+
+\bibitem{hochreiter1997lstm}
+Sepp Hochreiter and J{\"u}rgen Schmidhuber.
+\newblock Long short-term memory.
+\newblock {\em Neural Computation}, 9(8):1735--1780, 1997.
+
+\bibitem{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N. Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In {\em Advances in Neural Information Processing Systems 30
+  (NeurIPS)}, pages 5998--6008, 2017.
+
+\bibitem{chandola2009anomaly}
+Varun Chandola, Arindam Banerjee, and Vipin Kumar.
+\newblock Anomaly detection: A survey.
+\newblock {\em ACM Computing Surveys}, 41(3):15:1--15:58, 2009.
+
+\bibitem{breunig2000lof}
+Markus~M. Breunig, Hans-Peter Kriegel, Raymond~T. Ng, and J{\"o}rg Sander.
+\newblock {LOF}: Identifying density-based local outliers.
+\newblock In {\em Proceedings of the 2000 ACM SIGMOD International Conference
+  on Management of Data}, pages 93--104, 2000.
+
+\bibitem{liu2008isolation}
+Fei~Tony Liu, Kai~Ming Ting, and Zhi-Hua Zhou.
+\newblock Isolation forest.
+\newblock In {\em 2008 Eighth IEEE International Conference on Data Mining},
+  pages 413--422, 2008.
+
+\bibitem{pang2021deep}
+Guansong Pang, Chunhua Shen, Longbing Cao, and Anton van~den Hengel.
+\newblock Deep learning for anomaly detection: A review.
+\newblock {\em ACM Computing Surveys}, 54(2):38:1--38:38, 2021.
+
+\bibitem{ding2024variational}
+Siwei Guan, Zhiwei He, Shenhui Ma, and Mingyu Gao.
+\newblock Multivariate time series anomaly detection with variational
+  autoencoder and spatial--temporal graph network.
+\newblock {\em Computers \& Security}, 142:103877, 2024.
+
+\bibitem{kim2024autoencoder}
+Minseok Kim and Sanghyun Park.
+\newblock Unsupervised multi-head attention autoencoder for multivariate
+  time-series anomaly detection.
+\newblock In {\em Proceedings of the 2024 IEEE International Conference on Big
+  Data and Smart Computing (BigComp)}, pages 1--7, 2024.
+
+\bibitem{xu2021anomaly}
+Jiehui Xu, Haixu Wu, Jianmin Wang, and Mingsheng Long.
+\newblock Anomaly transformer: Time series anomaly detection with association
+  discrepancy.
+\newblock In {\em International Conference on Learning Representations (ICLR)},
+  2022.
+
+\bibitem{laanaoui2024realtime}
+My~Driss Laanaoui, Mohamed Lachgar, Mohamed Hanine, Hamid Hrimech,
+  Santos~Gracia Villar, and Imran Ashraf.
+\newblock Enhancing urban traffic management through real-time anomaly
+  detection and load balancing.
+\newblock {\em IEEE Access}, 12:63683--63700, 2024.
+
+\bibitem{wang2023federatedtrajectory}
+Xiaoding Wang, Wenxin Liu, Hui Lin, Jia Hu, Kuljeet Kaur, and M.~Shamim
+  Hossain.
+\newblock {AI}-empowered trajectory anomaly detection for intelligent
+  transportation systems: A hierarchical federated learning approach.
+\newblock {\em IEEE Transactions on Intelligent Transportation Systems},
+  24(4):4631--4640, 2023.
+
+\bibitem{breiman2001random}
+Leo Breiman.
+\newblock Random forests.
+\newblock {\em Machine Learning}, 45(1):5--32, 2001.
+
+\bibitem{cortes1995svm}
+Corinna Cortes and Vladimir Vapnik.
+\newblock Support-vector networks.
+\newblock {\em Machine Learning}, 20(3):273--297, 1995.
+
+\bibitem{chen2016xgboost}
+Tianqi Chen and Carlos Guestrin.
+\newblock {XGBoost}: A scalable tree boosting system.
+\newblock In {\em Proceedings of the 22nd ACM SIGKDD International Conference
+  on Knowledge Discovery and Data Mining}, pages 785--794, 2016.
+
+\bibitem{event_driven2025}
+Basem Almadani, Ekhlas Hashem, Raneem~R. Attar, Farouq Aliyu, and Esam
+  Al-Nahari.
+\newblock Publish/subscribe-middleware-based intelligent transportation
+  systems: Applications and challenges.
+\newblock {\em Applied Sciences}, 15(12):6449, 2025.
+
+\bibitem{kreps2011kafka}
+Jay Kreps, Jun Rao, and Jose Coraglia.
+\newblock Kafka: A distributed messaging system for log processing.
+\newblock In {\em Proceedings of the NetDB Workshop}, Athens, Greece, 2011.
+
+\bibitem{mazzetto2024urban}
+Silvia Mazzetto.
+\newblock A review of urban digital twins integration, challenges, and future
+  directions in smart city development.
+\newblock {\em Sustainability}, 16(19):8337, 2024.
+
+\bibitem{li2018diffusion}
+Yaguang Li, Rose Yu, Cyrus Shahabi, and Yan Liu.
+\newblock Diffusion convolutional recurrent neural network: Data-driven traffic
+  forecasting.
+\newblock In {\em International Conference on Learning Representations (ICLR)},
+  2018.
+
+\bibitem{lundberg2017unified}
+Scott~M. Lundberg and Su-In Lee.
+\newblock A unified approach to interpreting model predictions.
+\newblock In {\em Advances in Neural Information Processing Systems 30
+  (NeurIPS)}, pages 4765--4774, 2017.
+
+\bibitem{lundberg2020local}
+Scott~M. Lundberg, Gabriel Erion, Hugh Chen, Alex DeGrave, Jordan~M. Prutkin,
+  Bhavana Nair, Ronit Katz, Jonathan Himmelfarb, Nisha Bansal, and Su-In Lee.
+\newblock From local explanations to global understanding with explainable {AI}
+  for trees.
+\newblock {\em Nature Machine Intelligence}, 2(1):56--67, 2020.
+
+\bibitem{lipton2018mythos}
+Zachary~C. Lipton.
+\newblock The mythos of model interpretability.
+\newblock {\em Queue}, 16(3):31--57, 2018.
+
+\bibitem{ribeiro2016should}
+Marco~Tulio Ribeiro, Sameer Singh, and Carlos Guestrin.
+\newblock "why should {I} trust you?": Explaining the predictions of any
+  classifier.
+\newblock In {\em Proceedings of the 22nd ACM SIGKDD International Conference
+  on Knowledge Discovery and Data Mining}, pages 1135--1144, 2016.
+
+\bibitem{bakytuly2026architectural}
+Ramazan Seiitbek and Aivar Sakhipov.
+\newblock Architectural patterns for urban incident management: A comparative
+  analysis in astana's smart traffic ecosystem.
+\newblock Unpublished manuscript in preparation; not publicly available;
+  companion to the published IJICT microservices study (2026); generator rules
+  summarised in thesis Appendix C (Astana semi-synthetic dataset), 2026.
+
+\end{thebibliography}

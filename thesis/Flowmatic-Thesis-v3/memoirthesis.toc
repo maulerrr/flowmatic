@@ -61,7 +61,7 @@
 \contentsline {section}{\numberline {4.7}Implementation Summary}{26}{section.4.7}%
 \contentsline {chapter}{\chapternumberline {5}Results and Discussion}{28}{chapter.5}%
 \contentsline {section}{\numberline {5.1}Overview and Evidence Map}{28}{section.5.1}%
-\contentsline {subsection}{\numberline {5.1.1}Scientific versus engineering contributions}{28}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.1}Scientific versus engineering contributions}{29}{subsection.5.1.1}%
 \contentsline {section}{\numberline {5.2}Experimental Protocol}{29}{section.5.2}%
 \contentsline {subsection}{\numberline {5.2.1}Datasets}{29}{subsection.5.2.1}%
 \contentsline {subsection}{\numberline {5.2.2}Hold-out validation and multi-seed reporting}{30}{subsection.5.2.2}%
@@ -97,7 +97,7 @@
 \contentsline {section}{\numberline {6.2}Key Findings by Research Question}{44}{section.6.2}%
 \contentsline {section}{\numberline {6.3}Limitations}{45}{section.6.3}%
 \contentsline {section}{\numberline {6.4}Future Work}{45}{section.6.4}%
-\contentsline {section}{\numberline {6.5}Concluding Remarks}{45}{section.6.5}%
+\contentsline {section}{\numberline {6.5}Concluding Remarks}{46}{section.6.5}%
 \contentsline {appendix}{\chapternumberline {A}Author's Prior Publications}{47}{chapter.A}%
 \contentsline {appendix}{\chapternumberline {B}Reproducibility}{49}{chapter.B}%
 \contentsline {section}{\numberline {B.1}Repository Layout}{49}{section.B.1}%

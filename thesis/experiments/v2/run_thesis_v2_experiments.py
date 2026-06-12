@@ -713,12 +713,12 @@ SAITS masked MSE (reported) & {imp.get('saits_masked_mse_reported', 0.64):.3f} \
         (OUT / "generated_routing_mismatch.tex").write_text(
             f"""\\begin{{table}}[H]
   \\centering
-  \\caption{{Routing accuracy by simulator scenario profile ({r['n_events']} events).}}
+  \\caption{{Routing policy conformance by simulator scenario profile ({r['n_events']} events).}}
   \\label{{tab:routing-mismatch}}
   \\small
   \\begin{{tabular}}{{@{{}}lrrrl@{{}}}}
     \\toprule
-    Scenario & $N$ & Correct & Acc. & Typical mismatch selection \\\\
+    Scenario & $N$ & Matches & Conf. & Typical mismatch selection \\\\
     \\midrule
     {mm_rows} \\\\
     \\bottomrule
@@ -835,7 +835,7 @@ SAITS masked MSE (reported) & {imp.get('saits_masked_mse_reported', 0.64):.3f} \
 
 \\begin{{table}}[H]
   \\centering
-  \\caption{{Auto routing evaluation on {r['n_events']} synthetic sensor events (rule-based router; production registry).}}
+  \\caption{{Auto routing policy-conformance evaluation on {r['n_events']} synthetic sensor events (rule-based router; production registry).}}
   \\label{{tab:routing-eval}}
   \\small
   \\begin{{tabular}}{{@{{}}lllll@{{}}}}
@@ -845,7 +845,7 @@ SAITS masked MSE (reported) & {imp.get('saits_masked_mse_reported', 0.64):.3f} \
     {routing_rows} \\\\
     \\bottomrule
   \\end{{tabular}}
-  \\thesistablenote{{{r['top1_kind_accuracy']*100:.1f}\\% scenario-aligned policy consistency; task-family accuracy: {r['task_slot_accuracy']*100:.1f}\\%.}}
+  \\thesistablenote{{{r['top1_kind_accuracy']*100:.1f}\\% scenario-aligned policy conformance; task-family agreement: {r['task_slot_accuracy']*100:.1f}\\%. Oracles are co-designed with the documented routing policy, so the result verifies implementation consistency rather than independent routing generalisation.}}
 \\end{{table}}
 """,
         encoding="utf-8",

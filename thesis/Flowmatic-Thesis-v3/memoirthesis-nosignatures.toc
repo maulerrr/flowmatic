@@ -1,0 +1,112 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{Abstract}{i}{chapter*.2}%
+\contentsline {chapter}{Dedication and acknowledgements}{ii}{chapter*.4}%
+\contentsline {chapter}{List of Tables}{iii}{chapter*.5}%
+\contentsline {chapter}{List of Figures}{v}{chapter*.6}%
+\contentsline {chapter}{Table of Contents}{vi}{chapter*.7}%
+\contentsline {chapter}{\chapternumberline {1}Introduction}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Relevance, Problem Statement, and Research Gap}{1}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Aim and Objectives of the Research}{2}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Scientific Novelty and Practical Significance}{3}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Thesis Structure}{3}{section.1.4}%
+\contentsline {chapter}{\chapternumberline {2}Literature Review}{5}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Scope and Organisation}{5}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Data Quality and Fitness for Use}{5}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Automated Preprocessing and AutoML Pipelines}{6}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Missing Data, Imputation, and Traffic Streams}{6}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Feature Engineering and Spatiotemporal Representation}{6}{section.2.5}%
+\contentsline {section}{\numberline {2.6}Forecasting Baselines and Neural Architectures}{7}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Anomaly Detection: Classical and Deep}{7}{section.2.7}%
+\contentsline {section}{\numberline {2.8}Classification and Tree Ensembles}{7}{section.2.8}%
+\contentsline {section}{\numberline {2.9}Intelligent Transportation Systems and Event-Driven Platforms}{8}{section.2.9}%
+\contentsline {section}{\numberline {2.10}Explainability and Operator Trust}{8}{section.2.10}%
+\contentsline {section}{\numberline {2.11}MLOps, Registries, and Reproducibility}{8}{section.2.11}%
+\contentsline {section}{\numberline {2.12}Comparative Positioning}{8}{section.2.12}%
+\contentsline {section}{\numberline {2.13}Research Gap and Thesis Positioning}{9}{section.2.13}%
+\contentsline {subsection}{\numberline {2.13.1}Comparable systems}{9}{subsection.2.13.1}%
+\contentsline {section}{\numberline {2.14}Automated Machine Learning and Pipeline Search}{10}{section.2.14}%
+\contentsline {section}{\numberline {2.15}Traffic Forecasting Surveys and Graph Models}{10}{section.2.15}%
+\contentsline {section}{\numberline {2.16}Digital Twins and Smart-City Operations}{10}{section.2.16}%
+\contentsline {section}{\numberline {2.17}Synthesis: Where Flowmatic Sits}{11}{section.2.17}%
+\contentsline {chapter}{\chapternumberline {3}Methodology}{12}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Overview}{12}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Research Design}{12}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Research Questions}{12}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Evaluation Scope and Validity}{13}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Non-Functional Requirements}{13}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Data Quality Assessment}{14}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Preparation and Feature Windows}{14}{section.3.7}%
+\contentsline {section}{\numberline {3.8}Adaptive Core Unit and Model Registry}{15}{section.3.8}%
+\contentsline {subsection}{\numberline {3.8.1}Registry}{15}{subsection.3.8.1}%
+\contentsline {subsection}{\numberline {3.8.2}Routing policy}{15}{subsection.3.8.2}%
+\contentsline {section}{\numberline {3.9}Neural Task Formulations}{15}{section.3.9}%
+\contentsline {subsection}{\numberline {3.9.1}Forecasting (PatchTST, iTransformer, DLinear, TimesBlock, STGCN)}{16}{subsection.3.9.1}%
+\contentsline {subsection}{\numberline {3.9.2}Anomaly detection (TranAD-style reconstruction)}{16}{subsection.3.9.2}%
+\contentsline {subsection}{\numberline {3.9.3}Imputation (SAITS-style masked reconstruction)}{16}{subsection.3.9.3}%
+\contentsline {subsection}{\numberline {3.9.4}Severity classification (Transformer encoder)}{16}{subsection.3.9.4}%
+\contentsline {section}{\numberline {3.10}Neural Evaluation Methodology}{17}{section.3.10}%
+\contentsline {subsection}{\numberline {3.10.1}Baseline protocols}{17}{subsection.3.10.1}%
+\contentsline {subsection}{\numberline {3.10.2}Preparation stress protocol}{17}{subsection.3.10.2}%
+\contentsline {subsection}{\numberline {3.10.3}Routing evaluation protocol}{18}{subsection.3.10.3}%
+\contentsline {section}{\numberline {3.11}Insight Engine and Copilot}{18}{section.3.11}%
+\contentsline {chapter}{\chapternumberline {4}Implementation}{19}{chapter.4}%
+\contentsline {section}{\numberline {4.1}System Architecture}{19}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Batch Preparation Module}{19}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Smart City Module}{19}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Model Inference Service}{20}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Research Artifact Pipeline}{20}{section.4.5}%
+\contentsline {section}{\numberline {4.6}User Interface}{20}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Implementation Summary}{26}{section.4.7}%
+\contentsline {chapter}{\chapternumberline {5}Results and Discussion}{28}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Overview and Evidence Map}{28}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Scientific versus engineering contributions}{29}{subsection.5.1.1}%
+\contentsline {section}{\numberline {5.2}Experimental Protocol}{29}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}Datasets}{29}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}Hold-out validation and multi-seed reporting}{30}{subsection.5.2.2}%
+\contentsline {section}{\numberline {5.3}Preparation and Quality Outcomes (RQ1)}{31}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Clean batch upload}{31}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Corruption stress test}{31}{subsection.5.3.2}%
+\contentsline {section}{\numberline {5.4}Platform Case Studies (RQ2)}{33}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}Batch path}{33}{subsection.5.4.1}%
+\contentsline {subsection}{\numberline {5.4.2}Live smart-city workbench}{33}{subsection.5.4.2}%
+\contentsline {section}{\numberline {5.5}Baselines and Neural Portfolio (RQ3)}{33}{section.5.5}%
+\contentsline {subsection}{\numberline {5.5.1}Reference baselines}{33}{subsection.5.5.1}%
+\contentsline {subsection}{\numberline {5.5.2}Classification baselines}{33}{subsection.5.5.2}%
+\contentsline {subsection}{\numberline {5.5.3}Multi-seed test performance}{34}{subsection.5.5.3}%
+\contentsline {section}{\numberline {5.6}Ablations and Generalisation}{39}{section.5.6}%
+\contentsline {subsection}{\numberline {5.6.1}Preparation versus downstream forecasting}{39}{subsection.5.6.1}%
+\contentsline {subsection}{\numberline {5.6.2}TranAD detection metrics}{39}{subsection.5.6.2}%
+\contentsline {subsection}{\numberline {5.6.3}iTransformer speed slot}{39}{subsection.5.6.3}%
+\contentsline {subsection}{\numberline {5.6.4}Sequence length}{40}{subsection.5.6.4}%
+\contentsline {subsection}{\numberline {5.6.5}Cross-dataset transfer}{40}{subsection.5.6.5}%
+\contentsline {subsection}{\numberline {5.6.6}Streaming inference latency}{41}{subsection.5.6.6}%
+\contentsline {section}{\numberline {5.7}Routing Evaluation (RQ4)}{41}{section.5.7}%
+\contentsline {section}{\numberline {5.8}Discussion}{41}{section.5.8}%
+\contentsline {subsection}{\numberline {5.8.1}Interpretation of preparation results}{41}{subsection.5.8.1}%
+\contentsline {subsection}{\numberline {5.8.2}Interpretation of neural results}{42}{subsection.5.8.2}%
+\contentsline {subsection}{\numberline {5.8.3}Interpretation of routing results}{42}{subsection.5.8.3}%
+\contentsline {subsection}{\numberline {5.8.4}Scope of validation and interpretation of metrics}{42}{subsection.5.8.4}%
+\contentsline {subsection}{\numberline {5.8.5}Reproducibility}{43}{subsection.5.8.5}%
+\contentsline {subsection}{\numberline {5.8.6}Threats to validity}{43}{subsection.5.8.6}%
+\contentsline {subsection}{\numberline {5.8.7}Anomaly detection and explainability}{43}{subsection.5.8.7}%
+\contentsline {section}{\numberline {5.9}Research Question Outcomes}{43}{section.5.9}%
+\contentsline {chapter}{\chapternumberline {6}Conclusion and Future Directions}{44}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Summary of Contributions}{44}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Key Findings by Research Question}{44}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Limitations}{45}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Future Work}{45}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Concluding Remarks}{46}{section.6.5}%
+\contentsline {appendix}{\chapternumberline {A}Author's Prior Publications}{47}{chapter.A}%
+\contentsline {appendix}{\chapternumberline {B}Reproducibility}{49}{chapter.B}%
+\contentsline {section}{\numberline {B.1}Repository Layout}{49}{section.B.1}%
+\contentsline {section}{\numberline {B.2}Neural Evaluation}{49}{section.B.2}%
+\contentsline {section}{\numberline {B.3}Published Artifacts}{49}{section.B.3}%
+\contentsline {section}{\numberline {B.4}Environment}{50}{section.B.4}%
+\contentsline {section}{\numberline {B.5}Graph Adjacency for STGCN}{50}{section.B.5}%
+\contentsline {section}{\numberline {B.6}Ethics and Data Handling}{50}{section.B.6}%
+\contentsline {appendix}{\chapternumberline {C}Astana Semi-Synthetic Dataset}{51}{chapter.C}%
+\contentsline {section}{\numberline {C.1}Provenance}{51}{section.C.1}%
+\contentsline {section}{\numberline {C.2}Schema}{51}{section.C.2}%
+\contentsline {section}{\numberline {C.3}Generation rules (summary)}{52}{section.C.3}%
+\contentsline {section}{\numberline {C.4}Other datasets}{53}{section.C.4}%
+\contentsline {chapter}{Bibliography}{54}{chapter*.50}%

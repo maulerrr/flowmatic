@@ -1,0 +1,25 @@
+\frontmatter
+\pagenumbering{roman}
+
+\input{frontmatter/title-no-supervisor}
+\input{frontmatter/title}
+\input{frontmatter/abstract}
+\clearemptydoublepage
+\input{frontmatter/dedication}
+\ifthesisincludesignatures
+  \input{frontmatter/declaration}
+  \clearemptydoublepage
+\fi
+
+\cleardoublepage
+\addtocontents{lot}{\par\nobreak\textbf{{\scshape Table} \hfill Page}\par\nobreak}
+\listoftables
+\cleardoublepage
+\addtocontents{lof}{\par\nobreak\textbf{{\scshape Figure} \hfill Page}\par\nobreak}
+\listoffigures
+\cleardoublepage
+
+\renewcommand{\contentsname}{Table of Contents}
+\maxtocdepth{subsection}
+\tableofcontents
+\cleardoublepage

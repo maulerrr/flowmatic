@@ -30,7 +30,7 @@
     \textbf{Task slot} & \textbf{Architecture} & \textbf{Dataset} & \textbf{HF repository} \\
     \midrule
     Traffic density forecast & PatchTST & Astana & flowmatic-astana-patchtst-density-forecaster \\
-    Speed forecast & iTransformer & Astana & flowmatic-astana-itransformer-speed-forecaster \\
+    Speed forecast (auxiliary; deployment-parity slot) & iTransformer & Astana & flowmatic-astana-itransformer-speed-forecaster \\
     Anomaly reconstruction & TranAD & Astana & flowmatic-astana-tranad-anomaly-detector \\
     Weather forecast & TimesBlock & HF weather & flowmatic-weather-timesblock-forecaster \\
     Graph traffic forecast & STGCN & HF traffic & flowmatic-traffic-stgcn-forecaster \\
@@ -39,7 +39,7 @@
     Energy forecast & DLinear & HF ETT & flowmatic-ett-dlinear-energy-forecaster \\
     \bottomrule
   \end{tabularx}
-  \thesistablenote{Models are published on Hugging Face (organisation \texttt{pushthetempo}) and loaded by the inference microservice via TorchScript or Hub download.}
+  \thesistablenote{Models are published on Hugging Face (organisation \texttt{pushthetempo}) and loaded by the inference microservice via TorchScript or Hub download. The iTransformer speed slot is retained as an auxiliary deployment-parity artifact; Chapter~\ref{chap:results} reports its weak level-speed RMSE and first-difference retune.}
 \end{table}
 
 \begin{table}[H]
